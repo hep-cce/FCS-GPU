@@ -1,0 +1,10 @@
+universe        = vanilla
+executable      = @EXE@
+output          = @RUN@.out
+log             = @RUN@.log
+#error           = @RUN@.err
+request_memory  = @MEM@
++MaxRuntime     = @MAXRUNTIME@
+notification    = Complete
+notify_user     = @EMAIL@
+queue 1

@@ -1,0 +1,24 @@
+# this makefile also gets parsed by shell scripts
+# therefore it does not support full make syntax and features
+# edit with care
+
+# for full documentation check:
+# https://twiki.cern.ch/twiki/bin/viewauth/Atlas/RootCore#Package_Makefile
+
+PACKAGE          = CaloGeoHelpers
+PACKAGE_PRELOAD  =
+PACKAGE_CXXFLAGS = 
+PACKAGE_OBJFLAGS = 
+PACKAGE_LDFLAGS  = 
+PACKAGE_BINFLAGS = 
+PACKAGE_LIBFLAGS = 
+PACKAGE_DEP      = CxxUtils
+PACKAGE_TRYDEP   = 
+PACKAGE_CLEAN    = 
+PACKAGE_NOGRID   = 
+PACKAGE_PEDANTIC = 0
+PACKAGE_NOOPT    = 0
+PACKAGE_NOCC     = 0
+PACKAGE_REFLEX   = 0
+
+include $(ROOTCOREDIR)/Makefile-common

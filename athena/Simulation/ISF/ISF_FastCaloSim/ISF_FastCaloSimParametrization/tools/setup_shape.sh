@@ -1,0 +1,4 @@
+setupATLAS
+asetup 20.1.0
+svn switch $SVNROOT/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/devbranches/ISF_FastCaloSimParametrization_WorkingBranch
+

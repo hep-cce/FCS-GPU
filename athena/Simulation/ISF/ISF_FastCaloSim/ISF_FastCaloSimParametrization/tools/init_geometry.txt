@@ -1,0 +1,25 @@
+# Instructions how to load CaloGeometry class in a standalone macro
+
+# Compilation  
+  
+  gInterpreter->AddIncludePath("..");
+  gInterpreter->AddIncludePath("../tools");
+
+  gROOT->LoadMacro("../tools/CaloDetDescr/CaloDetDescrElement.h+");
+  gROOT->LoadMacro("../src/CaloGeometry.cxx+");
+  gROOT->LoadMacro("../src/CaloGeometryLookup.cxx+");
+  gROOT->LoadMacro("../tools/CaloGeometryFromFile.cxx+");
+  gROOT->LoadMacro("../tools/FCAL_ChannelMap.cxx+");
+
+# In macro
+
+CaloGeometryFromFile* geo=new CaloGeometryFromFile();
+geo->LoadGeometryFromFile("/afs/cern.ch/atlas/groups/Simulation/FastCaloSim/ATLAS-GEO-20-00-01.root","ATLAS-GEO-20-00-01");
+ TString path_to_fcal_geo_files = "/afs/cern.ch/atlas/groups/Simulation/FastCaloSimV2/";
+geo->LoadFCalGeometryFromFiles(path_to_fcal_geo_files + "FCal1-electrodes.sorted.HV.09Nov2007.dat", path_to_fcal_geo_files + "FCal2-electrodes.sorted.HV.April2011.dat", path_to_fcal_geo_files + "FCal3-electrodes.sorted.HV.09Nov2007.dat");
+
+const CaloDetDescrElement* mcell=0;
+mcell=geo->getDDE(layer, eta, phi);
+
+
+
