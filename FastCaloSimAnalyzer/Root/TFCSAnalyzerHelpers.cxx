@@ -12,12 +12,11 @@
 #include "ISF_FastCaloSimEvent/TFCSEnergyBinParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSEnergyInterpolationLinear.h"
 #include "ISF_FastCaloSimEvent/TFCSEnergyInterpolationSpline.h"
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrization.h"
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrizationFCal.h"
+#include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrization.h"
+#include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrizationFCal.h"
 #include "ISF_FastCaloSimEvent/TFCSHitCellMappingFCal.h"
-#include "ISF_FastCaloSimEvent/TFCSHitCellMappingWiggle.h"
+#include "FastCaloSimAnalyzer/TFCSHitCellMappingWiggle.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitBase.h"
-#include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitChain.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitNumberFromE.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationEbinChain.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationEkinSelectChain.h"
@@ -26,6 +25,7 @@
 
 #include "FastCaloSimAnalyzer/TFCSAnalyzerBase.h"
 #include "FastCaloSimAnalyzer/TFCSAnalyzerHelpers.h"
+#include "FastCaloSimAnalyzer/TFCSLateralShapeParametrizationHitChain.h"
 
 #include "TFCSSampleDiscovery.h"
 

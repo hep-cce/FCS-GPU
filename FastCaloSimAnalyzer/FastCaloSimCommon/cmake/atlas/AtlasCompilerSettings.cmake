@@ -139,9 +139,9 @@ if( CMAKE_COMPILER_IS_GNUCXX )
    endforeach()
    _add_flag( CMAKE_CXX_FLAGS_DEBUG "-fsanitize=undefined" )
 endif()
-foreach( mode RELEASE RELWITHDEBINFO DEBUG )
-   _add_flag( CMAKE_CXX_FLAGS_${mode} "-pedantic" )
-endforeach()
+#foreach( mode RELEASE RELWITHDEBINFO DEBUG )
+#   _add_flag( CMAKE_CXX_FLAGS_${mode} "-pedantic" )
+#endforeach()
 
 #
 # Set up the linker flags:

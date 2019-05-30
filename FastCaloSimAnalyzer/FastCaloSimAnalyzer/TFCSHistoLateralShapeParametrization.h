@@ -9,6 +9,11 @@
 #include "ISF_FastCaloSimEvent/TFCS2DFunctionHistogram.h"
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 
+#ifdef USE_GPU
+#include "FastCaloGpu/FastCaloGpu/LoadGpuFuncHist.h"
+#endif
+
+
 class TH2;
 
 class TFCSHistoLateralShapeParametrization:public TFCSLateralShapeParametrizationHitBase {
@@ -44,12 +49,26 @@ public:
   
   TFCS2DFunctionHistogram& histogram() {return m_hist;};
   const TFCS2DFunctionHistogram& histogram() const {return m_hist;};
+
+#ifdef USE_GPU
+  void set_d_HistFunc( FH2D * hf_ptr ) { m_d_HistFunc = hf_ptr ; } ;
+  const FH2D * d_HistFunc() {return  m_d_HistFunc ; } ;
+  LoadGpuFuncHist* LdFH() { return  m_LdFH ;}; 
+  void LoadHistFuncs() ;
+#endif
+
   
   void Print(Option_t *option = "") const override;
 protected:
   /// Histogram to be used for the shape simulation
   TFCS2DFunctionHistogram m_hist;
   float m_nhits;
+
+#ifdef USE_GPU
+  FH2D * m_d_HistFunc = nullptr ;
+  LoadGpuFuncHist* m_LdFH = nullptr;
+
+#endif
 
 private:
 

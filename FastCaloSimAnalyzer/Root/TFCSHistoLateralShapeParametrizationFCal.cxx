@@ -5,7 +5,7 @@
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoisson.h"
 
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrizationFCal.h"
+#include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrizationFCal.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 

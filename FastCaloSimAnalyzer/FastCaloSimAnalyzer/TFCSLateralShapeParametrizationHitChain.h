@@ -5,6 +5,7 @@
 #ifndef TFCSLateralShapeParametrizationHitChain_h
 #define TFCSLateralShapeParametrizationHitChain_h
 
+
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitBase.h"
 #include <vector>
@@ -32,6 +33,10 @@ public:
   virtual int get_number_of_hits(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) const;
 
   void Print(Option_t *option = "") const override;
+
+#if defined(USE_GPU)
+  void gpu_hit_chain() ; 
+#endif
 
 #if defined(__FastCaloSimStandAlone__)
   /// Update outputlevel

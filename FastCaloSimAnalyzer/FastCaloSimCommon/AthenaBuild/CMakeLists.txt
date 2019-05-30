@@ -19,15 +19,11 @@ set(AthenaStandalone_Srcs
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSEnergyInterpolationSpline.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSEnergyParametrization.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSExtrapolationState.cxx
-  ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSHistoLateralShapeParametrization.cxx
-  ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSHistoLateralShapeParametrizationFCal.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSHitCellMapping.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSHitCellMappingFCal.cxx
-  ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSHitCellMappingWiggle.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSInvisibleParametrization.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSLateralShapeParametrization.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSLateralShapeParametrizationHitBase.cxx
-  ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSLateralShapeParametrizationHitChain.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSLateralShapeParametrizationHitNumberFromE.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSParametrization.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimEvent/src/TFCSParametrizationAbsEtaSelectChain.cxx

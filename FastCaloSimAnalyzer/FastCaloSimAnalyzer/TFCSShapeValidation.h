@@ -13,6 +13,11 @@
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
+
+#ifdef USE_GPU
+#include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
+#endif
+
 class TFCSShapeValidation: public TFCSAnalyzerBase
 {
 public:
@@ -36,7 +41,11 @@ public:
    void set_nprint(int n) {m_nprint=n;};
    
    int get_layer() const {return m_layer;};
-   
+#ifdef USE_GPU
+   void GeoLg() ;
+   void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr ) ;
+   //void copy_all_regions( ) ;
+#endif   
 private:
    CLHEP::HepRandomEngine *m_randEngine;
 
@@ -52,8 +61,12 @@ private:
    
    std::vector<TFCSSimulationRun> m_validations;
 
+#ifdef USE_GPU
+   GeoLoadGpu * m_gl ;
+#endif
 
    ClassDef(TFCSShapeValidation, 1);
+
 };
 
 #if defined(__MAKECINT__)

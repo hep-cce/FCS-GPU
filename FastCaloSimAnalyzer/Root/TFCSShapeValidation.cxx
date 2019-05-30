@@ -29,6 +29,16 @@
 
 #include "TFCSSampleDiscovery.h"
 
+#include <chrono> 
+#include <typeinfo>
+
+#ifdef USE_GPU
+#include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
+#endif
+
+
+
+
 TFCSShapeValidation::TFCSShapeValidation(long seed)
 {
    m_debug = 0;
@@ -38,6 +48,12 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
    m_randEngine = new CLHEP::TRandomEngine();
    m_randEngine->setSeed(seed);
+
+#ifdef USE_GPU
+   m_gl =0 ;
+#endif
+
+
 }
 
 
@@ -53,6 +69,11 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
 
    m_randEngine = new CLHEP::TRandomEngine();
    m_randEngine->setSeed(seed);
+#ifdef USE_GPU
+   m_gl =0 ;
+#endif
+
+
 }
 
 
@@ -75,6 +96,57 @@ void TFCSShapeValidation::LoadGeo()
 void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 {
   LoadGeo();
+
+   auto start = std::chrono::system_clock::now();
+
+
+#ifdef USE_GPU
+
+  GeoLg() ;
+
+  if (m_gl->LoadGpu())
+	std::cout <<"GPU loaded!!!" <<std::endl  ;
+   
+#endif
+   
+  //m_debug=1 ;
+   auto t1 = std::chrono::system_clock::now();
+   std::chrono::duration<double> diff = t1-start;
+   std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
+
+
+  std::cout << "Geo size: " << m_geo->get_cells()->size() << std::endl ;
+  std::cout << "Geo region size: " ;
+   for(int  isample=0; isample <24; isample++) {
+         std::cout << m_geo->get_n_regions(isample) << " "  ;
+        }
+      std::cout << std::endl ;
+
+        unsigned long t_cells=0 ;
+   for(int  isample=0; isample <24; isample++) {
+       std::cout << "Sample: " <<isample << std::endl ;
+        int sample_tot =0 ;
+       int rgs=m_geo->get_n_regions(isample) ;
+        for (int irg=0 ; irg<rgs ; irg++)
+        {
+          std::cout << " region: " << irg << " cells: " << m_geo->get_region_size(isample,irg)
+                << std::endl ;
+            sample_tot += m_geo->get_region_size(isample,irg);
+            t_cells += m_geo->get_region_size(isample,irg) ;
+            int neta = m_geo->get_region(isample,irg)->cell_grid_eta();
+            int nphi =  m_geo->get_region(isample,irg)->cell_grid_phi() ;
+             std::cout << "     Cell Grid neta,nphi :" << neta << "  "<< nphi << std::endl ;
+
+
+
+        }
+        std::cout<< "Total cells for sample "<< isample << " is " << sample_tot <<std::endl;
+
+    }
+        std::cout<< "Total cells for all regions and samplesi: " << t_cells <<std::endl;
+
+
+
 
   int nentries = m_nentries;
   int layer = m_layer;
@@ -110,8 +182,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     if(nentries<100) m_nprint=1;
   }
   
-  for (int ievent = m_firstevent; ievent < nentries; ievent++)
-  //for (int ievent = m_firstevent; ievent < 100; ievent++)
+   auto t2 = std::chrono::system_clock::now();
+//  for (int ievent = m_firstevent; ievent < nentries; ievent++)
+  for (int ievent = m_firstevent; ievent < 100; ievent++)
+  //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      m_chain->GetEntry(ievent);
@@ -243,10 +317,16 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
        if (m_debug >= 1) {
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
        }
+         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
+		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
+		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
 
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
-       validation.basesim()->simulate(chain_simul,&truthTLV,&extrapol); 
+  
+//        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
+
+     validation.basesim()->simulate(chain_simul,&truthTLV,&extrapol); 
        if (m_debug >= 1) {
          chain_simul.Print();
          std::cout << "End simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<std::endl<<std::endl;
@@ -254,6 +334,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      }
   } // end loop over events
   
+   auto t3 = std::chrono::system_clock::now();
+   diff = t3-t2;
+   std::cout <<  "Time of  eventloop  :" << diff.count() <<" s" << std::endl ;
   
 /*  
   TCanvas* c;
@@ -283,3 +366,103 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   c->SaveAs(".png");
 */  
 }
+
+#ifdef USE_GPU
+void TFCSShapeValidation::GeoLg() {
+    m_gl=new GeoLoadGpu() ;
+    m_gl->set_ncells(m_geo->get_cells()->size());
+    m_gl->set_max_sample(CaloGeometry::MAX_SAMPLING);
+    int nrgns=m_geo->get_tot_regions() ;
+
+    std::cout<<"Total GeoRegions= " << nrgns << std::endl ;
+    std::cout<<"Total cells= " << m_geo->get_cells()->size() << std::endl ;
+
+    m_gl->set_nregions(nrgns) ;
+    m_gl->set_cellmap( m_geo->get_cells()) ;
+
+    GeoRegion* GR_ptr = (GeoRegion *)  malloc(nrgns * sizeof(GeoRegion) );
+    m_gl->set_regions(GR_ptr) ;
+
+    Rg_Sample_Index * si = (Rg_Sample_Index * )malloc(CaloGeometry::MAX_SAMPLING*sizeof(Rg_Sample_Index)) ;
+    
+    m_gl->set_sample_index_h( si) ;
+
+    int i=0 ;
+    for ( int is=0 ; is < CaloGeometry::MAX_SAMPLING;  ++is ){
+	si[is].index = i ;	
+        int nr = m_geo->get_n_regions( is );
+	si[is].size =nr ;
+        for (int ir=0; ir<nr ; ++ir )
+            region_data_cpy(m_geo->get_region(is,ir), &GR_ptr[i++]) ;
+//    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
+    }
+}
+
+
+void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr ) {
+
+    // Copy all parameters
+    gr->set_xy_grid_adjustment_factor(glkup->xy_grid_adjustment_factor());
+    gr->set_index(glkup->index());
+	
+    int neta = glkup->cell_grid_eta() ;
+    int nphi =  glkup->cell_grid_phi() ;
+  // std::cout << " copy region " << glkup->index() << "neta= " << neta<< ", nphi= "<<nphi<< std::endl ;
+
+    gr->set_cell_grid_eta( neta);
+    gr->set_cell_grid_phi( nphi) ;
+
+    gr->set_mineta(glkup->mineta());
+    gr->set_minphi(glkup->minphi());
+    gr->set_maxeta(glkup->maxeta());
+    gr->set_maxphi(glkup->maxphi());
+
+    gr->set_mineta_raw(glkup->mineta_raw());
+    gr->set_minphi_raw(glkup->minphi_raw());
+    gr->set_maxeta_raw(glkup->maxeta_raw());
+    gr->set_maxphi_raw(glkup->maxphi_raw());
+
+    gr->set_mineta_correction(glkup->mineta_correction());
+    gr->set_minphi_correction(glkup->minphi_correction());
+    gr->set_maxeta_correction(glkup->maxeta_correction());
+    gr->set_maxphi_correction(glkup->maxphi_correction());
+
+    gr->set_eta_correction(glkup->eta_correction());
+    gr->set_phi_correction(glkup->phi_correction());
+    gr->set_deta(glkup->deta());
+    gr->set_dphi(glkup->dphi());
+
+    gr->set_deta_double(glkup->deta_double());
+    gr->set_dphi_double(glkup->dphi_double());
+
+    //now cell array copy from GeoLookup Object 
+    // new cell_grid is a unsigned long array 
+    long long * cells = ( long long * ) malloc(sizeof( long long)* neta*nphi) ;
+    gr->set_cell_grid( cells) ;
+
+    if(neta != (*(glkup->cell_grid())).size() ) std::cout<<"neta " << neta << ", vector eta size "<<  (*(glkup->cell_grid())).size() << std::endl;
+    for (int ie=0; ie< neta ; ++ie ) {
+//    	if(nphi != (*(glkup->cell_grid()))[ie].size() )
+//		 std::cout<<"neta " << neta << "nphi "<<nphi <<", vector phi size "<<  (*(glkup->cell_grid()))[ie].size() << std::endl;
+	
+     	for (int ip=0; ip< nphi; ++ip) {
+
+//	if(glkup->index()==0 ) std::cout<<"in loop.."<< ie << " " <<ip << std::endl; 
+            auto c =(*(glkup->cell_grid()))[ie][ip] ;
+	    if( c ) { 
+	        cells[ie*nphi+ip]= c->calo_hash(); 
+	      
+	    } else { 
+	        cells[ie*nphi+ip]= -1 ; 
+//	        std::cout<<"NUll cell in loop.."<< ie << " " <<ip << std::endl;
+	    }
+        }
+    }
+
+}
+
+
+#endif
+
+
+

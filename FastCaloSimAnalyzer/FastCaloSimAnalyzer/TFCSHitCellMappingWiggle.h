@@ -7,10 +7,15 @@
 
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
 
+#ifdef USE_GPU
+#include "FastCaloGpu/FastCaloGpu/LoadGpuFuncHist.h"
+#endif
+
 class TFCS1DFunction;
 class TH1;
 
 class TFCSHitCellMappingWiggle:public TFCSHitCellMapping {
+
 public:
   TFCSHitCellMappingWiggle(const char* name=nullptr, const char* title=nullptr, ICaloGeometry* geo=nullptr);
   ~TFCSHitCellMappingWiggle();
@@ -37,6 +42,13 @@ public:
   void Print(Option_t *option="") const override;
 
   static void unit_test(TFCSSimulationState* simulstate=nullptr,TFCSTruthState* truth=nullptr, TFCSExtrapolationState* extrapol=nullptr);
+#ifdef USE_GPU
+  void set_d_HistFuncs( FHs * hf_ptr ) { m_d_HistFuncs = hf_ptr ; } ;
+  const FHs * d_HistFuncs() {return  m_d_HistFuncs ; } ;
+  void LoadHistFuncs() ; 
+   LoadGpuFuncHist* LdFH() {return m_LdFH ; }; 
+#endif
+
 
 private:
   //** Function for the hit-to-cell assignment accordion structure fix (wiggle)  **//
@@ -44,6 +56,10 @@ private:
   std::vector< const TFCS1DFunction* > m_functions = {nullptr};
   std::vector< float > m_bin_low_edge = {0,static_cast<float>(init_eta_max)};
 
+#ifdef USE_GPU
+  FHs * m_d_HistFuncs = nullptr ;
+  LoadGpuFuncHist* m_LdFH = nullptr;
+#endif
   ClassDefOverride(TFCSHitCellMappingWiggle,1)  //TFCSHitCellMappingWiggle
 };
 

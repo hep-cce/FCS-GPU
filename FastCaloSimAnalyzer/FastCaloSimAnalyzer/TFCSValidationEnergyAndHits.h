@@ -5,7 +5,7 @@
 #ifndef TFCSValidationEnergyAndHits_h
 #define TFCSValidationEnergyAndHits_h
 
-#include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitChain.h"
+#include "TFCSLateralShapeParametrizationHitChain.h"
 #include "TFCSValidationHitSpy.h"
 #include <vector>
 #include <tuple>

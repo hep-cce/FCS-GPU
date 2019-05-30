@@ -35,6 +35,10 @@ set(FastCaloSimCommon_LIB FastCaloSimCommon)
 set(FastCaloSimAnalyzer_LIB FastCaloSimAnalyzer)
 set(EnergyParametrization_LIB EnergyParametrization)
 
+if(ENABLE_GPU) 
+  set(FastCaloGpu_LIB FastCaloGpu)
+endif() 
+
 # Common definitions
 set(FCS_CommonDefinitions -D__FastCaloSimStandAlone__)
 if(DEBUG_LOGGING)
@@ -45,6 +49,10 @@ if(NOT INPUT_PATH STREQUAL "")
   message(STATUS "Overriding all inputs path to '${INPUT_PATH}'")
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DFCS_INPUT_PATH=\"${INPUT_PATH}\")
 endif()
+
+if(ENABLE_GPU) 
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
+endif() 
 
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes
@@ -64,6 +72,13 @@ set(${EnergyParametrization_LIB}_Includes
 set(${FastCaloSimAnalyzer_LIB}_Includes
   ${CMAKE_SOURCE_DIR}
 )
+
+if(ENABLE_GPU)
+  set(${FastCaloGpu_LIB}_Includes
+  ${CMAKE_SOURCE_DIR}/FastCaloGpu
+)
+endif() 
+
 
 # Setup helpers
 include(Helpers)

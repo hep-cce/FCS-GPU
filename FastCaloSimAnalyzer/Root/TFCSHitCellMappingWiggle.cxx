@@ -4,7 +4,7 @@
 
 #include "CLHEP/Random/RandFlat.h"
 
-#include "ISF_FastCaloSimEvent/TFCSHitCellMappingWiggle.h"
+#include "FastCaloSimAnalyzer/TFCSHitCellMappingWiggle.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
@@ -29,6 +29,10 @@ TFCSHitCellMappingWiggle::TFCSHitCellMappingWiggle(const char* name, const char*
 TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle()
 {
   for(auto function : m_functions) delete function;
+#ifdef USE_GPU
+  delete m_LdFH ;
+
+#endif
 }
 
 void TFCSHitCellMappingWiggle::initialize(TFCS1DFunction* func)
@@ -175,3 +179,37 @@ void TFCSHitCellMappingWiggle::unit_test(TFCSSimulationState* simulstate,TFCSTru
 #endif
 
 }
+
+#ifdef USE_GPU
+void TFCSHitCellMappingWiggle::LoadHistFuncs() {
+
+
+
+  if (m_LdFH ){
+
+  std::cout<<"WiggleFuncHistos Already loaded " << m_LdFH << std::endl ;
+	 return; 
+  }  
+  m_LdFH = new LoadGpuFuncHist() ;
+  FHs fhs = {0, 0,0,0,0,0} ;
+
+  fhs.s_MaxValue = TFCS1DFunctionInt32Histogram::s_MaxValue ;
+  fhs.nhist = m_functions.size() ;
+  fhs.low_edge= &(m_bin_low_edge[0]) ;
+  fhs.h_szs = (unsigned int * )malloc(fhs.nhist * sizeof(unsigned int)) ;
+  fhs.h_contents= (uint32_t **)malloc(fhs.nhist * sizeof(uint32_t*) ) ;  
+  fhs.h_borders = ( float ** )malloc(fhs.nhist * sizeof(float *) ) ;
+  for (int i =0 ; i< fhs.nhist ; ++i ){ 
+    fhs.h_szs[i]=((TFCS1DFunctionInt32Histogram *)  (m_functions[i]))->get_HistoContents().size() ;
+    fhs.h_contents[i] = &(((TFCS1DFunctionInt32Histogram *) (m_functions[i]))->get_HistoContents()[0]);
+    fhs.h_borders[i] = &(((TFCS1DFunctionInt32Histogram *) (m_functions[i]))-> get_HistoBordersx()[0]) ;
+//    std::cout<<"Size of Histo["<<i<<"]"<<fhs.h_szs[i]<<std::endl ;	
+  }
+
+  m_LdFH->set_hf(& fhs) ;
+  m_LdFH->LD()  ;
+
+return ;
+}
+
+#endif

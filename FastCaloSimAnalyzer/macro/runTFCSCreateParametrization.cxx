@@ -7,7 +7,7 @@
 #include "CLHEP/Random/TRandomEngine.h"
 
 #include "ISF_FastCaloSimEvent/TFCSInvisibleParametrization.h"
-#include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitChain.h"
+#include "FastCaloSimAnalyzer/TFCSLateralShapeParametrizationHitChain.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationAbsEtaSelectChain.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationEbinChain.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationPDGIDSelectChain.h"

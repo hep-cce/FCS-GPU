@@ -13,15 +13,11 @@
 #include "ISF_FastCaloSimEvent/TFCSEnergyInterpolationSpline.h"
 #include "ISF_FastCaloSimEvent/TFCSEnergyParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrization.h"
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrizationFCal.h"
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
 #include "ISF_FastCaloSimEvent/TFCSHitCellMappingFCal.h"
-#include "ISF_FastCaloSimEvent/TFCSHitCellMappingWiggle.h"
 #include "ISF_FastCaloSimEvent/TFCSInvisibleParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitBase.h"
-#include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitChain.h"
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitNumberFromE.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationAbsEtaSelectChain.h"
@@ -60,15 +56,12 @@
 #pragma link C++ class TFCSEnergyInterpolationSpline+;
 #pragma link C++ class TFCSEnergyParametrization+;
 #pragma link C++ class TFCSExtrapolationState+;
-#pragma link C++ class TFCSHistoLateralShapeParametrization+;
-#pragma link C++ class TFCSHistoLateralShapeParametrizationFCal+;
 #pragma link C++ class TFCSHitCellMapping+;
 #pragma link C++ class TFCSHitCellMappingFCal+;
 #pragma link C++ class TFCSHitCellMappingWiggle+;
 #pragma link C++ class TFCSInvisibleParametrization+;
 #pragma link C++ class TFCSLateralShapeParametrization+;
 #pragma link C++ class TFCSLateralShapeParametrizationHitBase+;
-#pragma link C++ class TFCSLateralShapeParametrizationHitChain+;
 #pragma link C++ class TFCSLateralShapeParametrizationHitNumberFromE+;
 #pragma link C++ class TFCSParametrization+;
 #pragma link C++ class TFCSParametrizationAbsEtaSelectChain+;

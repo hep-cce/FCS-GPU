@@ -10,7 +10,7 @@
 #include <TMath.h>
 #include <TROOT.h>
 
-#include <ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitChain.h>
+#include "FastCaloSimAnalyzer/TFCSLateralShapeParametrizationHitChain.h"
 #include <ISF_FastCaloSimEvent/TFCSParametrizationChain.h>
 #include <ISF_FastCaloSimEvent/TFCSParametrizationEbinChain.h>
 

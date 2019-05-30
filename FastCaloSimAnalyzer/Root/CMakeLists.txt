@@ -8,7 +8,11 @@ set(FastCaloSimAnalyzer_Srcs
   TFCSAnalyzerHelpers.cxx
   TFCSEnergyInterpolation.cxx
   TFCSFlatNtupleMaker.cxx
+  TFCSHistoLateralShapeParametrization.cxx
+  TFCSHistoLateralShapeParametrizationFCal.cxx
+  TFCSHitCellMappingWiggle.cxx
   TFCSInputValidationPlots.cxx
+  TFCSLateralShapeParametrizationHitChain.cxx
   TFCSShapeValidation.cxx
   TFCSValidationEnergy.cxx
   TFCSValidationEnergyAndCells.cxx
@@ -46,6 +50,9 @@ endif()
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloSimCommon_LIB})
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB})
 
+if(ENABLE_GPU)
+fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloGpu_LIB})
+endif()
 # Install library
 install(TARGETS ${FastCaloSimAnalyzer_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}

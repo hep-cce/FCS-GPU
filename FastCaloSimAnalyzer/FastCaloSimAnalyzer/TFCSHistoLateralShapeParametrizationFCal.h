@@ -5,7 +5,7 @@
 #ifndef TFCSHistoLateralShapeParametrizationFCal_h
 #define TFCSHistoLateralShapeParametrizationFCal_h
 
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrization.h"
+#include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrization.h"
 #include "ISF_FastCaloSimEvent/TFCS2DFunctionHistogram.h"
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 

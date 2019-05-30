@@ -5,7 +5,7 @@
 #include "CLHEP/Random/RandFlat.h"
 #include "CLHEP/Random/RandPoisson.h"
 
-#include "ISF_FastCaloSimEvent/TFCSHistoLateralShapeParametrization.h"
+#include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrization.h"
 #include "ISF_FastCaloSimEvent/FastCaloSim_CaloCell_ID.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
@@ -29,6 +29,9 @@ TFCSHistoLateralShapeParametrization::TFCSHistoLateralShapeParametrization(const
 
 TFCSHistoLateralShapeParametrization::~TFCSHistoLateralShapeParametrization()
 {
+#ifdef USE_GPU
+delete m_LdFH ;
+#endif 
 }
 
 int TFCSHistoLateralShapeParametrization::get_number_of_hits(TFCSSimulationState &simulstate, const TFCSTruthState* /*truth*/, const TFCSExtrapolationState* /*extrapol*/) const
@@ -158,3 +161,31 @@ void TFCSHistoLateralShapeParametrization::Print(Option_t *option) const
     }
   }  
 }
+
+#ifdef  USE_GPU
+void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
+
+ if (m_LdFH ){
+  std::cout<<"2D functionHisto Already loaded " << m_LdFH << std::endl ;
+         return;
+  }
+
+  m_LdFH = new LoadGpuFuncHist() ;
+  FH2D fh = {0, 0,0,0,0} ;
+
+  fh.nbinsx=m_hist.get_HistoBordersx().size() ;
+  fh.nbinsy=m_hist.get_HistoBordersy().size() ;
+
+  fh.h_bordersx= &(m_hist.get_HistoBordersx()[0]) ;
+  fh.h_bordersy= &(m_hist.get_HistoBordersy()[0]) ;
+
+  fh.h_contents= &(m_hist.get_HistoContents()[0]) ;
+  std::cout<<"2D functionpointers " <<  fh.h_bordersx <<" , "  << fh.h_bordersy << std::endl ;
+
+   m_LdFH->set_hf2d( &fh) ;
+   std::cout<< "*m_LdFH.hf2d() " << (*(m_LdFH->hf2d())).h_bordersx <<  std::endl ;
+   m_LdFH->LD2D() ;
+
+}
+
+#endif
