@@ -170,8 +170,9 @@ __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
     HistoLateralShapeParametrization_d(hit, args) ;
     HitCellMappingWiggle_d ( hit, args ) ;
     ValidationHitSpy_d(hit,args);
+// do something 
+    delete hit ;
   } 
-
 }
 
 
@@ -225,6 +226,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
 }
 
+	delete rd4h ;
 
 }
 
