@@ -59,7 +59,17 @@ const std::string TFCSParametrizationBinnedChain::get_bin_text(int bin) const
 
 FCSReturnCode TFCSParametrizationBinnedChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
+   std::cout<<"+++In TFCSParametrizationBinnedChain::Simulate " << this << "m_bin_start[0] : " << m_bin_start[0] <<
+	"Chain size: " << size() << " m_bin_start[last]" << m_bin_start.back()  << " m_bin_start_size: " << m_bin_start.size() << std::endl ;
+
+   for(unsigned int ichain=0; ichain<chain().size() ; ++ichain ) {
+	std::cout << " +++BinnedChian "<< ichain <<", " << typeid(*(chain()[ichain])).name() << ", " << chain()[ichain] << ","<< chain()[ichain]->GetName() <<std::endl; 
+
+  }
+
   for(unsigned int ichain=0;ichain<m_bin_start[0];++ichain) {
+    std::cout<<"---start now run for all bins: ichain"<<ichain<< " Type and title and pointer " 
+	<< typeid(*(chain()[ichain])).name() << ", " << chain()[ichain] << ","<< chain()[ichain]->GetName() <<std::endl;
     ATH_MSG_DEBUG("now run for all bins: "<<chain()[ichain]->GetName());
     if (simulate_and_retry(chain()[ichain], simulstate, truth, extrapol) != FCSSuccess) {
       return FCSFatal;
@@ -69,19 +79,25 @@ FCSReturnCode TFCSParametrizationBinnedChain::simulate(TFCSSimulationState& simu
     int bin=get_bin(simulstate,truth,extrapol);
     if(bin>=0 && bin<(int)get_number_of_bins()) {
       for(unsigned int ichain=m_bin_start[bin];ichain<m_bin_start[bin+1];++ichain) {
+        std::cout<< "---for "<<get_variable_text(simulstate,truth,extrapol)<<" run "<<get_bin_text(bin)<<": "<<chain()[ichain]->GetName()
+		<< " Type and title and pointer " << typeid(*(chain()[ichain])).name() << ", " << chain()[ichain] <<std::endl;
         ATH_MSG_DEBUG("for "<<get_variable_text(simulstate,truth,extrapol)<<" run "<<get_bin_text(bin)<<": "<<chain()[ichain]->GetName());
         if (simulate_and_retry(chain()[ichain], simulstate, truth, extrapol) != FCSSuccess) {
           return FCSFatal;
         }
       }
     } else {
+      std::cout<<"+++for "<<get_variable_text(simulstate,truth,extrapol)<<": "<<get_bin_text(bin)<<std::endl;
       ATH_MSG_WARNING("for "<<get_variable_text(simulstate,truth,extrapol)<<": "<<get_bin_text(bin));
     }
   } else {
+    std::cout<<"no bins defined, is this intended?"<<std::endl ;
     ATH_MSG_WARNING("no bins defined, is this intended?");
   }  
   for(unsigned int ichain=m_bin_start.back();ichain<size();++ichain) {
     ATH_MSG_DEBUG("now run for all bins: "<<chain()[ichain]->GetName());
+    std::cout<<"---end now run for all bins: ichain"<< ichain<< " Type and title and pointer "
+	<< typeid(*(chain()[ichain])).name() << ", " << chain()[ichain] << ","<< chain()[ichain]->GetName() <<std::endl;
     if (simulate_and_retry(chain()[ichain], simulstate, truth, extrapol) != FCSSuccess) {
       return FCSFatal;
     }

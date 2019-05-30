@@ -42,6 +42,11 @@ class CaloGeometryLookup {
     float minphi() const {return m_minphi;};
     float maxphi() const {return m_maxphi;};
 
+    float mineta_correction() const {return m_mineta_correction;};
+    float maxeta_correction() const {return m_maxeta_correction;};
+    float minphi_correction() const {return m_minphi_correction;};
+    float maxphi_correction() const {return m_maxphi_correction;};
+
     float mineta_raw() const {return m_mineta_raw;};
     float maxeta_raw() const {return m_maxeta_raw;};
     float minphi_raw() const {return m_minphi_raw;};
@@ -74,6 +79,11 @@ class CaloGeometryLookup {
     int cell_grid_eta() const {return m_cell_grid_eta;};
     int cell_grid_phi() const {return m_cell_grid_phi;};
     void set_xy_grid_adjustment_factor(float factor) {m_xy_grid_adjustment_factor=factor;};
+
+    float xy_grid_adjustment_factor() {return m_xy_grid_adjustment_factor;};
+    const float deta_double() {return m_deta_double;};
+    const float dphi_double() {return m_dphi_double;};
+    const std::vector< std::vector< const CaloDetDescrElement* > > * cell_grid(){ return & m_cell_grid ; } ;
 
     virtual const CaloDetDescrElement* getDDE(float eta,float phi,float* distance=0,int* steps=0);
 
