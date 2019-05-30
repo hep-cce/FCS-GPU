@@ -10,8 +10,12 @@ set(CMAKE_MODULE_PATH
 # Set project
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
+set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
+
 include(FastCaloSim)
 include(XRootD)
+
+
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)
 
@@ -19,5 +23,7 @@ add_subdirectory(FastCaloSimCommon/src FastCaloSimCommon)
 add_subdirectory(FastCaloSimCommon/AthenaBuild AthenaBuild)
 add_subdirectory(EnergyParametrization/src EnergyParametrization)
 add_subdirectory(Root)
-
+if(ENABLE_GPU) 
+  add_subdirectory(FastCaloGpu/src FastCaloGpu)
+endif() 
 add_subdirectory(macro)
