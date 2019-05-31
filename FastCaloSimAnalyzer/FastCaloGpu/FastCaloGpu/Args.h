@@ -21,6 +21,8 @@ double charge ;
 int cs ;
 bool is_phi_symmetric ;
 unsigned long long  seed ;
+float * rand ;
+int nhits ;
 
 
 FH2D*  fh2d ;

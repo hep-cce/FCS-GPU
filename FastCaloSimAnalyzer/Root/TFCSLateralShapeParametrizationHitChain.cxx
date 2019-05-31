@@ -116,6 +116,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.charge   = HepPDT::ParticleID(args.pdgId).charge() ;
 	  
 	  args.seed = nhit ;
+	  args.nhits= nhit ;
+	  args.rand =0 ;
 	
  //  if ( 0 ) {
  	ichn=0 ;

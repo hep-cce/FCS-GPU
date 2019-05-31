@@ -128,6 +128,69 @@ if (err != cudaSuccess) {
 
 }
 
+
+__device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
+
+ int nbinsx=(*hf2d).nbinsx;
+ int nbinxy=(*hf2d).nbinsy;
+ float * HistoContents= (*hf2d).h_contents ;
+ float* HistoBorders= (*hf2d).h_bordersx ;
+ float* HistoBordersy= (*hf2d).h_bordersy ; 
+
+ int ibin = nbinsx*nbinxy-1 ;
+ for ( int i=0 ; i < nbinsx*nbinxy ; ++i) {
+    if   (HistoContents[i]> rnd0 ) {
+	 ibin = i ;
+	 break ;
+	}
+ } 
+
+  int biny = ibin/nbinsx;
+  int binx = ibin - nbinsx*biny;
+
+  float basecont=0;
+  if(ibin>0) basecont=HistoContents[ibin-1];
+
+  float dcont=HistoContents[ibin]-basecont;
+  if(dcont>0) {
+    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) * (rnd0-basecont) / dcont;
+  } else {
+    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) / 2;
+  }
+  valuey = HistoBordersy[biny] + (HistoBordersy[biny+1]-HistoBordersy[biny]) * rnd1;
+
+}
+
+
+__device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders , int nbins, uint32_t s_MaxValue  ) {
+
+
+  uint32_t int_rnd=s_MaxValue*rnd;
+
+  int  ibin=nbins-1 ;
+  for ( int i=0 ; i < nbins ; ++i) {
+    if   (contents[i]> int_rnd ) {
+         ibin = i ;
+         break ;
+        }
+  }
+
+  int binx = ibin;
+
+  uint32_t basecont=0;
+  if(ibin>0) basecont=contents[ibin-1];
+
+  uint32_t dcont=contents[ibin]-basecont;
+  if(dcont>0) {
+    return borders[binx] + ((borders[binx+1]-borders[binx]) * (int_rnd-basecont)) / dcont;
+  } else {
+    return borders[binx] + (borders[binx+1]-borders[binx]) / 2;
+  }
+
+}
+
+
+
 __device__  void CenterPositionCalculation_d(Hit* hit, const Chain0_Args args) {
 
     hit->setCenter_r((1.- args.extrapWeight)*args.extrapol_r_ent + 
@@ -151,8 +214,46 @@ __device__ void HistoLateralShapeParametrization_d( Hit* hit, const  Chain0_Args
 
 }
 
-__device__ void HitCellMappingWiggle_d( Hit* hit, const  Chain0_Args args ) {
+__device__ void HitCellMapping_d( Hit* hit, int cs ) {
 
+}
+
+__device__ void HitCellMappingWiggle_d( Hit* hit,  Chain0_Args args, unsigned long  t ) {
+
+ int nhist=(*(args.fhs)).nhist;
+ float*  bin_low_edge = (*(args.fhs)).low_edge ;
+ 
+
+ float eta =fabs( hit->eta()); 
+ if(eta<bin_low_edge[0] || eta> bin_low_edge[nhist]) {
+   HitCellMapping_d(hit, args.cs) ;
+
+ }
+
+ int bin= nhist ;
+  for (int i =0; i< nhist+1 ; ++i ) {
+ 	if(bin_low_edge[i] > eta ) {
+	  bin = i ;
+	  break ;
+	}
+  }
+
+  bin -= 1; 
+
+  uint32_t * contents = (*(args.fhs)).h_contents[bin] ;
+  float* borders = (*(args.fhs)).h_borders[bin] ;
+  
+
+     float rnd= args.rand[t+2*args.nhits];
+
+    double wiggle=rnd_to_fct1d(rnd,contents, borders, nhist, (*(args.fhs)).s_MaxValue);
+
+
+    double hit_phi_shifted=hit->phi()+wiggle;
+    hit->phi()=Phi_mpi_pi(hit_phi_shifted);
+  
+
+  HitCellMapping_d(hit, args.cs) ;
 
 }
 
@@ -160,15 +261,15 @@ __device__ void HitCellMappingWiggle_d( Hit* hit, const  Chain0_Args args ) {
 __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
 
   int tid = threadIdx.x + blockIdx.x*blockDim.x ;
-
   for ( int i=0 ; i<NLOOPS ; ++i ) { 
+    unsigned long t = tid+i*gridDim.x ;
     if ((tid+i*gridDim.x) >= nhits ) break ;  
     Hit* hit  =new Hit() ;
     hit->E()=E ;
     CenterPositionCalculation_d( hit, args) ;
     ValidationHitSpy_d( hit, args) ;
     HistoLateralShapeParametrization_d(hit, args) ;
-    HitCellMappingWiggle_d ( hit, args ) ;
+    HitCellMappingWiggle_d ( hit, args, t ) ;
     ValidationHitSpy_d(hit,args);
 // do something 
     delete hit ;
@@ -193,6 +294,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
 	Rand4Hits *  rd4h = new Rand4Hits ;
         float * r= rd4h->HitsRandGen(nhits, args.seed) ;
+         args.rand = r ;
 
 
 	int blocksize=BLOCK_SIZE ;
