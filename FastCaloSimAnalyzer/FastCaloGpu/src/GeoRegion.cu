@@ -1,4 +1,4 @@
-#include "GeoRegion_g.h"
+#include "GeoRegion.h"
 #include <iostream>
 
 #define PI 3.14159265358979323846 

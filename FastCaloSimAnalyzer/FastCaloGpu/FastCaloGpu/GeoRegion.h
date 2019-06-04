@@ -2,11 +2,19 @@
 #define GeoRegion_H
 
 
-#include "CaloDetDescrElement.h"
+#include "CaloDetDescrElement_g.h"
+
+#ifndef CUDA_HOSTDEV
+#ifdef __CUDACC__
+#define CUDA_HOSTDEV __host__ __device__
+#else
+#define CUDA_HOSTDEV
+#endif
+#endif
 
 class GeoRegion {
     public:
-       GeoRegion() {
+        CUDA_HOSTDEV GeoRegion() {
 	m_all_cells = 0 ;
 	m_xy_grid_adjustment_factor=0 ;
 	m_index = 0 ;
@@ -34,99 +42,57 @@ class GeoRegion {
 	m_cells_g=0;
 	} ;
 
-       ~GeoRegion() { free( m_cells) ;} ;
+        CUDA_HOSTDEV ~GeoRegion() { free( m_cells) ;} ;
 
 
-    void set_all_cells(CaloDetDescrElement * c) {m_all_cells = c ; };
-    void set_xy_grid_adjustment_factor(float f) {m_xy_grid_adjustment_factor=f ; };
-    void set_index(int i ) {m_index=i ; };
-    void set_cell_grid_eta(int i) {m_cell_grid_eta=i ; };
-    void set_cell_grid_phi(int i) {m_cell_grid_phi=i ; };
-    void set_mineta(float f) {m_mineta=f ; };
-    void set_maxeta(float f) {m_maxeta=f ; };
-    void set_minphi(float f) {m_minphi=f ; };
-    void set_maxphi(float f) {m_maxphi=f ; };
-    void set_minphi_raw(float f) {m_minphi_raw=f ; };
-    void set_maxphi_raw(float f) {m_maxphi_raw=f ; };
-    void set_mineta_raw(float f) {m_mineta_raw=f ; };
-    void set_maxeta_raw(float f) {m_maxeta_raw=f ; };
-    void set_mineta_correction(float f) {m_mineta_correction=f ; };
-    void set_maxeta_correction(float f) {m_maxeta_correction=f ; };
-    void set_minphi_correction(float f) {m_minphi_correction=f ; };
-    void set_maxphi_correction(float f) {m_maxphi_correction=f ; };
-    void set_eta_correction(float f) {m_eta_correction=f ; };
-    void set_phi_correction(float f) {m_phi_correction=f ; };
-    void set_deta(float f) {m_deta=f ; };
-    void set_dphi(float f) {m_dphi=f ; };
-    void set_deta_double(float f) {m_deta_double=f ; };
-    void set_dphi_double(float f) {m_dphi_double=f ; };
-    void set_cell_grid( long long * cells ) {m_cells= cells ; };
-    void set_cell_grid_g( long long * cells ) {m_cells_g = cells ; };
+    CUDA_HOSTDEV void set_all_cells(CaloDetDescrElement * c) {m_all_cells = c ; };
+    CUDA_HOSTDEV void set_xy_grid_adjustment_factor(float f) {m_xy_grid_adjustment_factor=f ; };
+    CUDA_HOSTDEV void set_index(int i ) {m_index=i ; };
+    CUDA_HOSTDEV void set_cell_grid_eta(int i) {m_cell_grid_eta=i ; };
+    CUDA_HOSTDEV void set_cell_grid_phi(int i) {m_cell_grid_phi=i ; };
+    CUDA_HOSTDEV void set_mineta(float f) {m_mineta=f ; };
+    CUDA_HOSTDEV void set_maxeta(float f) {m_maxeta=f ; };
+    CUDA_HOSTDEV void set_minphi(float f) {m_minphi=f ; };
+    CUDA_HOSTDEV void set_maxphi(float f) {m_maxphi=f ; };
+    CUDA_HOSTDEV void set_minphi_raw(float f) {m_minphi_raw=f ; };
+    CUDA_HOSTDEV void set_maxphi_raw(float f) {m_maxphi_raw=f ; };
+    CUDA_HOSTDEV void set_mineta_raw(float f) {m_mineta_raw=f ; };
+    CUDA_HOSTDEV void set_maxeta_raw(float f) {m_maxeta_raw=f ; };
+    CUDA_HOSTDEV void set_mineta_correction(float f) {m_mineta_correction=f ; };
+    CUDA_HOSTDEV void set_maxeta_correction(float f) {m_maxeta_correction=f ; };
+    CUDA_HOSTDEV void set_minphi_correction(float f) {m_minphi_correction=f ; };
+    CUDA_HOSTDEV void set_maxphi_correction(float f) {m_maxphi_correction=f ; };
+    CUDA_HOSTDEV void set_eta_correction(float f) {m_eta_correction=f ; };
+    CUDA_HOSTDEV void set_phi_correction(float f) {m_phi_correction=f ; };
+    CUDA_HOSTDEV void set_deta(float f) {m_deta=f ; };
+    CUDA_HOSTDEV void set_dphi(float f) {m_dphi=f ; };
+    CUDA_HOSTDEV void set_deta_double(float f) {m_deta_double=f ; };
+    CUDA_HOSTDEV void set_dphi_double(float f) {m_dphi_double=f ; };
+    CUDA_HOSTDEV void set_cell_grid( long long * cells ) {m_cells= cells ; };
+    CUDA_HOSTDEV void set_cell_grid_g( long long * cells ) {m_cells_g = cells ; };
 
 
-    long long * cell_grid( ) { return m_cells ; };
-    long long * cell_grid_g( ) { return m_cells_g ; };
-    int cell_grid_eta( ) { return m_cell_grid_eta ; };
-    int cell_grid_phi( ) { return m_cell_grid_phi ; };
-    int index() {return m_index ; };
-    float mineta_raw( ) {return m_mineta_raw ; };
-    float minphi_raw( ) {return m_minphi_raw ; };
-     CaloDetDescrElement *all_cells( ) {return m_all_cells ; };
-    float maxeta() {return m_maxeta ; };
-    float mineta() {return m_mineta ; };
-    float maxphi() {return m_maxphi ; };
-    float minphi() {return m_minphi ; };
+    CUDA_HOSTDEV long long * cell_grid( ) { return m_cells ; };
+    CUDA_HOSTDEV long long * cell_grid_g( ) { return m_cells_g ; };
+    CUDA_HOSTDEV int cell_grid_eta( ) { return m_cell_grid_eta ; };
+    CUDA_HOSTDEV int cell_grid_phi( ) { return m_cell_grid_phi ; };
+    CUDA_HOSTDEV int index() {return m_index ; };
+    CUDA_HOSTDEV float mineta_raw( ) {return m_mineta_raw ; };
+    CUDA_HOSTDEV float minphi_raw( ) {return m_minphi_raw ; };
+    CUDA_HOSTDEV CaloDetDescrElement *all_cells( ) {return m_all_cells ; };
+    CUDA_HOSTDEV float maxeta() {return m_maxeta ; };
+    CUDA_HOSTDEV float mineta() {return m_mineta ; };
+    CUDA_HOSTDEV float maxphi() {return m_maxphi ; };
+    CUDA_HOSTDEV float minphi() {return m_minphi ; };
 
 
+    CUDA_HOSTDEV int raw_eta_position_to_index(float eta_raw) const {return floor((eta_raw-m_mineta_raw)/m_deta_double);};
+    CUDA_HOSTDEV int raw_phi_position_to_index(float phi_raw) const {return floor((phi_raw-m_minphi_raw)/m_dphi_double);};
 
+    CUDA_HOSTDEV bool index_range_adjust(int& ieta,int& iphi) ;
+    CUDA_HOSTDEV float calculate_distance_eta_phi(const long long DDE,float eta,float phi,float& dist_eta0,float& dist_phi0) ;
 
-/*
-    float mineta() const {return m_mineta;};
-    float maxeta() const {return m_maxeta;};
-    float minphi() const {return m_minphi;};
-    float maxphi() const {return m_maxphi;};
-
-    float mineta_raw() const {return m_mineta_raw;};
-    float maxeta_raw() const {return m_maxeta_raw;};
-    float minphi_raw() const {return m_minphi_raw;};
-    float maxphi_raw() const {return m_maxphi_raw;};
-
-    float minx() const {return m_mineta;};
-    float maxx() const {return m_maxeta;};
-    float miny() const {return m_minphi;};
-    float maxy() const {return m_maxphi;};
-
-    float minx_raw() const {return m_mineta_raw;};
-    float maxx_raw() const {return m_maxeta_raw;};
-    float miny_raw() const {return m_minphi_raw;};
-    float maxy_raw() const {return m_maxphi_raw;};
-
-    float deta() {return m_deta;};
-    float dphi() {return m_dphi;};
-    float mindeta() {return m_mindeta;};
-    float mindphi() {return m_mindphi;};
-    float dx() {return m_deta;};
-    float dy() {return m_dphi;};
-    float mindx() {return m_mindeta;};
-    float mindy() {return m_mindphi;};
-
-    float eta_correction() {return m_eta_correction;};
-    float phi_correction() {return m_phi_correction;};
-    float x_correction() {return m_eta_correction;};
-    float y_correction() {return m_phi_correction;};
-
-    int cell_grid_eta() const {return m_cell_grid_eta;};
-    int cell_grid_phi() const {return m_cell_grid_phi;};
-    void set_xy_grid_adjustment_factor(float factor) {m_xy_grid_adjustment_factor=factor;};
-*/
-
-    int raw_eta_position_to_index(float eta_raw) const {return floor((eta_raw-m_mineta_raw)/m_deta_double);};
-    int raw_phi_position_to_index(float phi_raw) const {return floor((phi_raw-m_minphi_raw)/m_dphi_double);};
-
-     bool index_range_adjust(int& ieta,int& iphi) ;
-     float calculate_distance_eta_phi(const long long DDE,float eta,float phi,float& dist_eta0,float& dist_phi0) ;
-
-     long long  getDDE(float eta,float phi,float* distance=0,int* steps=0) ;
+    CUDA_HOSTDEV long long  getDDE(float eta,float phi,float* distance=0,int* steps=0) ;
 
 
     protected: 

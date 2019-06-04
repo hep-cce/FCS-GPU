@@ -5,13 +5,16 @@
 #ifndef CALODETDESCRELEMENT_G_H
 #define CALODETDESCRELEMENT_G_H
 
+#ifndef ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
+#define ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
+
 
 #include "Identifier_g.h"
 
 class CaloDetDescrElement
 {
  public:
-__host__ __device__  CaloDetDescrElement() {
+CUDA_HOSTDEV  CaloDetDescrElement() {
     m_identify = 0;
     m_hash_id = 0;
     m_calosample = 0;
@@ -37,71 +40,71 @@ __host__ __device__  CaloDetDescrElement() {
 
   /** @brief virtual destructor
    */
-__host__ __device__    virtual ~CaloDetDescrElement() {};
+CUDA_HOSTDEV    virtual ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */
-__host__ __device__    float eta() const;
+CUDA_HOSTDEV    float eta() const;
   /** @brief cell phi
    */
-__host__ __device__    float phi() const;
+CUDA_HOSTDEV    float phi() const;
   /** @brief cell r
    */
-__host__ __device__    float r() const;
+CUDA_HOSTDEV    float r() const;
   /** @brief cell eta_raw
    */
-__host__ __device__    float eta_raw() const;
+CUDA_HOSTDEV    float eta_raw() const;
   /** @brief cell phi_raw
    */
-__host__ __device__    float phi_raw() const;
+CUDA_HOSTDEV    float phi_raw() const;
   /** @brief cell r_raw
    */
-__host__ __device__    float r_raw() const;
+CUDA_HOSTDEV    float r_raw() const;
   /** @brief cell dphi
    */
-__host__ __device__    float dphi() const;
+CUDA_HOSTDEV    float dphi() const;
   /** @brief cell deta
    */
-__host__ __device__    float deta() const;
+CUDA_HOSTDEV    float deta() const;
   /** @brief cell dr
    */
-__host__ __device__    float dr() const;
+CUDA_HOSTDEV    float dr() const;
 
   /** @brief cell x
    */
-__host__ __device__    float x() const;
+CUDA_HOSTDEV    float x() const;
   /** @brief cell y
    */
-__host__ __device__    float y() const;
+CUDA_HOSTDEV    float y() const;
   /** @brief cell z
    */
-__host__ __device__    float z() const;
+CUDA_HOSTDEV    float z() const;
   /** @brief cell x_raw
    */
-__host__ __device__    float x_raw() const;
+CUDA_HOSTDEV    float x_raw() const;
   /** @brief cell y_raw
    */
-__host__ __device__    float y_raw() const;
+CUDA_HOSTDEV    float y_raw() const;
   /** @brief cell z_raw
    */
-__host__ __device__    float z_raw() const;
+CUDA_HOSTDEV    float z_raw() const;
   /** @brief cell dx
    */
-__host__ __device__    float dx() const;
+CUDA_HOSTDEV    float dx() const;
   /** @brief cell dy
    */
-__host__ __device__    float dy() const;
+CUDA_HOSTDEV    float dy() const;
   /** @brief cell dz
    */
-__host__ __device__    float dz() const;
+CUDA_HOSTDEV    float dz() const;
 
   /** @brief cell identifier
    */
-__host__ __device__    Identifier identify() const;
+CUDA_HOSTDEV    Identifier identify() const;
 
-__host__ __device__    unsigned long long calo_hash() const;
+CUDA_HOSTDEV    unsigned long long calo_hash() const;
 
-__host__ __device__    int getSampling() const ;
+CUDA_HOSTDEV    int getSampling() const ;
 
  //ACH protected:
  //
@@ -190,55 +193,56 @@ __host__ __device__    int getSampling() const ;
 
 };
 
-__host__ __device__  inline Identifier CaloDetDescrElement::identify() const
+CUDA_HOSTDEV  inline Identifier CaloDetDescrElement::identify() const
 {
 	Identifier id((unsigned long long) m_identify);
 	return id;
 }
 
-__host__ __device__  inline unsigned long long CaloDetDescrElement::calo_hash() const
+CUDA_HOSTDEV  inline unsigned long long CaloDetDescrElement::calo_hash() const
 {
 	return m_hash_id;
 }
 
-__host__ __device__  inline int CaloDetDescrElement::getSampling() const
+CUDA_HOSTDEV  inline int CaloDetDescrElement::getSampling() const
 { return m_calosample;}
-__host__ __device__  inline float CaloDetDescrElement::eta() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::eta() const
 { return m_eta;}
-__host__ __device__  inline float CaloDetDescrElement::phi() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::phi() const
 { return m_phi;}
-__host__ __device__  inline float CaloDetDescrElement::r() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::r() const
 { return m_r;}
-__host__ __device__  inline float CaloDetDescrElement::eta_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::eta_raw() const
 { return m_eta_raw;}
-__host__ __device__  inline float CaloDetDescrElement::phi_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::phi_raw() const
 { return m_phi_raw;}
-__host__ __device__  inline float CaloDetDescrElement::r_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::r_raw() const
 { return m_r_raw;}
-__host__ __device__  inline float CaloDetDescrElement::deta() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::deta() const
 { return m_deta;}
-__host__ __device__  inline float CaloDetDescrElement::dphi() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::dphi() const
 { return m_dphi;}
-__host__ __device__  inline float CaloDetDescrElement::dr() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::dr() const
 { return m_dr;}
 
-__host__ __device__  inline float CaloDetDescrElement::x() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::x() const
 { return m_x;}
-__host__ __device__  inline float CaloDetDescrElement::y() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::y() const
 { return m_y;}
-__host__ __device__  inline float CaloDetDescrElement::z() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::z() const
 { return m_z;}
-__host__ __device__  inline float CaloDetDescrElement::x_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::x_raw() const
 { return m_x_raw;}
-__host__ __device__  inline float CaloDetDescrElement::y_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::y_raw() const
 { return m_y_raw;}
-__host__ __device__  inline float CaloDetDescrElement::z_raw() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::z_raw() const
 { return m_z_raw;}
-__host__ __device__  inline float CaloDetDescrElement::dx() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::dx() const
 { return m_dx;}
-__host__ __device__  inline float CaloDetDescrElement::dy() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::dy() const
 { return m_dy;}
-__host__ __device__  inline float CaloDetDescrElement::dz() const
+CUDA_HOSTDEV  inline float CaloDetDescrElement::dz() const
 { return m_dz;}
 
+#endif
 #endif

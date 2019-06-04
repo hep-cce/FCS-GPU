@@ -5,6 +5,15 @@
 #ifndef Identifier_GPU
 #define Identifier_GPU
 
+#ifndef IdentifierStandAlone
+#define IdentifierStandAlone
+
+#ifdef __CUDACC__
+#define CUDA_HOSTDEV __host__ __device__
+#else
+#define CUDA_HOSTDEV
+#endif
+
 class Identifier
 {
   public:
@@ -22,22 +31,22 @@ class Identifier
     max_value = ~(static_cast<value_type>(0))
   } max_value_type;
 
-__host__ __device__  Identifier():m_id(max_value) {};
-__host__ __device__  Identifier(const Identifier& value):m_id(value.m_id) {};
-__host__ __device__  Identifier(value_type value):m_id(value) {};
+CUDA_HOSTDEV  Identifier():m_id(max_value) {};
+CUDA_HOSTDEV  Identifier(const Identifier& value):m_id(value.m_id) {};
+CUDA_HOSTDEV  Identifier(value_type value):m_id(value) {};
   
-__host__ __device__  operator value_type() const { return m_id; }
+CUDA_HOSTDEV  operator value_type() const { return m_id; }
   
-__host__ __device__  Identifier& operator = (const Identifier& old) {m_id=old;return (*this);};
-__host__ __device__  Identifier& operator = (value_type value) {m_id=value;return (*this);};
-__host__ __device__  bool operator == (const Identifier& other) const {return (m_id == other.m_id);}
-__host__ __device__  bool operator != (const Identifier& other) const {return (m_id != other.m_id);}
-__host__ __device__  bool operator < (const Identifier& other) const {return (m_id < other.m_id);}
-__host__ __device__  bool operator > (const Identifier& other) const {return (m_id > other.m_id);}
-__host__ __device__  bool operator <= (const Identifier& other) const {return (m_id <= other.m_id);}
-__host__ __device__  bool operator >= (const Identifier& other) const {return (m_id >= other.m_id);}
-__host__ __device__  bool operator == (Identifier::value_type other) const {return (m_id == other);}
-__host__ __device__  bool operator != (Identifier::value_type other) const {return (m_id != other);}
+CUDA_HOSTDEV  Identifier& operator = (const Identifier& old) {m_id=old;return (*this);};
+CUDA_HOSTDEV  Identifier& operator = (value_type value) {m_id=value;return (*this);};
+CUDA_HOSTDEV  bool operator == (const Identifier& other) const {return (m_id == other.m_id);}
+CUDA_HOSTDEV  bool operator != (const Identifier& other) const {return (m_id != other.m_id);}
+CUDA_HOSTDEV  bool operator < (const Identifier& other) const {return (m_id < other.m_id);}
+CUDA_HOSTDEV  bool operator > (const Identifier& other) const {return (m_id > other.m_id);}
+CUDA_HOSTDEV  bool operator <= (const Identifier& other) const {return (m_id <= other.m_id);}
+CUDA_HOSTDEV  bool operator >= (const Identifier& other) const {return (m_id >= other.m_id);}
+CUDA_HOSTDEV  bool operator == (Identifier::value_type other) const {return (m_id == other);}
+CUDA_HOSTDEV  bool operator != (Identifier::value_type other) const {return (m_id != other);}
   
   protected:
   value_type m_id;
@@ -45,4 +54,4 @@ __host__ __device__  bool operator != (Identifier::value_type other) const {retu
 };
   
 #endif
-
+#endif

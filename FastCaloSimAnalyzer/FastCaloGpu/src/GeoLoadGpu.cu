@@ -1,5 +1,5 @@
 #include <iostream>
-#include "GeoLoadGpu_g.h"
+#include "GeoLoadGpu.h"
 
 
 __global__  void testHello() {
@@ -110,6 +110,7 @@ bool GeoLoadGpu::LoadGpu()
 
     free(cells_Host) ;
 
+if(0) {
     //sanity check/test
     testHello <<<1, 1>>> () ;
     testCell <<<1, 1>>> (m_cells_g, 1872 ) ;
@@ -128,6 +129,7 @@ bool GeoLoadGpu::LoadGpu()
     	std::cout<< cudaGetErrorString(err)<< std::endl;
 	return false ;
     }
+}
 
 Rg_Sample_Index * SampleIndex_g ;
 if(cudaSuccess != cudaMalloc((void**) &SampleIndex_g,
@@ -140,7 +142,6 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
  return false ;
 }
 
-	std::cout << "after memcopy sample Index"  << std::endl ;
 
 
 // each Region allocate a grid (long Long) gpu array 
@@ -151,22 +152,22 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 	long long * ptr_g ;
         if(cudaSuccess != cudaMalloc((void**) &ptr_g,
 		 sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi())) return false ;
-        std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
+  //      std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
      	if(cudaSuccess != cudaMemcpy(ptr_g, m_regions[ir].cell_grid() , 
 		sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi() , cudaMemcpyHostToDevice)) return false ;
-        std::cout<< "cpy grid "<<  ir  << std::endl;
+  //      std::cout<< "cpy grid "<<  ir  << std::endl;
 	 m_regions[ir].set_cell_grid_g(ptr_g) ;
          m_regions[ir].set_all_cells(m_cells_g) ; // set this so all region instance know where the GPU cells are, before copy to GPU  	
-	std::cout<<"Gpu cell Pintor in region: " <<m_cells_g << " m_regions[ir].all_cells() " << m_regions[ir].all_cells() << std::endl ;
+//	std::cout<<"Gpu cell Pintor in region: " <<m_cells_g << " m_regions[ir].all_cells() " << m_regions[ir].all_cells() << std::endl ;
     }
 
 // GPU allocate Regions data  and load them to GPU as array of regions
    
     if(cudaSuccess != cudaMalloc((void**)&m_regions_g, sizeof(GeoRegion)*m_nregions)) return false ;
-        std::cout<< "cuMalloc "<< m_nregions << " regions" << std::endl;
+  //      std::cout<< "cuMalloc "<< m_nregions << " regions" << std::endl;
     if(cudaSuccess != cudaMemcpy(m_regions_g, m_regions,sizeof(GeoRegion)*m_nregions, cudaMemcpyHostToDevice)) return false ; 
-        std::cout<< "Regions Array Copied , size (Byte) " <<  sizeof(GeoRegion)*m_nregions << "sizeof cell *" << sizeof(CaloDetDescrElement *) << std::endl;
-        std::cout<< "Region Pointer GPU print from host" <<  m_regions_g  << std::endl;
+//        std::cout<< "Regions Array Copied , size (Byte) " <<  sizeof(GeoRegion)*m_nregions << "sizeof cell *" << sizeof(CaloDetDescrElement *) << std::endl;
+//        std::cout<< "Region Pointer GPU print from host" <<  m_regions_g  << std::endl;
 
 	geo_gpu_h.cells=m_cells_g ;
 	geo_gpu_h.ncells=m_ncells ;
@@ -184,10 +185,10 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 
 
 // more test for region grids
-
+if(0) {
     testGeo<<<1,1 >>> (m_cells_g, m_regions_g,m_ncells, m_nregions, 14, 0, 32 ); 
     cudaDeviceSynchronize() ;
-    err = cudaGetLastError();
+    cudaError_t err = cudaGetLastError();
     if (err != cudaSuccess) {
         std::cout<< cudaGetErrorString(err)<< std::endl;
         return false ;
@@ -207,7 +208,7 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
          int np = m_regions[14].cell_grid_phi() ;
          int ne = m_regions[14].cell_grid_eta() ;
 	 int idx = c[0*np + 32] ;
-	   Id = m_cellid_array[idx] ; 
+	    Identifier Id = m_cellid_array[idx] ; 
 	std::cout<<"From Host: Region[14]Grid[0][32]: index="<< idx
 		  << ", ID=" << Id
 		 << ", HashCPU=" << (*m_cells)[Id]->calo_hash() 
@@ -217,7 +218,7 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 		<< std::endl ;  
 
 //end test
-    
+}    
     return true ;
 
 }  

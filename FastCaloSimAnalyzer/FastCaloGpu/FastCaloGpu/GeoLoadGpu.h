@@ -4,7 +4,6 @@
 //This header can be use both gcc and nvcc host part
 
 #include <map>
-#include "Identifier/Identifier.h"
 
 #include "GeoRegion.h"
 
