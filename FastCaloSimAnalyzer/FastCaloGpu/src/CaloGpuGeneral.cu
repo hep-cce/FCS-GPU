@@ -5,7 +5,7 @@
 #include "gpuQ.h"
 #include "Args.h"
 
-#define BLOCK_SIZE 1024 
+#define BLOCK_SIZE 512 
 #define NLOOPS 2
 
 __device__  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
@@ -261,9 +261,9 @@ __device__ void HitCellMapping_d( Hit* hit,unsigned long t, Chain0_Args args ) {
 
 
  
-// long long  cellele= getDDE(args.cs,hit->eta(),hit->phi());
+// long long  cellele= getDDE(args.geo, args.cs,hit->eta(),hit->phi());
 if (( t == (args.nhits-1))||t==0 ) 
-	printf("In HitCellMapping_d, cs=%d, nhits=%d hit:  %f,%f, %f,%f \n",
+	printf("In HitCellMapping_d, cs=%d, nhits=%d hit:  %f,%f, %f,%f,%ld \n",
 		 args.cs,args.nhits, hit->eta(),hit->phi(), hit->z(), hit->E() ); 
 
 

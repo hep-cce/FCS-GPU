@@ -17,6 +17,7 @@
 #include "FastCaloSimAnalyzer/TFCSValidationHitSpy.h"
 
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
+#include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #include "FastCaloGpu/FastCaloGpu/Args.h"
 #include "HepPDT/ParticleData.hh"
 #include "HepPDT/ParticleDataTable.hh"
@@ -118,6 +119,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.seed = nhit ;
 	  args.nhits= nhit ;
 	  args.rand =0 ;
+	  args.geo = GeoLoadGpu::Geo_g ;
 	
  //  if ( 0 ) {
  	ichn=0 ;
@@ -192,8 +194,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	ichn++ ;
 
 	}
-	std::cout<<"Calling CaloGpuGeneral::Gpu_Chain_Test()"<<std::endl;
-        CaloGpuGeneral::Gpu_Chain_Test() ;
+//	std::cout<<"Calling CaloGpuGeneral::Gpu_Chain_Test()"<<std::endl;
+//      CaloGpuGeneral::Gpu_Chain_Test() ;
 	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
 

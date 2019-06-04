@@ -5,22 +5,7 @@
 
 #include <map>
 
-#include "GeoRegion.h"
-
-struct Rg_Sample_Index {
-        int size ;
-        int index ;
-};
-
-
-struct GeoGpu {
-	unsigned long ncells ;
-	CaloDetDescrElement* cells; 
-	unsigned int nregions ;
-	GeoRegion* regions ;
-	int max_sample ;
-	Rg_Sample_Index * sample_index ;
-};	
+#include "GeoGpu_structs.h"
 
 typedef std::map< Identifier , const CaloDetDescrElement* > t_cellmap;
 

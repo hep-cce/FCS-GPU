@@ -2,6 +2,7 @@
 #define GPUARGS_H
 
 #include "FH_structs.h"
+#include "GeoGpu_structs.h"
 
 typedef struct Chain0_Args {
 
@@ -28,6 +29,7 @@ int nhits ;
 FH2D*  fh2d ;
 FHs*   fhs ;
 
+GeoGpu * geo ;
 
 
 } Chain0_Args ;
