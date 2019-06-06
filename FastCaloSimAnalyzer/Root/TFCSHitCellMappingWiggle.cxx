@@ -113,8 +113,6 @@ FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit(Hit& hit,TFCSSimulationStat
 
     ATH_MSG_DEBUG("HIT: E="<<hit.E()<<" cs="<<calosample()<<" eta="<<hit.eta()<<" phi="<<hit.phi()<<" wiggle="<<wiggle<<" bin="<<bin<<" ["<<get_bin_low_edge(bin)<<","<<get_bin_up_edge(bin)<<"] func="<<func);
 
-std::cout<<"HIT: E="<<hit.E()<<" cs="<<calosample()<<" eta="<<hit.eta()<<" phi="<<hit.phi()<<" rand="<<rnd<< " wiggle="<<wiggle<<" bin="<<bin<<" ["<<get_bin_low_edge(bin)<<","<<get_bin_up_edge(bin)<<"] func="<<func <<std::endl ;
-
     double hit_phi_shifted=hit.phi()+wiggle;
     hit.phi()=TVector2::Phi_mpi_pi(hit_phi_shifted);
   }  

@@ -95,11 +95,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
        
 
   }     
-//   std::cout<<" Is it  Our_chain ? " << our_chain << std::endl ;
    
-   //if (nhits > 1000 && ) {
-//   if ( our_chain ) {
-nhit=1 ;
+   //if (nhits > 1000 && our_chain) {
+   if ( our_chain ) {
 	  int cs = calosample();
 	Chain0_Args args ;
           
@@ -121,7 +119,6 @@ nhit=1 ;
 	  args.rand =0 ;
 	  args.geo = GeoLoadGpu::Geo_g ;
 	
- //  if ( 0 ) {
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
 	
@@ -199,7 +196,7 @@ nhit=1 ;
 	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
 
-  // } else {
+   } else {
 #endif
   for (int i = 0; i < nhit; ++i) {
     TFCSLateralShapeParametrizationHitBase::Hit hit; 
@@ -227,7 +224,7 @@ nhit=1 ;
     }
   }
 #ifdef USE_GPU
-  //}
+  }
 #endif
   return FCSSuccess;
 }

@@ -67,9 +67,7 @@ double TFCS1DFunctionInt32Histogram::rnd_to_fct(double rnd) const
   int ibin=std::distance(m_HistoContents.begin(),it);
   if(ibin>=(int)m_HistoContents.size()) ibin=m_HistoContents.size()-1;
   Int_t binx = ibin;
-
-std::cout<<"1D fun Hist: ibin="<< ibin << " m_HistoContents[ibin-1]=" << m_HistoContents[ibin-1]<< " "<<m_HistoBorders[binx+1]<<" " <<int_rnd << std::endl;   
-
+  
   HistoContent_t basecont=0;
   if(ibin>0) basecont=m_HistoContents[ibin-1];
   

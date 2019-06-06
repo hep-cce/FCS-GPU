@@ -22,8 +22,6 @@ FCSReturnCode TFCSHitCellMapping::simulate_hit(Hit& hit,TFCSSimulationState& sim
   int cs=calosample();
   const CaloDetDescrElement* cellele=m_geo->getDDE(cs,hit.eta(),hit.phi());
   ATH_MSG_DEBUG("HIT: cellele="<<cellele<<" E="<<hit.E()<<" cs="<<cs<<" eta="<<hit.eta()<<" phi="<<hit.phi());
-
-std::cout<< "HIT: cellele="<<cellele<<" E="<<hit.E()<<" cs="<<cs<<" eta="<<hit.eta()<<" phi="<<hit.phi()<<" Cell ID="<< cellele->identify()<<std::endl;
   if(cellele) {
     simulstate.deposit(cellele,hit.E());
     return FCSSuccess;
