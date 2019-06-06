@@ -68,10 +68,13 @@ void TFCS2DFunctionHistogram::rnd_to_fct(float& valuex,float& valuey,float rnd0,
   }
   auto it = std::upper_bound(m_HistoContents.begin(),m_HistoContents.end(),rnd0);
   int ibin=std::distance(m_HistoContents.begin(),it);
+  std::cout<<"2d funct hist ibin="<< ibin << std::endl ;
   if(ibin>=(int)m_HistoContents.size()) ibin=m_HistoContents.size()-1;
   Int_t nbinsx=m_HistoBorders.size()-1;
   Int_t biny = ibin/nbinsx;
   Int_t binx = ibin - nbinsx*biny;
+  std::cout<<"2d funct hist binx="<< binx << " biny=" << biny <<" nbinxs=" << nbinsx 
+	<<" BorderX="<< m_HistoBorders[binx]<< " BorderY="<<m_HistoBordersy[biny]<<std::endl ;
   
   float basecont=0;
   if(ibin>0) basecont=m_HistoContents[ibin-1];

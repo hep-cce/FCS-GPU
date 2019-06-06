@@ -72,6 +72,8 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
   float alpha, r, rnd1, rnd2;
   rnd1 = CLHEP::RandFlat::shoot(simulstate.randomEngine());
   rnd2 = CLHEP::RandFlat::shoot(simulstate.randomEngine());
+std::cout<<"rnd1="<<rnd1 <<" rnd2="<<rnd2 << std::endl ;
+
   if(is_phi_symmetric()) {
     if(rnd2>=0.5) { //Fill negative phi half of shape
       rnd2-=0.5;
@@ -94,6 +96,7 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
     return FCSFatal;
   }
   
+std::cout<<"  Histogram: "<<m_hist.get_HistoBordersx().size()-1<<"*"<<m_hist.get_HistoBordersy().size()-1<<" bins, #hits="<<m_nhits<<" alpha="<<alpha<<" r="<<r<<" rnd1="<<rnd1<<" rnd2="<<rnd2 << std::endl; 
   
   float delta_eta_mm = r * cos(alpha);
   float delta_phi_mm = r * sin(alpha);
@@ -112,6 +115,9 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
   hit.setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit.E());
 
   ATH_MSG_DEBUG("HIT: E="<<hit.E()<<" cs="<<cs<<" eta="<<hit.eta()<<" phi="<<hit.phi()<< " z="<<hit.z()<<" r="<<r<<" alpha="<<alpha);
+
+std::cout<<"HIT: center_eta"<<center_eta<<" center_phi"<< center_phi<<" charge" <<charge<<" center_r"<<center_r<<" center_z"<<center_z<<" delta_eta"
+	<<" delta_phi" <<delta_phi<<std::endl ;
 
   return FCSSuccess;
 }
@@ -173,8 +179,8 @@ void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
   m_LdFH = new LoadGpuFuncHist() ;
   FH2D fh = {0, 0,0,0,0} ;
 
-  fh.nbinsx=m_hist.get_HistoBordersx().size() ;
-  fh.nbinsy=m_hist.get_HistoBordersy().size() ;
+  fh.nbinsx=m_hist.get_HistoBordersx().size()-1 ;
+  fh.nbinsy=m_hist.get_HistoBordersy().size()-1 ;
 
   fh.h_bordersx= &(m_hist.get_HistoBordersx()[0]) ;
   fh.h_bordersy= &(m_hist.get_HistoBordersy()[0]) ;

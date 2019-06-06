@@ -77,7 +77,7 @@ long long newDDE  = m_cells_g[ieta *m_cell_grid_phi + iphi];
     iphi+= round(dist_phi0);
     index_range_adjust(ieta,iphi);
     long long oldDDE=newDDE;
-    newDDE=m_cells[ieta *m_cell_grid_phi + iphi];
+    newDDE=m_cells_g[ieta *m_cell_grid_phi + iphi];
     ++(*steps);
    ++nsearch;
     if(oldDDE==newDDE) break;
@@ -93,7 +93,7 @@ float minieta=ieta + floor(m_mineta_correction/cell_grid_eta());
       ieta=iieta;
       iphi=iiphi;
       index_range_adjust(ieta,iphi);
-      newDDE=m_cells[ieta * m_cell_grid_phi + iphi];
+      newDDE=m_cells_g[ieta * m_cell_grid_phi + iphi];
       ++(*steps);
       if(newDDE >=0 ) {
         float dist_eta0,dist_phi0;

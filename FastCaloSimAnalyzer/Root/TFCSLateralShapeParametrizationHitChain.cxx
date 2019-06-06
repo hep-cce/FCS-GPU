@@ -98,8 +98,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //   std::cout<<" Is it  Our_chain ? " << our_chain << std::endl ;
    
    //if (nhits > 1000 && ) {
-   if ( our_chain ) {
-
+//   if ( our_chain ) {
+nhit=1 ;
 	  int cs = calosample();
 	Chain0_Args args ;
           
@@ -199,7 +199,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
 
-   } else {
+  // } else {
 #endif
   for (int i = 0; i < nhit; ++i) {
     TFCSLateralShapeParametrizationHitBase::Hit hit; 
@@ -227,7 +227,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
     }
   }
 #ifdef USE_GPU
-  }
+  //}
 #endif
   return FCSSuccess;
 }

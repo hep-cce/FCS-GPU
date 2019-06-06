@@ -24,7 +24,6 @@ if(sampling<0) return -1;
    int sample_index=SampleIdx[sampling].index ;
 
    GeoRegion * gr = ( GeoRegion *) regions_g ; 
-   printf("gr * is %d\n", gr) ; 
   if(sample_size==0) return -1;
   float dist;
   long long bestDDE=-1;
@@ -132,21 +131,24 @@ if (err != cudaSuccess) {
 __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
 
  int nbinsx=(*hf2d).nbinsx;
- int nbinxy=(*hf2d).nbinsy;
+ int nbinsy=(*hf2d).nbinsy;
  float * HistoContents= (*hf2d).h_contents ;
  float* HistoBorders= (*hf2d).h_bordersx ;
  float* HistoBordersy= (*hf2d).h_bordersy ; 
 
- int ibin = nbinsx*nbinxy-1 ;
- for ( int i=0 ; i < nbinsx*nbinxy ; ++i) {
+ int ibin = nbinsx*nbinsy-1 ;
+ for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
+ printf("rnd_tofct2d: i=%d, Contents=%f, rand0=%f\n", i, HistoContents[i], rnd0);
     if   (HistoContents[i]> rnd0 ) {
 	 ibin = i ;
 	 break ;
 	}
  } 
 
+
   int biny = ibin/nbinsx;
   int binx = ibin - nbinsx*biny;
+ printf("rnd_tofct2d: ibin=%d, nbinsx=%d nbinsy=%d binx=%d, biny=%d, contents=%f, Borderx=%f, Bordery=%f \n", ibin, nbinsx,nbinsy, binx,biny, HistoContents[ibin-1],HistoBorders[binx], HistoBordersy[biny]);
 
   float basecont=0;
   if(ibin>0) basecont=HistoContents[ibin-1];
@@ -167,6 +169,7 @@ __device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders 
 
   uint32_t int_rnd=s_MaxValue*rnd;
 
+printf("int_rnd=%u, s_MaxValue=%u ,rnd=%f\n",int_rnd,s_MaxValue,rnd);
   int  ibin=nbins-1 ;
   for ( int i=0 ; i < nbins ; ++i) {
     if   (contents[i]> int_rnd ) {
@@ -177,6 +180,7 @@ __device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders 
 
   int binx = ibin;
 
+printf("rnd_to_fct1d: ibin=%d,nbins=%d, contents[ibin-1]=%u contents[ibin]=%u,borders[binx]=%f,int_rnd=%u\n ", ibin,nbins, contents[ibin-1],contents[ibin],borders[binx],int_rnd);
   uint32_t basecont=0;
   if(ibin>0) basecont=contents[ibin-1];
 
@@ -197,9 +201,9 @@ __device__  void CenterPositionCalculation_d(Hit* hit, const Chain0_Args args) {
 	args.extrapWeight*args.extrapol_r_ext) ;
     hit->setCenter_z((1.- args.extrapWeight)*args.extrapol_z_ent + 
 	args.extrapWeight*args.extrapol_z_ext) ;
-    hit->setCenter_r((1.- args.extrapWeight)*args.extrapol_eta_ent + 
+    hit->setCenter_eta((1.- args.extrapWeight)*args.extrapol_eta_ent + 
 	args.extrapWeight*args.extrapol_eta_ext) ;
-    hit->setCenter_z((1.- args.extrapWeight)*args.extrapol_phi_ent + 
+    hit->setCenter_phi((1.- args.extrapWeight)*args.extrapol_phi_ent + 
 	args.extrapWeight*args.extrapol_phi_ext) ;
 }
 
@@ -224,6 +228,9 @@ __device__ void HistoLateralShapeParametrization_d( Hit* hit, unsigned long t, C
   float alpha, r, rnd1, rnd2;
   rnd1 = args.rand[t];
   rnd2 = args.rand[t+args.nhits];
+
+  rnd1=0.268006; 
+  rnd2=0.220309 ;
   if(args.is_phi_symmetric) {
     if(rnd2>=0.5) { //Fill negative phi half of shape
       rnd2-=0.5;
@@ -237,6 +244,8 @@ __device__ void HistoLateralShapeParametrization_d( Hit* hit, unsigned long t, C
   } else {
     rnd_to_fct2d(alpha,r,rnd1,rnd2,args.fh2d);
   }
+
+  printf("alpha=%f, r=%f ,rnd1=%f, rnd2=%f\n", alpha,r,rnd1,rnd2) ;
 
   float delta_eta_mm = r * cos(alpha);
   float delta_phi_mm = r * sin(alpha);
@@ -254,6 +263,9 @@ __device__ void HistoLateralShapeParametrization_d( Hit* hit, unsigned long t, C
 
   hit->setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit->E());
 
+printf("center_eta=%f, charge=%f, center_r=%f,center_z=%f, delta_eta=%f , delta_phi=%f\n",
+	center_eta,charge,center_r,center_z,delta_eta,delta_phi);
+
 
 }
 
@@ -261,11 +273,20 @@ __device__ void HitCellMapping_d( Hit* hit,unsigned long t, Chain0_Args args ) {
 
 
  
-// long long  cellele= getDDE(args.geo, args.cs,hit->eta(),hit->phi());
+ long long  cellele= getDDE(args.geo, args.cs,hit->eta(),hit->phi());
+
+  CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
+  long long id = cell.identify();
+  float eta=cell.eta(); 
+  float phi=cell.phi();
+  float z=cell.z();
+  float r=cell.r() ;
+
 if (( t == (args.nhits-1))||t==0 ) 
 	printf("In HitCellMapping_d, cs=%d, nhits=%d hit:  %f,%f, %f,%f,%ld \n",
-		 args.cs,args.nhits, hit->eta(),hit->phi(), hit->z(), hit->E() ); 
-
+		 args.cs,args.nhits, hit->eta(),hit->phi(), hit->z(), hit->E(),  cellele ); 
+ 
+printf("In HitCellMapping_d Cell%ld id=%ld, eta=%f, phi=%f, z=%f,r=%f\n",  cellele, id, eta, phi, z, r) ;
 
 }
 
@@ -294,11 +315,14 @@ __device__ void HitCellMappingWiggle_d( Hit* hit,  Chain0_Args args, unsigned lo
 
   uint32_t * contents = (*(args.fhs)).h_contents[bin] ;
   float* borders = (*(args.fhs)).h_borders[bin] ;
+  int h_size=(*(args.fhs)).h_szs[bin] ;
+  uint32_t s_MaxValue =(*(args.fhs)).s_MaxValue ;
   
 
      float rnd= args.rand[t+2*args.nhits];
+      rnd=0.401342 ;
 
-    double wiggle=rnd_to_fct1d(rnd,contents, borders, nhist, (*(args.fhs)).s_MaxValue);
+    double wiggle=rnd_to_fct1d(rnd,contents, borders, h_size, s_MaxValue);
 
 
     double hit_phi_shifted=hit->phi()+wiggle;
@@ -352,7 +376,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
         float * r= rd4h->HitsRandGen(nhits, args.seed) ;
          args.rand = r ;
 	 std::cout << "rand pointer " << r << std::endl ;
-
+	//nhits=100;
 
 	int blocksize=BLOCK_SIZE ;
 	int threads_tot= (nhits +NLOOPS-1) /NLOOPS  ;
