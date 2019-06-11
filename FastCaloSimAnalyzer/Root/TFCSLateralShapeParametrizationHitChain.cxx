@@ -23,6 +23,7 @@
 #include "HepPDT/ParticleDataTable.hh"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 
+#include <chrono>
 
 #endif
 
@@ -80,13 +81,15 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }
 
 #ifdef USE_GPU
+
+    auto start = std::chrono::system_clock::now();
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
  
-  std::cout<<"nhits="<< nhit << ", " ;
-  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
-      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
-  std::cout << std::endl ;
+//  std::cout<<"nhits="<< nhit << ", " ;
+//  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
+//      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
+//  std::cout << std::endl ;
   int ichn=0 ;
   bool  our_chain= true;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
@@ -98,6 +101,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
    
    //if (nhits > 1000 && our_chain) {
    if ( our_chain ) {
+//	nhit=4096; 
 	  int cs = calosample();
 	Chain0_Args args ;
           
@@ -114,24 +118,26 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.pdgId	= truth->pdgid();
 	  args.charge   = HepPDT::ParticleID(args.pdgId).charge() ;
 	  
-	  args.seed = nhit ;
 	  args.nhits= nhit ;
 	  args.rand =0 ;
 	  args.geo = GeoLoadGpu::Geo_g ;
+	  args.hits=0 ;
+	  args.rd4h=simulstate.get_gpu_rand();
 	
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
 	
-        std::cout << "Chain[" <<ichn <<"]: " << typeid( * hitsim ).name() 
-		<< "Pointer: " << hitsim << std::endl;
+  //      std::cout << "Chain[" <<ichn <<"]: " << typeid( * hitsim ).name() 
+//		<< "Pointer: " << hitsim << std::endl;
 	if(ichn==0 ) {
-           std::cout<<"---m_extrapWeight"<< ((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() <<std::endl ;
+  //         std::cout<<"---m_extrapWeight"<< ((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() <<std::endl ;
          //  hitsim->Print();
            args.extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
 
 	}
 
 	if(ichn==1 || ichn==4 ) {
+	 if(0) { 
 		std::cout<<"---m_previous"<< ((TFCSValidationHitSpy*)hitsim)->previous() << std::endl ;
 		std::cout<<"---m_saved_hit"<< &(((TFCSValidationHitSpy*)hitsim)->saved_hit()) << std::endl ;
 		std::cout<<"---m_saved_cellele"<< ((TFCSValidationHitSpy*)hitsim)->saved_cellele() << std::endl ;
@@ -158,14 +164,14 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		std::cout<<"---m_get_deta_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_deta_hit_minus_extrapol_mm() << std::endl ;
 		std::cout<<"---m_get_dphi_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_dphi_hit_minus_extrapol_mm() << std::endl ;
 		std::cout<<"---m_phi_granularity_change_at_eta"<< ((TFCSValidationHitSpy*)hitsim)->get_eta_boundary() << std::endl ;
-
+	  }
 	}
 
 	if(ichn==2) {
 
-		TFCS2DFunctionHistogram h=((TFCSHistoLateralShapeParametrization *) hitsim)->histogram() ;
-		std::cout << "size of hist: "<<h.get_HistoBordersx().size() <<", "<<h.get_HistoBordersy().size()  
-			<<"Pointer: " << &h <<std::endl ;
+	//	TFCS2DFunctionHistogram h=((TFCSHistoLateralShapeParametrization *) hitsim)->histogram() ;
+	//	std::cout << "size of hist: "<<h.get_HistoBordersx().size() <<", "<<h.get_HistoBordersy().size()  
+	//		<<"Pointer: " << &h <<std::endl ;
 
 		((TFCSHistoLateralShapeParametrization *) hitsim)->LoadHistFuncs() ;
 	
@@ -175,6 +181,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
 	}
 	if(ichn==3) {
+	if(0) {
 		std::cout<< "---NumberOfBins:" << ((TFCSHitCellMappingWiggle * ) hitsim )->get_number_of_bins () << std::endl;
 		std::vector< const TFCS1DFunction* > funcs=  ((TFCSHitCellMappingWiggle * ) hitsim )->get_functions() ;
 		for ( auto it = funcs.begin(); it != funcs.end() ; ++it ) {
@@ -182,6 +189,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		std::cout<< "----+++type of funcs: " << typeid( *(*it)).name()<<", pointer: " << *it <<  std::endl ;  
 		} 
 		
+		}
 		((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
 
 		args.fhs=((TFCSHitCellMappingWiggle * ) hitsim )->LdFH()->d_hf(); 
@@ -193,9 +201,18 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	}
 //	std::cout<<"Calling CaloGpuGeneral::Gpu_Chain_Test()"<<std::endl;
 //      CaloGpuGeneral::Gpu_Chain_Test() ;
+//
+
+  auto t1 = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff = t1-start;
+   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
+
 	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
 
+  auto t2 = std::chrono::system_clock::now();
+   diff = t2-t1;
+   std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
    } else {
 #endif
   for (int i = 0; i < nhit; ++i) {

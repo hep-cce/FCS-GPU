@@ -46,7 +46,10 @@ class TFCSSimulationState:public TObject
     void Print(Option_t *option="") const;
     void set_SF(double mysf) {m_SF = mysf;}
     double get_SF() {return m_SF;}
-
+#ifdef USE_GPU
+    void * get_gpu_rand(){ return m_gpu_rand; };
+    void set_gpu_rand(void * rand ){ m_gpu_rand=rand ; } ;
+#endif
     void clear();
   private:
     CLHEP::HepRandomEngine* m_randomEngine;
@@ -57,7 +60,9 @@ class TFCSSimulationState:public TObject
     double m_SF;
     double m_E[CaloCell_ID_FCS::MaxSample];
     double m_Efrac[CaloCell_ID_FCS::MaxSample];
-    
+#ifdef USE_GPU
+    void * m_gpu_rand ;
+#endif
     Cellmap_t m_cells;
     
   ClassDef(TFCSSimulationState,1)  //TFCSSimulationState

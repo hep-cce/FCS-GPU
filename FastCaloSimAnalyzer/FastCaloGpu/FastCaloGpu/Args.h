@@ -3,6 +3,9 @@
 
 #include "FH_structs.h"
 #include "GeoGpu_structs.h"
+#include "Hit.h"
+
+#define MAXHITS 200000 
 
 typedef struct Chain0_Args {
 
@@ -21,15 +24,15 @@ int pdgId ;
 double charge ;
 int cs ;
 bool is_phi_symmetric ;
-unsigned long long  seed ;
 float * rand ;
 int nhits ;
-
+void * rd4h ;
 
 FH2D*  fh2d ;
 FHs*   fhs ;
 
 GeoGpu * geo ;
+Hit * hits ;
 
 
 } Chain0_Args ;

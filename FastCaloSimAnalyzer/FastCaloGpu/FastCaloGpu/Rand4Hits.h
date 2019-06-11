@@ -14,13 +14,14 @@
 class Rand4Hits {
   public:
      Rand4Hits(){ m_rand_ptr =0 ;  }; 
-     ~Rand4Hits() {gpuQ(cudaFree(m_rand_ptr)); CURAND_CALL(curandDestroyGenerator(m_gen));};
-
+     ~Rand4Hits() {gpuQ(cudaFree(m_rand_ptr));
+		 CURAND_CALL(curandDestroyGenerator(m_gen));};
      float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
 
-     curandGenerator_t get_gen(){return m_gen ;};
-     float * get_rand_ptr(){ return m_rand_ptr; };
+     float * rand_ptr(){ return m_rand_ptr; };
      void set_rand_ptr( float* ptr) { m_rand_ptr=ptr ; };
+     void set_gen( curandGenerator_t  gen) { m_gen=gen ; };
+     curandGenerator_t gen() {return m_gen ; } ; 
 
   private:
       float * m_rand_ptr  ;

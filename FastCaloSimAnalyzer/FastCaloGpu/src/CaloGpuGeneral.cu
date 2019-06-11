@@ -6,7 +6,7 @@
 #include "Args.h"
 
 #define BLOCK_SIZE 512 
-#define NLOOPS 2
+#define NLOOPS 4
 
 __device__  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
 
@@ -191,34 +191,34 @@ __device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders 
 
 
 
-__device__  void CenterPositionCalculation_d(Hit* hit, const Chain0_Args args) {
+__device__  void CenterPositionCalculation_d(Hit& hit, const Chain0_Args args) {
 
-    hit->setCenter_r((1.- args.extrapWeight)*args.extrapol_r_ent + 
+    hit.setCenter_r((1.- args.extrapWeight)*args.extrapol_r_ent + 
 	args.extrapWeight*args.extrapol_r_ext) ;
-    hit->setCenter_z((1.- args.extrapWeight)*args.extrapol_z_ent + 
+    hit.setCenter_z((1.- args.extrapWeight)*args.extrapol_z_ent + 
 	args.extrapWeight*args.extrapol_z_ext) ;
-    hit->setCenter_eta((1.- args.extrapWeight)*args.extrapol_eta_ent + 
+    hit.setCenter_eta((1.- args.extrapWeight)*args.extrapol_eta_ent + 
 	args.extrapWeight*args.extrapol_eta_ext) ;
-    hit->setCenter_phi((1.- args.extrapWeight)*args.extrapol_phi_ent + 
+    hit.setCenter_phi((1.- args.extrapWeight)*args.extrapol_phi_ent + 
 	args.extrapWeight*args.extrapol_phi_ext) ;
 }
 
 
-__device__ void ValidationHitSpy_d( Hit* hit, const  Chain0_Args args ) {
+__device__ void ValidationHitSpy_d( Hit& hit, const  Chain0_Args args ) {
 
 
 }
 
-__device__ void HistoLateralShapeParametrization_d( Hit* hit, unsigned long t, Chain0_Args args ) {
+__device__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
   int     pdgId    = args.pdgId;
-  double  charge   = args.charge;
+  float  charge   = args.charge;
 
   int cs=args.charge;
-  double center_eta = hit->center_eta();
-  double center_phi = hit->center_phi();
-  double center_r   = hit->center_r();
-  double center_z   = hit->center_z();
+  float center_eta = hit.center_eta();
+  float center_phi = hit.center_phi();
+  float center_r   = hit.center_r();
+  float center_z   = hit.center_z();
 
 
   float alpha, r, rnd1, rnd2;
@@ -254,16 +254,14 @@ __device__ void HistoLateralShapeParametrization_d( Hit* hit, unsigned long t, C
   float delta_eta = delta_eta_mm / eta_jakobi / dist000;
   float delta_phi = delta_phi_mm / center_r;
 
-  hit->setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit->E());
+  hit.setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit.E());
 
 
 }
 
-__device__ void HitCellMapping_d( Hit* hit,unsigned long t, Chain0_Args args ) {
+__device__ void HitCellMapping_d( Hit& hit,unsigned long t, Chain0_Args args ) {
 
-
- 
- long long  cellele= getDDE(args.geo, args.cs,hit->eta(),hit->phi());
+ long long  cellele= getDDE(args.geo, args.cs,hit.eta(),hit.phi());
 
   CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
   long long id = cell.identify();
@@ -271,17 +269,15 @@ __device__ void HitCellMapping_d( Hit* hit,unsigned long t, Chain0_Args args ) {
   float phi=cell.phi();
   float z=cell.z();
   float r=cell.r() ;
-
-
 }
 
-__device__ void HitCellMappingWiggle_d( Hit* hit,  Chain0_Args args, unsigned long  t ) {
+__device__ void HitCellMappingWiggle_d( Hit& hit,  Chain0_Args args, unsigned long  t ) {
 
  int nhist=(*(args.fhs)).nhist;
  float*  bin_low_edge = (*(args.fhs)).low_edge ;
  
 
- float eta =fabs( hit->eta()); 
+ float eta =fabs( hit.eta()); 
  if(eta<bin_low_edge[0] || eta> bin_low_edge[nhist]) {
    HitCellMapping_d(hit, t, args) ;
 
@@ -305,11 +301,10 @@ __device__ void HitCellMappingWiggle_d( Hit* hit,  Chain0_Args args, unsigned lo
 
      float rnd= args.rand[t+2*args.nhits];
 
-    double wiggle=rnd_to_fct1d(rnd,contents, borders, h_size, s_MaxValue);
+    float wiggle=rnd_to_fct1d(rnd,contents, borders, h_size, s_MaxValue);
 
-
-    double hit_phi_shifted=hit->phi()+wiggle;
-    hit->phi()=Phi_mpi_pi(hit_phi_shifted);
+    float hit_phi_shifted=hit.phi()+wiggle;
+    hit.phi()=Phi_mpi_pi(hit_phi_shifted);
   
 
   HitCellMapping_d(hit, t,  args) ;
@@ -317,21 +312,24 @@ __device__ void HitCellMappingWiggle_d( Hit* hit,  Chain0_Args args, unsigned lo
 }
 
 
+
+
+
 __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
 
   int tid = threadIdx.x + blockIdx.x*blockDim.x ;
   for ( int i=0 ; i<NLOOPS ; ++i ) { 
     unsigned long t = tid+i*gridDim.x*blockDim.x ;
-    if ( t  >= nhits ) break ;  
-    Hit* hit  =new Hit() ;
-    hit->E()=E ;
+    if ( t  >= nhits ) break ; 
+    Hit hit ;
+    hit.E()=E ;
     CenterPositionCalculation_d( hit, args) ;
     ValidationHitSpy_d( hit, args) ;
     HistoLateralShapeParametrization_d(hit,t,  args) ;
     HitCellMappingWiggle_d ( hit, args, t ) ;
     ValidationHitSpy_d(hit,args);
-// do something 
-    delete hit ;
+//  do something 
+if(t==0) printf("rand(0)=%f\n", args.rand[0]);
   }
  
 }
@@ -350,13 +348,49 @@ __global__  void simulate_chain0_C() {
 }
 
 
+__host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned long long seed ){ 
+
+      Rand4Hits * rd4h = new Rand4Hits ;
+	float * f  ;
+	curandGenerator_t gen ;
+       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
+        
+        CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
+        CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
+
+         rd4h->set_rand_ptr(f) ;
+	 rd4h->set_gen(gen) ;
+
+	return  (void* ) rd4h ;
+
+}
+
+__host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
+
+ if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
+
+}
+
+
 __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args ) {
 
-	Rand4Hits *  rd4h = new Rand4Hits ;
-        float * r= rd4h->HitsRandGen(nhits, args.seed) ;
+//	Rand4Hits * rd4h = (Rand4Hits *) Rand4Hits_init((long long )nhits, args.seed) ;
+        Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
+	
+	
+        float * r= rd4h->rand_ptr()  ;
          args.rand = r ;
-	 std::cout << "rand pointer " << r << std::endl ;
-	//nhits=100;
+std::cout<<"before 1st gen r="<< r<< std::endl;
+  CURAND_CALL(curandGenerateUniform(rd4h->gen(), r, 3*nhits));
+std::cout<<"after 1st gen r="<< r<< std::endl;
+  CURAND_CALL(curandGenerateUniform(rd4h->gen(), r, 3*nhits));
+std::cout<<"after 2nd gen r="<< r<< std::endl;
+
+
+	 
+
+//	gpuQ(cudaMalloc((void**)&(args.hits), nhits*sizeof(Hit)));
+
 
 	int blocksize=BLOCK_SIZE ;
 	int threads_tot= (nhits +NLOOPS-1) /NLOOPS  ;
@@ -365,6 +399,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
 	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize 
                 << ", total Threads: " << threads_tot << std::endl ;
+
   simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ; 
   cudaDeviceSynchronize() ;
  cudaError_t err = cudaGetLastError();
@@ -389,7 +424,8 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
 }
 
-	delete rd4h ;
+//	delete rd4h ;
+//	cudaFree( args.hits);
 
 }
 

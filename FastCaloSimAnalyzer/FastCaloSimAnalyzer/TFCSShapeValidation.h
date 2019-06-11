@@ -63,6 +63,7 @@ private:
 
 #ifdef USE_GPU
    GeoLoadGpu * m_gl ;
+   void * m_rd4h ;
 #endif
 
    ClassDef(TFCSShapeValidation, 1);

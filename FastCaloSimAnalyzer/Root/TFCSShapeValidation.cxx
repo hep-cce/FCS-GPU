@@ -34,6 +34,7 @@
 
 #ifdef USE_GPU
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
+#include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
 
 
@@ -51,6 +52,7 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
 #ifdef USE_GPU
    m_gl =0 ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
 #endif
 
 
@@ -71,6 +73,7 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
    m_randEngine->setSeed(seed);
 #ifdef USE_GPU
    m_gl =0 ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
 #endif
 
 
@@ -79,7 +82,6 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
 
 TFCSShapeValidation::~TFCSShapeValidation()
 {
-
 }
 
 void TFCSShapeValidation::LoadGeo()
@@ -105,8 +107,11 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   GeoLg() ;
 
   if (m_gl->LoadGpu())
-	std::cout <<"GPU loaded!!!" <<std::endl  ;
+	std::cout <<"GPU Geometry loaded!!!" <<std::endl  ;
    
+//   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
+
+  
 #endif
    
   //m_debug=1 ;
@@ -143,7 +148,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
         std::cout<< "Total cells for sample "<< isample << " is " << sample_tot <<std::endl;
 
     }
-        std::cout<< "Total cells for all regions and samplesi: " << t_cells <<std::endl;
+        std::cout<< "Total cells for all regions and samples: " << t_cells <<std::endl;
 
 
 
@@ -324,7 +329,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
-  
+#ifdef USE_GPU
+	chain_simul.set_gpu_rand(m_rd4h) ;
+#endif  
 //        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
 
      validation.basesim()->simulate(chain_simul,&truthTLV,&extrapol); 
@@ -334,6 +341,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
        }  
      }
   } // end loop over events
+#ifdef USE_GPU
+ if(m_rd4h) CaloGpuGeneral::Rand4Hits_finish( m_rd4h ) ;
+#endif 
   
    auto t3 = std::chrono::system_clock::now();
    diff = t3-t2;
