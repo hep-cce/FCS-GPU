@@ -32,7 +32,12 @@ FH2D*  fh2d ;
 FHs*   fhs ;
 
 GeoGpu * geo ;
-Hit * hits ;
+//Hit * hits ;
+bool * hitcells_b ;
+unsigned long * hitcells ;
+unsigned long * hitcells_l ;
+unsigned int * hitcells_ct ;
+unsigned long ncells ;
 
 
 } Chain0_Args ;
