@@ -35,6 +35,8 @@
 #ifdef USE_GPU
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
+  std::chrono::duration<double> TFCSShapeValidation::time_g ;
+  std::chrono::duration<double> TFCSShapeValidation::time_h ;
 #endif
 
 
@@ -109,8 +111,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   if (m_gl->LoadGpu())
 	std::cout <<"GPU Geometry loaded!!!" <<std::endl  ;
    
-//   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
-
+	time_g=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
   
 #endif
    
@@ -331,6 +333,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
        TFCSSimulationState& chain_simul = validation.simul().back();
 #ifdef USE_GPU
 	chain_simul.set_gpu_rand(m_rd4h) ;
+	chain_simul.set_geold(m_gl) ;
 #endif  
 //        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
 
@@ -347,8 +350,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   
    auto t3 = std::chrono::system_clock::now();
    diff = t3-t2;
-   std::cout <<  "Time of  eventloop  :" << diff.count() <<" s" << std::endl ;
-  
+   std::cout <<  "Time of  eventloop  :" << diff.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  GPU Chain0:" << time_g.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
+ 
 /*  
   TCanvas* c;
   c=new TCanvas(hist_cellSFvsE->GetName(),hist_cellSFvsE->GetTitle());

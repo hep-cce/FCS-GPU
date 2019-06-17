@@ -497,9 +497,8 @@ __host__ int highestPowerof2(unsigned int n)
     return res; 
 }
 
-__host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args ) {
+__host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& args ) {
 
-//	Rand4Hits * rd4h = (Rand4Hits *) Rand4Hits_init((long long )nhits, args.seed) ;
         Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
 	
 	
@@ -509,7 +508,6 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
 
 	 
-//	args.ncells=180000;
 	unsigned long  ncells = args.ncells ; 
 	gpuQ(cudaMalloc((void**)&(args.hitcells_b), args.ncells*sizeof(bool)));
 	gpuQ(cudaMalloc((void**)&(args.hitcells_l), args.nhits*sizeof(unsigned long)));
@@ -522,10 +520,10 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 	int nblocks= (threads_tot + blocksize-1 )/blocksize ;        
 
 	simulate_chain0_clean <<< nblocks, blocksize >>>( args) ;
-  	cudaDeviceSynchronize() ;
+  //	cudaDeviceSynchronize() ;
  	cudaError_t err = cudaGetLastError();
  if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
+        std::cout<< "simulate_chain0_clean "<<cudaGetErrorString(err)<< std::endl;
 }
 
 
@@ -533,11 +531,11 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 	threads_tot= (nhits +NLOOPS-1) /NLOOPS  ;
 	nblocks= (threads_tot + blocksize-1 )/blocksize ;        
 
-	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize 
-                << ", total Threads: " << threads_tot << std::endl ;
+//	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize 
+//                << ", total Threads: " << threads_tot << std::endl ;
 
   simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ; 
-  cudaDeviceSynchronize() ;
+//  cudaDeviceSynchronize() ;
   err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
@@ -546,10 +544,10 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
 
   nblocks = (ncells + blocksize -1 )/blocksize ;
   simulate_chain0_B1 <<<nblocks,blocksize >>> (args) ;
-  cudaDeviceSynchronize() ;
+//  cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_B "<<cudaGetErrorString(err)<< std::endl;
+        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
 
 }
 
@@ -561,8 +559,8 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
  // check result 
    gpuQ(cudaMemcpy(hitcells, args.hitcells_l, ct*sizeof(unsigned long), cudaMemcpyDeviceToHost));
 
-	std::cout<<"hit cell ct="<<ct<<std::endl;
-	std::cout<<"hit cell [0]="<<hitcells[0]<<std::endl;
+//	std::cout<<"hit cell ct="<<ct<<std::endl;
+//	std::cout<<"hit cell [0]="<<hitcells[0]<<std::endl;
 
    blocksize=64 ; 
    nblocks = (args.nhits + blocksize-1)/blocksize ;
@@ -572,7 +570,8 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
     std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
    simulate_chain0_C1<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
-  cudaDeviceSynchronize() ;
+//  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_C1 "<<cudaGetErrorString(err)<< std::endl;
 }
@@ -583,19 +582,24 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args args
     nblocks=ct;
 
     simulate_chain0_D1<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(hitcounts_b,ct_b,ct,args) ;
-  cudaDeviceSynchronize() ;
+//  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
  if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_C1 "<<cudaGetErrorString(err)<< std::endl;
+        std::cout<< "simulate_chain0_D1 "<<cudaGetErrorString(err)<< std::endl;
 }
    gpuQ(cudaMemcpy(hitcells_ct, hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
- 
-int total_ct=0 ;
+
+// pass result back 
+   args.ct=ct;
+   args.hitcells_h=hitcells ;
+   args.hitcells_ct_h=hitcells_ct ;
+
+/*int total_ct=0 ;
 for(int ii =0 ; ii<ct ; ++ii) {
 	std::cout<< "CT["<<hitcells[ii]<<"]=" << hitcells_ct[ii]<<std::endl ;
 	total_ct += hitcells_ct[ii] ;
 }
 std::cout << "Total Counts =" << total_ct << " nhits=" << args.nhits<< std::endl;
-
 
   simulate_chain0_C <<< 1,1 >>> () ;
   cudaDeviceSynchronize() ;
@@ -604,16 +608,16 @@ std::cout << "Total Counts =" << total_ct << " nhits=" << args.nhits<< std::endl
         std::cout<< "simulate_chain0_C "<<cudaGetErrorString(err)<< std::endl;
 
 }
+*/
 
-//	delete rd4h ;
-//	cudaFree( args.hits);
+
 	cudaFree( args.hitcells);
 	cudaFree( args.hitcells_ct);
 	cudaFree( args.hitcells_b);
 	cudaFree( args.hitcells_l);
 	cudaFree( hitcounts_b);
-	free(hitcells)  ;
-	free(hitcells_ct)  ;
+//	free(hitcells)  ;
+//	free(hitcells_ct)  ;
 
 }
 

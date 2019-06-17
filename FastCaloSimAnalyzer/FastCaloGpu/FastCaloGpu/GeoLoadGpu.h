@@ -20,7 +20,7 @@ public :
     ~GeoLoadGpu() { delete m_cellid_array ; } ;
 
     static  struct GeoGpu *  Geo_g ; 
-    static  unsigned long num_cells; 
+    static  unsigned long num_cells;
    
     void set_ncells(unsigned long  nc) { m_ncells = nc ; };
     void set_nregions(unsigned int  nr) { m_nregions = nr;  };
@@ -30,6 +30,7 @@ public :
     void set_cells_g( CaloDetDescrElement *  gc) { m_cells_g = gc ; };
     void set_max_sample( int s) { m_max_sample = s ; };
     void set_sample_index_h( Rg_Sample_Index * s) { m_sample_index_h = s ; };
+    const CaloDetDescrElement* index2cell(unsigned long index) { return (*m_cells)[ m_cellid_array[index]] ; };  
 
     bool LoadGpu() ;
     //bool LoadGpu_Region(GeoRegion * ) ;
@@ -37,15 +38,15 @@ public :
 
 
 protected :
-    unsigned long m_ncells;
-    unsigned int  m_nregions;
-    t_cellmap *   m_cells ;
-    GeoRegion*  m_regions  ;
-    GeoRegion * m_regions_g  ;
-    CaloDetDescrElement* m_cells_g ;
-    Identifier *  m_cellid_array ;
-    int m_max_sample ;
-     Rg_Sample_Index *  m_sample_index_h ;
+    unsigned long m_ncells;  //number of cells
+    unsigned int  m_nregions;  // number of regions
+    t_cellmap *   m_cells ;  // from Geometry class
+    GeoRegion*  m_regions  ;  //array of regions on host
+    GeoRegion * m_regions_g  ;  //array of region on GPU
+    CaloDetDescrElement* m_cells_g ;   //Cells in GPU
+    Identifier *  m_cellid_array ;  //cell id to Indentifier lookup table
+    int m_max_sample ;     //Max number of samples
+     Rg_Sample_Index *  m_sample_index_h ;   //index for flatout of  GeoLookup over sample 
 
 };
 #endif

@@ -32,12 +32,16 @@ FH2D*  fh2d ;
 FHs*   fhs ;
 
 GeoGpu * geo ;
-//Hit * hits ;
-bool * hitcells_b ;
-unsigned long * hitcells ;
-unsigned long * hitcells_l ;
-unsigned int * hitcells_ct ;
+
+bool * hitcells_b ;  // GPU array of whether a cell got hit
+unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
+unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes  
+unsigned int * hitcells_ct ;  //GPU pointer for array(ct*C1numBlocks) for accumulate hit counts
 unsigned long ncells ;
+
+unsigned long * hitcells_h ; //Host array of hit cell index
+int * hitcells_ct_h ; // host array of corresponding hit cell counts
+unsigned int ct ;  // cells got hit for the event
 
 
 } Chain0_Args ;

@@ -16,6 +16,8 @@
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
 #include "FastCaloSimAnalyzer/TFCSValidationHitSpy.h"
 
+#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
+
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #include "FastCaloGpu/FastCaloGpu/Args.h"
@@ -24,6 +26,8 @@
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 
 #include <chrono>
+
+
 
 #endif
 
@@ -100,9 +104,12 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }     
    
    //if (nhits > 1000 && our_chain) {
-   if ( our_chain ) {
-//	nhit=4096; 
+//   if (0) {
+    if ( our_chain ) {
 	  int cs = calosample();
+
+         GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
+
 	Chain0_Args args ;
           
 	  args.cs = cs ;
@@ -121,9 +128,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.nhits= nhit ;
 	  args.rand =0 ;
 	  args.geo = GeoLoadGpu::Geo_g ;
-//	  args.hits=0 ;
 	  args.rd4h=simulstate.get_gpu_rand();
 	  args.ncells=GeoLoadGpu::num_cells;
+	  
+
 	
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
@@ -190,10 +198,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		std::cout<< "----+++type of funcs: " << typeid( *(*it)).name()<<", pointer: " << *it <<  std::endl ;  
 		} 
 		
-		}
-		((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
+	      }
+	      ((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
 
-		args.fhs=((TFCSHitCellMappingWiggle * ) hitsim )->LdFH()->d_hf(); 
+              args.fhs=((TFCSHitCellMappingWiggle * ) hitsim )->LdFH()->d_hf(); 
 
 	}
 
@@ -206,14 +214,22 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
   auto t1 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1-start;
-   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
+//   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
-	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
+//	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
+
+	for (int ii=0; ii<args.ct; ++ii) {
+		const CaloDetDescrElement * cellele = gld->index2cell(args.hitcells_h[ii]) ;
+		simulstate.deposit(cellele ,Ehit*args.hitcells_ct_h[ii]) ;
+	}
+	free(args.hitcells_h);
+	free(args.hitcells_ct_h);
 
   auto t2 = std::chrono::system_clock::now();
    diff = t2-t1;
-   std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
+ //  std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" <<" CT="<<args.ct<<  std::endl ;
+    TFCSShapeValidation::time_g += (t2-start) ;
    } else {
 #endif
   for (int i = 0; i < nhit; ++i) {
@@ -243,6 +259,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }
 #ifdef USE_GPU
   }
+//  for( std::map<const CaloDetDescrElement *,float>::iterator it = simulstate.cells().begin() ; it != simulstate.cells().end() ; ++it) {
+//	std::cout<< it->first->calo_hash()   << " ==>"<< it->second << " Ehit="<< Ehit<< std::endl;
+//}
+  
 #endif
   return FCSSuccess;
 }

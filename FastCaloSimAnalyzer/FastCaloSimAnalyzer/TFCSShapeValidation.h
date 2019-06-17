@@ -16,6 +16,7 @@
 
 #ifdef USE_GPU
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
+#include <chrono>
 #endif
 
 class TFCSShapeValidation: public TFCSAnalyzerBase
@@ -42,6 +43,10 @@ public:
    
    int get_layer() const {return m_layer;};
 #ifdef USE_GPU
+
+   static std::chrono::duration<double>  time_h ;
+   static std::chrono::duration<double>  time_g ;
+
    void GeoLg() ;
    void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr ) ;
    //void copy_all_regions( ) ;

@@ -49,6 +49,8 @@ class TFCSSimulationState:public TObject
 #ifdef USE_GPU
     void * get_gpu_rand(){ return m_gpu_rand; };
     void set_gpu_rand(void * rand ){ m_gpu_rand=rand ; } ;
+    void * get_geold() { return m_geold; };
+    void set_geold(void * geold ){ m_geold=geold ; } ;
 #endif
     void clear();
   private:
@@ -62,6 +64,7 @@ class TFCSSimulationState:public TObject
     double m_Efrac[CaloCell_ID_FCS::MaxSample];
 #ifdef USE_GPU
     void * m_gpu_rand ;
+    void * m_geold ;
 #endif
     Cellmap_t m_cells;
     
