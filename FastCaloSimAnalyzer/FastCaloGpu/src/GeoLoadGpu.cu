@@ -70,7 +70,7 @@ printf(" GPU test region have cells: cell index %d, eta=%f phi=%f size of cell*G
 
 
 GeoGpu* GeoLoadGpu::Geo_g ;
-
+unsigned long GeoLoadGpu::num_cells ;
 
 
 bool GeoLoadGpu::LoadGpu()
@@ -83,7 +83,7 @@ bool GeoLoadGpu::LoadGpu()
 
    GeoGpu geo_gpu_h ;
 
-
+   num_cells=m_ncells ;
 
     // Allocate Device memory for cells and copy cells as array
     // move cells on host to a array first

@@ -123,6 +123,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.geo = GeoLoadGpu::Geo_g ;
 //	  args.hits=0 ;
 	  args.rd4h=simulstate.get_gpu_rand();
+	  args.ncells=GeoLoadGpu::num_cells;
 	
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {

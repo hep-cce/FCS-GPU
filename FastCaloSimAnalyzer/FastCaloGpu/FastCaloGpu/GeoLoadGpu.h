@@ -20,6 +20,7 @@ public :
     ~GeoLoadGpu() { delete m_cellid_array ; } ;
 
     static  struct GeoGpu *  Geo_g ; 
+    static  unsigned long num_cells; 
    
     void set_ncells(unsigned long  nc) { m_ncells = nc ; };
     void set_nregions(unsigned int  nr) { m_nregions = nr;  };
