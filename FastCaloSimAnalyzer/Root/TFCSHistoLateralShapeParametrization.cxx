@@ -168,7 +168,7 @@ void TFCSHistoLateralShapeParametrization::Print(Option_t *option) const
 void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
 
  if (m_LdFH ){
-  std::cout<<"2D functionHisto Already loaded " << m_LdFH << std::endl ;
+//  std::cout<<"2D functionHisto Already loaded " << m_LdFH << std::endl ;
          return;
   }
 

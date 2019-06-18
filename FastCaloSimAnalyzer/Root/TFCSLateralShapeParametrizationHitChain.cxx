@@ -104,7 +104,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }     
    
    //if (nhits > 1000 && our_chain) {
-//   if (0) {
+  // if (0) {
     if ( our_chain ) {
 	  int cs = calosample();
 
@@ -212,8 +212,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //      CaloGpuGeneral::Gpu_Chain_Test() ;
 //
 
-  auto t1 = std::chrono::system_clock::now();
-  std::chrono::duration<double> diff = t1-start;
+//  auto t1 = std::chrono::system_clock::now();
+//  std::chrono::duration<double> diff = t1-start;
 //   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
 //	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
@@ -227,9 +227,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	free(args.hitcells_ct_h);
 
   auto t2 = std::chrono::system_clock::now();
-   diff = t2-t1;
+//   diff = t2-t1;
  //  std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" <<" CT="<<args.ct<<  std::endl ;
-    TFCSShapeValidation::time_g += (t2-start) ;
+ //   TFCSShapeValidation::time_g += (t2-start) ;
    } else {
 #endif
   for (int i = 0; i < nhit; ++i) {
@@ -263,6 +263,14 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //	std::cout<< it->first->calo_hash()   << " ==>"<< it->second << " Ehit="<< Ehit<< std::endl;
 //}
   
+    if ( our_chain ) {
+  auto t2 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_h += (t2-start) ;
+   } else {
+
+  auto t2 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_g += (t2-start) ;
+   }
 #endif
   return FCSSuccess;
 }

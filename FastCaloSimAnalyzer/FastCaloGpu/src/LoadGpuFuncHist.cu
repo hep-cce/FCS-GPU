@@ -30,15 +30,15 @@ void LoadGpuFuncHist::LD2D() {
   
   hf.nbinsx = (*m_hf2d).nbinsx ; 
   hf.nbinsy = (*m_hf2d).nbinsy ; 
-  std::cout << ".....Loading  2DFnctionHists, Size of hist" <<  hf.nbinsx  << "x" << hf.nbinsy << std::endl ;  
-  std::cout << "(*m_hf2d).h_bordersy, pointer " <<  (*m_hf2d).h_bordersy   << std::endl ;  
+  //std::cout << ".....Loading  2DFnctionHists, Size of hist" <<  hf.nbinsx  << "x" << hf.nbinsy << std::endl ;  
+  //std::cout << "(*m_hf2d).h_bordersy, pointer " <<  (*m_hf2d).h_bordersy   << std::endl ;  
 
   gpuQ(cudaMalloc((void**)&hf.h_bordersx , (hf.nbinsx+1)*sizeof(float))) ;
   gpuQ(cudaMalloc((void**)&hf.h_bordersy , (hf.nbinsy+1)*sizeof(float))) ;
   gpuQ(cudaMalloc((void**)&hf.h_contents , (hf.nbinsy*hf.nbinsx)*sizeof(float))) ;
   gpuQ(cudaMemcpy( hf.h_bordersx, (*m_hf2d).h_bordersx,  (hf.nbinsx+1)*sizeof(float), 
 	cudaMemcpyHostToDevice)) ;
-  std::cout << "hf.h_bordersy, pointer " <<  hf.h_bordersy  <<  std::endl ;  
+//  std::cout << "hf.h_bordersy, pointer " <<  hf.h_bordersy  <<  std::endl ;  
   gpuQ(cudaMemcpy( hf.h_bordersy, (*m_hf2d).h_bordersy,  (hf.nbinsy+1)*sizeof(float), 
 	cudaMemcpyHostToDevice)) ;
   gpuQ(cudaMemcpy( hf.h_contents, (*m_hf2d).h_contents,  (hf.nbinsx*hf.nbinsy)*sizeof(float), 

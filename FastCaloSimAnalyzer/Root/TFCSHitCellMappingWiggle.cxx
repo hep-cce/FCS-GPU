@@ -187,7 +187,7 @@ void TFCSHitCellMappingWiggle::LoadHistFuncs() {
 
   if (m_LdFH ){
 
-  std::cout<<"WiggleFuncHistos Already loaded " << m_LdFH << std::endl ;
+  //std::cout<<"WiggleFuncHistos Already loaded " << m_LdFH << std::endl ;
 	 return; 
   }  
   m_LdFH = new LoadGpuFuncHist() ;

@@ -567,7 +567,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 	unsigned int * hitcounts_b ;
 	gpuQ(cudaMalloc((void**)&(hitcounts_b), ct*nblocks*sizeof(unsigned int)));
 
-    std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
+    //std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
    simulate_chain0_C1<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
 //  cudaDeviceSynchronize() ;

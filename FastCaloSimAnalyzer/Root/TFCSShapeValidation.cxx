@@ -114,6 +114,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	time_g=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
   
+	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
+	std::chrono::duration<double> t_bc= std::chrono::duration<double,std::ratio<1>>::zero();
 #endif
    
   //m_debug=1 ;
@@ -190,11 +192,12 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   }
   
    auto t2 = std::chrono::system_clock::now();
-//  for (int ievent = m_firstevent; ievent < nentries; ievent++)
+  for (int ievent = m_firstevent; ievent < nentries; ievent++)
   //for (int ievent = m_firstevent; ievent < 100; ievent++)
-  for (int ievent = m_firstevent; ievent < 2; ievent++)
+//  for (int ievent = m_firstevent; ievent < 2; ievent++)
   //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
+   auto t4 = std::chrono::system_clock::now();
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      m_chain->GetEntry(ievent);
 
@@ -321,13 +324,18 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      //// run simulation chain
      ///////////////////////////////////
      
+	auto t5 = std::chrono::system_clock::now();
+	t_bc += t5-t4 ;
+	int ii=0 ;
      for(auto& validation : m_validations) {
+
+	auto s = std::chrono::system_clock::now();
        if (m_debug >= 1) {
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
        }
-         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
-		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
-		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
+//         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
+//		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
+//		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
 
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
@@ -342,6 +350,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
          chain_simul.Print();
          std::cout << "End simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<std::endl<<std::endl;
        }  
+	auto e = std::chrono::system_clock::now();
+	t_c[ii++] += e-s ;
+	
      }
   } // end loop over events
 #ifdef USE_GPU
@@ -353,6 +364,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::cout <<  "Time of  eventloop  :" << diff.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU Chain0:" << time_g.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
+
+  for (int ii=0 ; ii<5; ii++) 
+	std::cout << "Time for Chain "<< ii <<" is "<< t_c[ii].count() <<" s" << std::endl ; 
  
 /*  
   TCanvas* c;
