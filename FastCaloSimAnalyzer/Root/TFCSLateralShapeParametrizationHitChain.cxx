@@ -90,10 +90,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
  
-//  std::cout<<"nhits="<< nhit << ", " ;
-//  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
-//      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
-//  std::cout << std::endl ;
+  std::cout<<"nhits="<< nhit << ", " ;
+  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
+      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
+  std::cout << std::endl ;
   int ichn=0 ;
   bool  our_chain= true;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {

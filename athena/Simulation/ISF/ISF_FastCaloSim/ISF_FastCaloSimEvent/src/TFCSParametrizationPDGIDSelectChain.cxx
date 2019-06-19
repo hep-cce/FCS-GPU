@@ -26,10 +26,13 @@ void TFCSParametrizationPDGIDSelectChain::recalc()
 
 FCSReturnCode TFCSParametrizationPDGIDSelectChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
+  std::cout<< "---ParamatrizationPDGIDSelectChain: Pointer" << this << std::endl ;
+
   for(auto param: chain()) {
     if(param->is_match_pdgid(truth->pdgid())) {
       ATH_MSG_DEBUG("pdgid="<<truth->pdgid()<<", now run: "<<param->GetName()<< ((SimulateOnlyOnePDGID()==true) ? ", abort PDGID loop afterwards" : ", continue PDGID loop afterwards"));
 
+std::cout << " -----ParametrizationPDGIDSelectChain: " << typeid( *param).name() << " Pointer: " << param << " Title: " <<param->GetTitle() <<std::endl ;
       if (simulate_and_retry(param, simulstate,truth,extrapol) != FCSSuccess) {
         return FCSFatal;
       }
