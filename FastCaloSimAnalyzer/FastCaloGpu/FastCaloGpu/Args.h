@@ -43,6 +43,8 @@ unsigned long * hitcells_h ; //Host array of hit cell index
 int * hitcells_ct_h ; // host array of corresponding hit cell counts
 unsigned int ct ;  // cells got hit for the event
 
+bool spy ;
+bool isBarrel ; 
 
 } Chain0_Args ;
 

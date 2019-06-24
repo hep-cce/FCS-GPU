@@ -6,7 +6,7 @@
 #include "Args.h"
 
 #define BLOCK_SIZE 512 
-#define NLOOPS 4
+#define NLOOPS 1
 
 __device__  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
 
@@ -331,10 +331,10 @@ __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
     Hit hit ;
     hit.E()=E ;
     CenterPositionCalculation_d( hit, args) ;
-    ValidationHitSpy_d( hit, args) ;
+    if(args.spy) ValidationHitSpy_d( hit, args) ;
     HistoLateralShapeParametrization_d(hit,t,  args) ;
     HitCellMappingWiggle_d ( hit, args, t ) ;
-    ValidationHitSpy_d(hit,args);
+    if(args.spy) ValidationHitSpy_d(hit,args);
 //  do something 
 //if(t==0) printf("rand(0)=%f\n", args.rand[0]);
   }
@@ -450,6 +450,7 @@ sdata[tid] += sdata[tid + 2];
 sdata[tid] += sdata[tid + 1];
 }
 
+
 __global__ void simulate_chain0_D1(unsigned int * hitct_b, int ct_blks, unsigned int ct , Chain0_Args args) {
 extern __shared__ int sdata[] ;
 int tid=threadIdx.x;
@@ -457,7 +458,7 @@ int tid=threadIdx.x;
 if((tid+blockDim.x) < ct_blks ){
 sdata[tid]=hitct_b[tid*ct+blockIdx.x]+hitct_b[(tid+blockDim.x)*ct+blockIdx.x] ;
 }else{
-sdata[tid]=hitct_b[tid*ct+blockIdx.x] ;
+sdata[tid] = (tid < ct_blks) ? hitct_b[tid*ct+blockIdx.x] : 0 ;  //protect when ct_blk<32 
 }
 __syncthreads();
 
@@ -536,7 +537,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 
   simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ; 
 //  cudaDeviceSynchronize() ;
-  err = cudaGetLastError();
+//  err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
 }
@@ -545,7 +546,7 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
   nblocks = (ncells + blocksize -1 )/blocksize ;
   simulate_chain0_B1 <<<nblocks,blocksize >>> (args) ;
 //  cudaDeviceSynchronize() ;
- err = cudaGetLastError();
+// err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
 
@@ -562,15 +563,18 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 //	std::cout<<"hit cell ct="<<ct<<std::endl;
 //	std::cout<<"hit cell [0]="<<hitcells[0]<<std::endl;
 
-   blocksize=64 ; 
+
+   blocksize= highestPowerof2(args.nhits)/512 ;
+   if(blocksize <32 ) blocksize=32;
    nblocks = (args.nhits + blocksize-1)/blocksize ;
+	//std::cout<<"blocksize="<<blocksize << " Nhits="<<args.nhits << " ct="<<ct<<" nblocks="<<nblocks<< std::endl ;  
 	unsigned int * hitcounts_b ;
 	gpuQ(cudaMalloc((void**)&(hitcounts_b), ct*nblocks*sizeof(unsigned int)));
 
     //std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
    simulate_chain0_C1<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
-//  cudaDeviceSynchronize() ;
+  cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_C1 "<<cudaGetErrorString(err)<< std::endl;
@@ -578,12 +582,13 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
    
 
     int ct_b = nblocks ;
-    blocksize=highestPowerof2(ct_b);
+    blocksize=highestPowerof2(ct_b-1); // when ct_b is 2^n need half of it as block size
+    if(blocksize <32) ; blocksize=32 ;
     nblocks=ct;
 
     simulate_chain0_D1<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(hitcounts_b,ct_b,ct,args) ;
 //  cudaDeviceSynchronize() ;
- err = cudaGetLastError();
+// err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_D1 "<<cudaGetErrorString(err)<< std::endl;
 }

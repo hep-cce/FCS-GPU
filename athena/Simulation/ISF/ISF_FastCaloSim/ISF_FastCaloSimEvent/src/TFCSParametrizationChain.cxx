@@ -130,9 +130,7 @@ bool TFCSParametrizationChain::is_match_calosample(int calosample) const
 
 FCSReturnCode TFCSParametrizationChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
-	std::cout<< "--ParamatrizationChian: Pointer" << this << std::endl ; 
   for(auto param: m_chain) {
-    std::cout << " -----In ParametrizationChain: " << typeid( *param).name() << " Pointer: " << param << " Title: " <<param->GetTitle() <<std::endl ;  
     if (simulate_and_retry(param, simulstate, truth, extrapol) != FCSSuccess) {
       return FCSFatal;
     }

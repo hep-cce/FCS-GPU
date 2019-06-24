@@ -90,10 +90,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
  
-  std::cout<<"nhits="<< nhit << ", " ;
-  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
-      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
-  std::cout << std::endl ;
+  //std::cout<<"---xxx---nhits="<< nhit << ", " ;
+  //for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
+  //    std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
+  //std::cout << std::endl ;
   int ichn=0 ;
   bool  our_chain= true;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
@@ -103,9 +103,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
   }     
    
-   //if (nhits > 1000 && our_chain) {
-  // if (0) {
-    if ( our_chain ) {
+   //if (nhit > 1000 && our_chain) {
+//   if (0) {
+ //   if ( our_chain ) {
+    if ( nhit > 2000 ) {
 	  int cs = calosample();
 
          GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
@@ -130,22 +131,28 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.geo = GeoLoadGpu::Geo_g ;
 	  args.rd4h=simulstate.get_gpu_rand();
 	  args.ncells=GeoLoadGpu::num_cells;
-	  
+	  args.spy=false ;
+	  args.isBarrel=false ;
 
 	
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
+
+	std::string s= std::string(typeid( * hitsim ).name()) ;
 	
   //      std::cout << "Chain[" <<ichn <<"]: " << typeid( * hitsim ).name() 
 //		<< "Pointer: " << hitsim << std::endl;
-	if(ichn==0 ) {
+//	if(ichn==0 ) {
+	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
   //         std::cout<<"---m_extrapWeight"<< ((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() <<std::endl ;
          //  hitsim->Print();
            args.extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
 
 	}
 
-	if(ichn==1 || ichn==4 ) {
+//	if(ichn==1 || ichn==4 ) {
+	if(s.find("TFCSValidationHitSpy") != std::string::npos ) {
+	 args.spy=true ;
 	 if(0) { 
 		std::cout<<"---m_previous"<< ((TFCSValidationHitSpy*)hitsim)->previous() << std::endl ;
 		std::cout<<"---m_saved_hit"<< &(((TFCSValidationHitSpy*)hitsim)->saved_hit()) << std::endl ;
@@ -174,9 +181,12 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		std::cout<<"---m_get_dphi_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_dphi_hit_minus_extrapol_mm() << std::endl ;
 		std::cout<<"---m_phi_granularity_change_at_eta"<< ((TFCSValidationHitSpy*)hitsim)->get_eta_boundary() << std::endl ;
 	  }
+	      args.isBarrel = ((TFCSValidationHitSpy * ) hitsim )->get_geometry()->isCaloBarrel(cs) ;
+	//	std::cout<<"isBarrel="<<  args.isBarrel << std::endl ; 
 	}
 
-	if(ichn==2) {
+	//if(ichn==2) {
+	if(s.find("TFCSHistoLateralShapeParametrization") != std::string::npos ) {
 
 	//	TFCS2DFunctionHistogram h=((TFCSHistoLateralShapeParametrization *) hitsim)->histogram() ;
 	//	std::cout << "size of hist: "<<h.get_HistoBordersx().size() <<", "<<h.get_HistoBordersy().size()  
@@ -189,7 +199,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		args.fh2d = ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->d_hf2d() ; 
 
 	}
-	if(ichn==3) {
+//	if(ichn==3) {
+	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
 	if(0) {
 		std::cout<< "---NumberOfBins:" << ((TFCSHitCellMappingWiggle * ) hitsim )->get_number_of_bins () << std::endl;
 		std::vector< const TFCS1DFunction* > funcs=  ((TFCSHitCellMappingWiggle * ) hitsim )->get_functions() ;
@@ -264,12 +275,13 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //}
   
     if ( our_chain ) {
+//    if ( nhit >2000) {
   auto t2 = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_h += (t2-start) ;
+    TFCSShapeValidation::time_g += (t2-start) ;
    } else {
 
   auto t2 = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_g += (t2-start) ;
+    TFCSShapeValidation::time_h += (t2-start) ;
    }
 #endif
   return FCSSuccess;
