@@ -397,7 +397,7 @@ __global__  void simulate_chain0_clean(Chain0_Args args) {
 }
 
 
-__global__ void simulate_chain0_C1(unsigned int * hitct_b, unsigned int ct , Chain0_Args args) {
+__global__ void simulate_chain0_block_hist(unsigned int * hitct_b, unsigned int ct , Chain0_Args args) {
 extern __shared__ unsigned long hitcells[] ;
 unsigned int *  counts = (unsigned int * ) (& hitcells[ct]) ;
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
@@ -428,7 +428,7 @@ if(tid < args.nhits) {
 
 //	__syncthreads() ;
 //if(tid==0) printf("index=%d, count=%d\n", iii, counts[iii] );
-//if(tid==0) for( int ii=0 ; ii<ct ; ii++) {printf("from C1 counts[%d]=%d\n" ,ii, counts[ii] ) ;}
+//if(threadIdx.x==0 ) for( int ii=0 ; ii<2 ; ii++) {printf("from Block-kernel block %d  counts[%d]=%d\n",blockIdx.x ,ii, counts[ii] ) ;}
 
 __syncthreads() ;
 for(int j =0 ; j< (ct+blockDim.x -1)/blockDim.x ; ++j ) {
@@ -451,7 +451,7 @@ sdata[tid] += sdata[tid + 1];
 }
 
 
-__global__ void simulate_chain0_D1(unsigned int * hitct_b, int ct_blks, unsigned int ct , Chain0_Args args) {
+__global__ void simulate_chain0_hist_merge(unsigned int * hitct_b, int ct_blks, unsigned int ct , Chain0_Args args) {
 extern __shared__ int sdata[] ;
 int tid=threadIdx.x;
 
@@ -470,6 +470,7 @@ __syncthreads();
 }
 if (tid < 32) warpReduce(sdata, tid);
 if(tid==0)  hitct_b[blockIdx.x] =sdata[0] ;
+//if(tid==0)  printf("block %d count=%d\n", blockIdx.x, sdata[0] ) ;
 
 }
 
@@ -567,30 +568,32 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
    blocksize= highestPowerof2(args.nhits)/512 ;
    if(blocksize <32 ) blocksize=32;
    nblocks = (args.nhits + blocksize-1)/blocksize ;
-	//std::cout<<"blocksize="<<blocksize << " Nhits="<<args.nhits << " ct="<<ct<<" nblocks="<<nblocks<< std::endl ;  
+//	std::cout<<"blocksize="<<blocksize << " Nhits="<<args.nhits << " ct="<<ct<<" nblocks="<<nblocks<< std::endl ;  
 	unsigned int * hitcounts_b ;
 	gpuQ(cudaMalloc((void**)&(hitcounts_b), ct*nblocks*sizeof(unsigned int)));
 
-    //std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
+  //  std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
-   simulate_chain0_C1<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
+   simulate_chain0_block_hist<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
   cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_C1 "<<cudaGetErrorString(err)<< std::endl;
+        std::cout<< "simulate_chain0_block_hist "<<cudaGetErrorString(err)<< std::endl;
 }
    
 
-    int ct_b = nblocks ;
+    int ct_b = nblocks ;  
     blocksize=highestPowerof2(ct_b-1); // when ct_b is 2^n need half of it as block size
-    if(blocksize <32) ; blocksize=32 ;
+    if(blocksize <32)  blocksize=32 ;
     nblocks=ct;
 
-    simulate_chain0_D1<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(hitcounts_b,ct_b,ct,args) ;
-//  cudaDeviceSynchronize() ;
-// err = cudaGetLastError();
+//	std::cout<<"merge Block size,nblocks="<< blocksize<< " " <<nblocks <<std::endl ;
+
+    simulate_chain0_hist_merge<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(hitcounts_b,ct_b,ct,args) ;
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
  if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_D1 "<<cudaGetErrorString(err)<< std::endl;
+        std::cout<< "simulate_chain0_hist_merge "<<cudaGetErrorString(err)<< std::endl;
 }
    gpuQ(cudaMemcpy(hitcells_ct, hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
 
@@ -599,7 +602,8 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
    args.hitcells_h=hitcells ;
    args.hitcells_ct_h=hitcells_ct ;
 
-/*int total_ct=0 ;
+/*
+int total_ct=0 ;
 for(int ii =0 ; ii<ct ; ++ii) {
 	std::cout<< "CT["<<hitcells[ii]<<"]=" << hitcells_ct[ii]<<std::endl ;
 	total_ct += hitcells_ct[ii] ;
@@ -613,8 +617,8 @@ std::cout << "Total Counts =" << total_ct << " nhits=" << args.nhits<< std::endl
         std::cout<< "simulate_chain0_C "<<cudaGetErrorString(err)<< std::endl;
 
 }
-*/
 
+*/
 
 	cudaFree( args.hitcells);
 	cudaFree( args.hitcells_ct);

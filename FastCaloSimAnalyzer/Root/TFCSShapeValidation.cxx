@@ -35,10 +35,10 @@
 #ifdef USE_GPU
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
-  std::chrono::duration<double> TFCSShapeValidation::time_g ;
-  std::chrono::duration<double> TFCSShapeValidation::time_h ;
 #endif
 
+  std::chrono::duration<double> TFCSShapeValidation::time_g ;
+  std::chrono::duration<double> TFCSShapeValidation::time_h ;
 
 
 
@@ -110,13 +110,13 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
   if (m_gl->LoadGpu())
 	std::cout <<"GPU Geometry loaded!!!" <<std::endl  ;
+#endif
    
 	time_g=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
   
 	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
 	std::chrono::duration<double> t_bc= std::chrono::duration<double,std::ratio<1>>::zero();
-#endif
    
   //m_debug=1 ;
    auto t1 = std::chrono::system_clock::now();

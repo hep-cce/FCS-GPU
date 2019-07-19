@@ -230,7 +230,11 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //	std::cout<<"Calling CaloGpuGeneral::simulate_hits()"<<std::endl;
 	CaloGpuGeneral::simulate_hits(Ehit, nhit, args) ;
 
+       // std::cout<<"XXXX"<<std::endl;
+	
 	for (int ii=0; ii<args.ct; ++ii) {
+        //std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
+		
 		const CaloDetDescrElement * cellele = gld->index2cell(args.hitcells_h[ii]) ;
 		simulstate.deposit(cellele ,Ehit*args.hitcells_ct_h[ii]) ;
 	}
