@@ -278,8 +278,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 //	std::cout<< it->first->calo_hash()   << " ==>"<< it->second << " Ehit="<< Ehit<< std::endl;
 //}
   
-    if ( our_chain ) {
-//    if ( nhit >2000) {
+//    if ( our_chain ) {
+    if ( nhit >2000) {
   auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_g += (t2-start) ;
    } else {

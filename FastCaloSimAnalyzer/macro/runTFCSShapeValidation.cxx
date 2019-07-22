@@ -40,6 +40,8 @@
 
 #include "TFCSSampleDiscovery.h"
 
+#include <chrono> 
+
 using namespace std;
 
 std::string prefix_E_eta;
@@ -558,6 +560,9 @@ int runTFCSShapeValidation(int pdgid = 22,
 			   int firstEvent = 0,
 			   int debug = 0)
 {
+
+ auto start = std::chrono::system_clock::now();
+
   FCS::LateralShapeParametrizationArray mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   FCS::init_hit_to_cell_mapping(mapping);
 
@@ -897,6 +902,11 @@ int runTFCSShapeValidation(int pdgid = 22,
   int ind_RunOriginalHits=-1;
   ind_RunOriginalHits=analyze->add_validation("G4Hits","G4 hits",RunOriginalHits);
   std::cout << "=============================" << std::endl;
+
+
+ auto t1 = std::chrono::system_clock::now();
+std::chrono::duration<double> t_before = t1-start;
+
   //////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////
@@ -904,6 +914,9 @@ int runTFCSShapeValidation(int pdgid = 22,
   //////////////////////////////////////////////////////////
 
   analyze->LoopEvents(-1);
+
+ auto t2 = std::chrono::system_clock::now();
+std::chrono::duration<double> t_loop = t2-t1;
 
   if(file_avgshape) {
     std::cout << "= Average Shape output tree =" << std::endl;
@@ -1058,6 +1071,12 @@ int runTFCSShapeValidation(int pdgid = 22,
     fout->Close(); //Close will delete all histograms, so no interactive change possible afterwards
     delete fout;
   }
+ auto t3 = std::chrono::system_clock::now();
+std::chrono::duration<double> t_after = t3-t2;
+
+ std::cout <<  "Time before eventloop :" << t_before.count() <<" s" << std::endl ;
+ std::cout <<  "Time eventloop :" << t_loop.count() <<" s" << std::endl ;
+ std::cout <<  "Time before eventloop :" << t_after.count() <<" s" << std::endl ;
 
   return 0;
 }
