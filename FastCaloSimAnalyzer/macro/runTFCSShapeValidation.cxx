@@ -1076,7 +1076,7 @@ std::chrono::duration<double> t_after = t3-t2;
 
  std::cout <<  "Time before eventloop :" << t_before.count() <<" s" << std::endl ;
  std::cout <<  "Time eventloop :" << t_loop.count() <<" s" << std::endl ;
- std::cout <<  "Time before eventloop :" << t_after.count() <<" s" << std::endl ;
+ std::cout <<  "Time after eventloop :" << t_after.count() <<" s" << std::endl ;
 
   return 0;
 }

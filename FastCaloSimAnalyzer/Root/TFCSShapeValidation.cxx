@@ -37,7 +37,8 @@
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
 
-  std::chrono::duration<double> TFCSShapeValidation::time_g ;
+  std::chrono::duration<double> TFCSShapeValidation::time_g1 ;
+  std::chrono::duration<double> TFCSShapeValidation::time_g2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_h ;
 
 
@@ -104,7 +105,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    auto start = std::chrono::system_clock::now();
 
    
-	time_g=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_g1=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_g2=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
   
 	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
@@ -363,7 +365,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    auto t3 = std::chrono::system_clock::now();
     std::chrono::duration<double> diff1 = t3-t2;
    std::cout <<  "Time of  eventloop  :" << diff1.count() <<" s" <<  std::endl ;
-   std::cout <<  "Time of  eventloop  GPU Chain0:" << time_g.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  GPU ChainA:" << time_g1.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
 
