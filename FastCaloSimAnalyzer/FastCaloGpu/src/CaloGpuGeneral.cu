@@ -8,6 +8,10 @@
 #define BLOCK_SIZE 512 
 #define NLOOPS 1
 
+#define M_PI 3.14159265358979323846
+#define M_2PI 6.28318530717958647692
+
+
 __device__  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
 
    float * distance = 0 ;
@@ -63,6 +67,7 @@ if(sampling<0) return -1;
 
   return bestDDE;
 }
+
 
 __global__  void testHello_xxx() {
 
@@ -204,17 +209,145 @@ __device__  void CenterPositionCalculation_d(Hit& hit, const Chain0_Args args) {
 }
 
 
-__device__ void ValidationHitSpy_d( Hit& hit, const  Chain0_Args args ) {
+__device__ void ValidationHitSpy_d( Hit& hit, float layer_energy, const  Chain0_Args& args, Bins& bins, bool is_matched, bool is_consider_eta_boundary, float eta_boundary) {
+
+  int cs = args.cs;
+  //const int pdgId = args.pdgId;
+  double  charge   = args.charge;  
+
+  long long cell = getDDE(args.geo, cs, hit.eta(), hit.phi()); // cs > 20
+  CaloDetDescrElement *cellele = &(args.geo->cells[cell]) ;
+  //long long id = cell.identify();
+  //float eta=cell.eta();
+  //float phi=cell.phi();
+  //float z=cell.z();
+  //float r=cell.r() ;
+
+
+
+
+  double dphi_hit = hit.phi() - cellele->phi();
+  while (dphi_hit > M_PI) {
+    dphi_hit -= M_2PI;
+  }
+  while (dphi_hit <= M_PI) {
+    dphi_hit += M_2PI;
+  }
+ 
+
+  float hitenergy = hit.E();
+
+
+  bins.m_hist_hitgeo_dphi.set(dphi_hit, hit.E());
+
+  float extrapol_phi = hit.center_phi();
+  float extrapol_r   = hit.center_r();
+  float extrapol_z   = hit.center_z();
+  float extrapol_eta = hit.center_eta();
+ 
+
+
+
+  if(cs < 21) {
+
+    float deta_hit_minus_extrapol = hit.eta() - extrapol_eta;
+    float dphi_hit_minus_extrapol = hit.phi() - extrapol_phi;
+    while (dphi_hit_minus_extrapol >= M_PI) dphi_hit_minus_extrapol -= M_2PI;
+    while (dphi_hit_minus_extrapol < -M_PI) dphi_hit_minus_extrapol += M_2PI;
+
+    if(charge < 0.0) dphi_hit_minus_extrapol = -dphi_hit_minus_extrapol;
+    if(extrapol_eta < 0.0) deta_hit_minus_extrapol = -deta_hit_minus_extrapol;
+
+    double m_deta_hit_minus_extrapol_mm = deta_hit_minus_extrapol * fabs( 2.0*exp(-extrapol_eta) / (1.0 + exp(-2.0*extrapol_eta)) ) * sqrt(extrapol_r*extrapol_r + extrapol_z*extrapol_z);
+    double m_dphi_hit_minus_extrapol_mm = dphi_hit_minus_extrapol * extrapol_r;
+    
+    float alpha_mm = atan2(m_dphi_hit_minus_extrapol_mm, m_deta_hit_minus_extrapol_mm);
+
+
+    bins.m_hist_deltaEta.set(m_deta_hit_minus_extrapol_mm, hitenergy);
+    bins.m_hist_deltaPhi.set(m_dphi_hit_minus_extrapol_mm, hitenergy);
+    bins.m_hist_deltaRt.set(hit.r() - extrapol_r, hitenergy);
+    bins.m_hist_deltaZ.set(hit.z() - extrapol_z, hitenergy);
+
+
+    ///////////////////////////////
+
+    float alpha_absPhi_mm = atan2(fabs(m_dphi_hit_minus_extrapol_mm), m_deta_hit_minus_extrapol_mm);
+    float radius_mm = sqrt(m_dphi_hit_minus_extrapol_mm * m_dphi_hit_minus_extrapol_mm + m_deta_hit_minus_extrapol_mm * m_deta_hit_minus_extrapol_mm);
+
+    if (alpha_mm < 0) alpha_mm = M_2PI + alpha_mm;
+
+    if(layer_energy > 0) {
+      if (hitenergy < 0) hitenergy = 0;
+      bins.m_hist_hitenergy_alpha_radius.set(alpha_mm, radius_mm, hitenergy / layer_energy);
+      bins.m_hist_hitenergy_alpha_absPhi_radius.set(alpha_absPhi_mm, radius_mm, hitenergy / layer_energy);
+    }
+  }
+
+
+
+
+
+
+  //////////////////////////////////////////////////////////////////////////////
+
+
+
+  // Start of wiggle efficiency
+  if (is_consider_eta_boundary) { // for layers where phi granularity changes at some eta
+    float cell_eta = cellele->eta();
+    float cell_deta = cellele->deta();
+
+    // do not consider the cells that lie across this eta boundary
+    if ( fabs(cell_eta) < eta_boundary && (fabs(cell_eta) + 0.5 * cell_deta) < eta_boundary) {
+      bins.m_hist_total_hitPhi_minus_cellPhi.set(dphi_hit, hitenergy);
+      if(is_matched) bins.m_hist_matched_hitPhi_minus_cellPhi.set(dphi_hit, hitenergy);
+    } else if ( fabs(cell_eta) > eta_boundary && (fabs(cell_eta) - 0.5 * cell_deta) > eta_boundary) {
+      bins.m_hist_total_hitPhi_minus_cellPhi_etaboundary.set(dphi_hit, hitenergy);
+      if (is_matched) bins.m_hist_matched_hitPhi_minus_cellPhi_etaboundary.set(dphi_hit, hitenergy);
+    }
+  } else { // for layers there is no change in phi granularity
+    bins.m_hist_total_hitPhi_minus_cellPhi.set(dphi_hit, hitenergy);
+    if (is_matched) bins.m_hist_matched_hitPhi_minus_cellPhi.set(dphi_hit, hitenergy);
+  }
+  // End of wiggle efficiency
+
+
+
+
+  bins.m_hist_Rz.set(hit.r(),hit.z(),hitenergy);
+
+  // Start of m_hist_hitenergy_weight
+  float w = 0.0;
+  if ( args.isBarrel ){ // Barrel: weight from r
+    w = (hit.r() - args.extrapol_r_ent)/(args.extrapol_r_ext - args.extrapol_r_ent);
+  } else { // End-Cap and FCal: weight from z
+    w = (hit.z() - args.extrapol_z_ent)/(args.extrapol_z_ext - args.extrapol_z_ent);
+  }
+  //if(m_hist_Rz_outOfRange && (w<0. || w>1.0) ) m_hist_Rz_outOfRange->Fill(hit.r(),hit.z());
+  bins.m_hist_hitenergy_weight.set(w,hitenergy);
+  //if( (cs!=3) && (w<=-0.25 || w >=1.25) ) ATH_MSG_DEBUG("Found weight outside [-0.25,1.25]: weight=" << w); // Weights are expected out of range in EMB3 (cs==3)
+  // End of m_hist_hitenergy_weight
+
+
+
+
+
+  if (hit.r() > args.extrapol_r_ent) bins.m_hist_hitenergy_r.set(hit.r(), hitenergy);
+
+  if(fabs(hit.z()) > fabs(args.extrapol_z_ent)) bins.m_hist_hitenergy_z.set(hit.z(), hitenergy);
+
+  bins.m_hist_hitgeo_matchprevious_dphi.set(dphi_hit, hit.E());
 
 
 }
 
 __device__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
-  int     pdgId    = args.pdgId;
+  //int     pdgId    = args.pdgId;
   float  charge   = args.charge;
 
-  int cs=args.charge;
+  //int cs=args.charge;
   float center_eta = hit.center_eta();
   float center_phi = hit.center_phi();
   float center_r   = hit.center_r();
@@ -330,11 +463,14 @@ __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
     if ( t  >= nhits ) break ; 
     Hit hit ;
     hit.E()=E ;
+    float layer_energy = 0.0;
     CenterPositionCalculation_d( hit, args) ;
-    if(args.spy) ValidationHitSpy_d( hit, args) ;
+    Bins bins;
+    double eta_boundary = 1.0;
+    if(args.spy) ValidationHitSpy_d( hit, layer_energy, args, bins, true, true, eta_boundary) ;
     HistoLateralShapeParametrization_d(hit,t,  args) ;
     HitCellMappingWiggle_d ( hit, args, t ) ;
-    if(args.spy) ValidationHitSpy_d(hit,args);
+    if(args.spy) ValidationHitSpy_d(hit, layer_energy, args, bins, true, true, eta_boundary);
 //  do something 
 //if(t==0) printf("rand(0)=%f\n", args.rand[0]);
   }
