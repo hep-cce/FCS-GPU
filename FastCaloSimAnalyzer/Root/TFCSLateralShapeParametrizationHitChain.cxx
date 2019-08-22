@@ -139,7 +139,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	  args.ncells=GeoLoadGpu::num_cells;
 	  args.spy=false ;
 	  args.isBarrel=false ;
-
+	  Hitspy_Hist hs[2] ;
+	  hs[0]= Hitspy_Hist() ;
+          hs[1]= Hitspy_Hist() ;
 	
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
@@ -184,6 +186,24 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		std::cout<<"---m_get_dphi_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_dphi_hit_minus_extrapol_mm() << std::endl ;
 		std::cout<<"---m_phi_granularity_change_at_eta"<< ((TFCSValidationHitSpy*)hitsim)->get_eta_boundary() << std::endl ;
 	  }
+	  TFCSValidationHitSpy * hspy_ptr= (TFCSValidationHitSpy * ) hitsim ;
+	  int hs_i = (ichn==1) ? 0 : 1 ;
+	  hs[hs_i].hist_hitgeo_dphi.nbin=  hspy_ptr ->hist_hitgeo_dphi()->GetNbinsX() ;
+	  hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetNbinsX() ;
+	  hs[hs_i].hist_hitgeo_dphi.low=  hspy_ptr ->hist_hitgeo_dphi()->GetXaxis()->GetXmin() ;
+	  hs[hs_i].hist_hitgeo_matchprevious_dphi.low=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmin() ;
+	  hs[hs_i].hist_hitgeo_dphi.up=  hspy_ptr ->hist_hitgeo_dphi()->GetXaxis()->GetXmax() ;
+	  hs[hs_i].hist_hitgeo_matchprevious_dphi.up=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmax() ;
+	  if(hs_i ==0 )args.hs1=hs[hs_i] ;
+	  else args.hs2=hs[hs_i] ;
+         if(0) {
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.nbin" <<hs[hs_i].hist_hitgeo_dphi.nbin <<std::endl ;
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.nbin" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin <<std::endl ;
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.low" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.low <<std::endl ;
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.up" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.up <<std::endl ;
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.low" <<hs[hs_i].hist_hitgeo_dphi.low <<std::endl ;
+	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.up" <<hs[hs_i].hist_hitgeo_dphi.up <<std::endl ;
+	}
 	      args.isBarrel = ((TFCSValidationHitSpy * ) hitsim )->get_geometry()->isCaloBarrel(cs) ;
 	//	std::cout<<"isBarrel="<<  args.isBarrel << std::endl ; 
 	}
