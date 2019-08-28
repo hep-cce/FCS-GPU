@@ -1,6 +1,12 @@
-# Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
+# Copyright (C) 2002-2019 CERN for the benefit of the ATLAS collaboration
 
-find_package(CUDA)
+# "First-class" CUDA support needs at least CMake 3.10.
+cmake_minimum_required( VERSION 3.10 )
+
+# Set up the "modern" usage of CUDA with CMake.
+find_package(CUDA REQUIRED)
+enable_language( CUDA )
+
 #Need to do other way.
 set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
 # Sources
@@ -27,11 +33,11 @@ set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES})
 
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
-cuda_add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
+add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
 
-target_link_libraries(${FastCaloGpu_LIB} PRIVATE ${CUDA_curand_LIBRARY}) 
+target_link_libraries(${FastCaloGpu_LIB} PUBLIC ${CUDA_curand_LIBRARY})
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
