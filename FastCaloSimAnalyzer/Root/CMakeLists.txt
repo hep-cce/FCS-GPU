@@ -43,8 +43,8 @@ target_compile_definitions(${FastCaloSimAnalyzer_LIB} PRIVATE ${FCS_CommonDefini
 target_link_libraries(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB} ROOT::Core ROOT::Graf ROOT::Tree ROOT::TMVA)
 
 if(ENABLE_XROOTD)
-  target_include_directories(${FastCaloSimAnalyzer_LIB} PRIVATE ${XROOTD_HOME}/include/xrootd)
-  target_link_libraries(${FastCaloSimAnalyzer_LIB} ${XROOTD_HOME}/lib64/libXrdCl.so)
+  target_include_directories(${FastCaloSimAnalyzer_LIB} PRIVATE ${XROOTD_INCLUDE_DIR})
+  target_link_libraries(${FastCaloSimAnalyzer_LIB} ${XROOTD_LIBRARIES})
 endif()
 
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloSimCommon_LIB})

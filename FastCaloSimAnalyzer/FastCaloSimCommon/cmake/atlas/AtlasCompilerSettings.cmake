@@ -28,9 +28,10 @@ if( CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
 else()
   set( CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard used for the build" )
 endif()
-
 set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "(Dis)allow using GNU extensions" )
 
+# For CUDA code always use C++14.
+set( CMAKE_CUDA_STANDARD 14 CACHE STRING "C++ standard to use for CUDA code" )
 
 # Set the definitions needed everywhere:
 add_definitions( -DHAVE_PRETTY_FUNCTION )

@@ -209,7 +209,7 @@ FCAL_ChannelMap::create_tileMap(int isam)
 // ***********************************************************************
 bool 
 FCAL_ChannelMap::getTileID(int isam, float x_orig, float y_orig, 
-	int& eta, int& phi) const throw (std::range_error) 
+	int& eta, int& phi) const
 {
 
 //  /* ### MIRROR for compatibility between G3 and ASCII files ### */
@@ -308,7 +308,6 @@ FCAL_ChannelMap::getTileID(int isam, float x_orig, float y_orig,
    ---------------------------------------------------------------------- */
 float 
 FCAL_ChannelMap::x(int isam, int eta, int phi) const
-                                    throw(std::range_error)
 {
   if(m_invert_xy){ 
    // temp turn off the flag 
@@ -351,7 +350,6 @@ FCAL_ChannelMap::x(int isam, int eta, int phi) const
    ---------------------------------------------------------------------- */
 float 
 FCAL_ChannelMap::y(int isam, int eta, int phi) const
-                                    throw(std::range_error)
 {
   if(m_invert_xy){
 
@@ -426,7 +424,7 @@ void FCAL_ChannelMap::tileSize(int sam, int ntubes, float &dx, float &dy) const 
 }
 
 void FCAL_ChannelMap::tileSize(int sam, int eta, int phi,
-	float& dx, float& dy ) const  throw(std::range_error)
+	float& dx, float& dy ) const
 {
   
   tileName_t tilename = (eta << 16) + phi  ; 
