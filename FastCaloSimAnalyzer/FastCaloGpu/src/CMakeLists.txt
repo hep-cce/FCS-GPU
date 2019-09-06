@@ -2,7 +2,7 @@
 
 find_package(CUDA)
 #Need to do other way.
-set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
+#set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
 # Sources
 set(FastCaloGpu_Srcs
   GeoLoadGpu.cu

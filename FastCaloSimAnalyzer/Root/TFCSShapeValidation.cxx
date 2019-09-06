@@ -55,7 +55,7 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
 #ifdef USE_GPU
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
 #endif
 
 
@@ -76,7 +76,7 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
    m_randEngine->setSeed(seed);
 #ifdef USE_GPU
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
 #endif
 
 
@@ -194,12 +194,23 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     if(nentries<100) m_nprint=1;
   }
   
+   TFCSSimulationState::EventStatus es = { -1 , false, false } ;
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
   //for (int ievent = m_firstevent; ievent < 100; ievent++)
- // for (int ievent = m_firstevent; ievent < 2; ievent++)
- // for (int ievent = m_firstevent; ievent < 1; ievent++)
+ //for (int ievent = m_firstevent; ievent < 2; ievent++)
+  //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
+
+   es.ievent=ievent ;
+
+  bool first = (ievent==m_firstevent ) ? true : false ;
+  es.is_first=first ;
+  
+  bool last =(ievent == (nentries-1)) ? true : false ;
+  es.is_last= last  ;
+  
+
    auto t4 = std::chrono::system_clock::now();
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      m_chain->GetEntry(ievent);
@@ -345,6 +356,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #ifdef USE_GPU
 	chain_simul.set_gpu_rand(m_rd4h) ;
 	chain_simul.set_geold(m_gl) ;
+	chain_simul.set_es(&es) ;
 #endif  
 //        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
 

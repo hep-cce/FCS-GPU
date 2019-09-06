@@ -1,6 +1,6 @@
 // kernels to calculate Historgarm(counts) 
 // after bin number already identified and stored in memeory for each hit
-
+#include "Atomic_Double.h"
 
 
 __global__ void hitspy_hist_stgA(short *i, int nbins, int nhits, int* b_result ) {
@@ -71,15 +71,20 @@ unsigned long tid = threadIdx.x+ blockIdx.x*blockDim.x ;
 //This kernel merge block counts results to final counts 
 // ct_blks  is number of blocks need to merge
 // assume blockDim.x in 2^n   should be largest 2^n  less or eq ct_blks/2 
-__global__ void hitspy_hist_stgB(int* b_results, int ct_blks, int nbins ) {
+__global__ void hitspy_hist_stgB(int* b_results, double* final, double* sumw2, unsigned long long * nentry , double* sumwx,  int ct_blks, int nbins, float E , bool is_match, int nhits) {
 extern __shared__ int sdata[] ;
 int tid = threadIdx.x ;
 
 if((tid+ blockDim.x) < ct_blks ) {
   sdata[tid]= b_results[tid*nbins+blockIdx.x] + b_results[(tid+blockDim.x)*nbins+blockIdx.x] ;
+  }
+else{
   sdata[tid]= (tid < ct_blks) ? b_results[tid*nbins+blockIdx.x] : 0 ;
 }
 __syncthreads() ;
+
+//if(blockIdx.x==0) 
+//printf("tid=%d,ct=%d\n", threadIdx.x, sdata[tid]);
 
 for (unsigned int s=blockDim.x/2; s>32; s>>=1 ) {
 if(tid <s ) 
@@ -89,11 +94,29 @@ __syncthreads() ;
 
 if(tid<32) warpReduce(sdata, tid) ;
 
-//now thread 0 has the sum 
-if(tid==0) b_results[blockIdx.x]= sdata[0] ; 
+float E2=E*E ;
 
+//now thread 0 has the sum 
+if(tid==0) { 
+  b_results[blockIdx.x]= sdata[0] ; 
+  final[blockIdx.x] += sdata[0]*E ;
+  sumw2[blockIdx.x] +=sdata[0]*E2 ;
+  if(!is_match) { 
+	 if(blockIdx.x==0 ) {
+	 	nentry[0] += nhits ; 
+	 	sumwx[0] += E*nhits ;
+	 	sumwx[1] += E2*nhits ;
+	 }
+  }
+  else {
+	 unsigned long long  nl=atomicAdd(&nentry[0], (unsigned long long )(sdata[0]) );
+	 atomicAdd(&sumwx[0], double(E*sdata[0])) ;
+	 atomicAdd(&sumwx[1], double(E2*sdata[0])) ;
+//	printf("Block ID= %d  %d \n", blockIdx.x,  sdata[0] ) ;
+ }
 }
 
+}
 
 
 
@@ -141,6 +164,7 @@ warpReducef(&sfdata[blockDim.x], tid) ;
 if(tid==0) {
 sumx_b[blockIdx.x]=sfdata[0] ;
 sumx2_b[blockIdx.x]=sfdata[blockDim.x] ;
+
 
 }
 
@@ -191,7 +215,7 @@ sumx2_b[blockIdx.x]=sfdata[blockDim.x] ;
 }
  
 // second stage  sum  for x and x^2 
-__global__ void hitspy_hist_sumx_stgB( int sum_blks, float *sumx_b, float *sumx2_b  ) {
+__global__ void hitspy_hist_sumx_stgB( int sum_blks, float *sumx_b, float *sumx2_b, double* final, float E  ) {
 extern __shared__ float sfdata[] ;
 
 int tid = threadIdx.x ;
@@ -222,6 +246,10 @@ warpReducef(&sfdata[blockDim.x], tid) ;
 if(tid==0) {
 sumx_b[0]=sfdata[0] ;
 sumx2_b[0]=sfdata[blockDim.x] ;
+final[2] += sfdata[0]*E ;
+final[3] += sfdata[blockDim.x]*E ;
+
+
 }
 
 } 

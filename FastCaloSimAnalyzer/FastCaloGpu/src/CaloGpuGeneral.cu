@@ -213,9 +213,11 @@ __device__ void ValidationHitSpy_d( Hit& hit,  const  Chain0_Args& args, unsigne
 
   int cs = args.cs;
   //const int pdgId = args.pdgId;
-  double  charge   = args.charge;  
+  //double  charge   = args.charge;  
 
-  long long cell = getDDE(args.geo, cs, hit.eta(), hit.phi()); // cs > 20
+  long long cell = getDDE(args.geo, cs, hit.eta(), hit.phi()); // cs < 20
+  
+//  if(!is_second_spy) printf("HitSpy cells: tid=%d, pre_cell=%lu, cell=%lu, eta=%f, phi=%f\n", threadIdx.x+blockIdx.x*blockDim.x, pre_cell, cell, hit.eta(), hit.phi()  ) ;  
 
   bool is_matched =false ;
   if ( (cell == pre_cell)  && is_second_spy  )  is_matched = true ;
@@ -226,7 +228,7 @@ __device__ void ValidationHitSpy_d( Hit& hit,  const  Chain0_Args& args, unsigne
   //float z=cell.z();
   //float r=cell.r() ;
 
-
+    pre_cell= cell ;
 
 
   double dphi_hit = hit.phi() - cellele->phi();
@@ -246,15 +248,18 @@ __device__ void ValidationHitSpy_d( Hit& hit,  const  Chain0_Args& args, unsigne
   float *  x_ptr= hspy.hist_hitgeo_dphi.x_ptr ;
   short *   i_ptr= hspy.hist_hitgeo_dphi.i_ptr ;
 
-  x_ptr[t]=dphi_hit ;
-  i_ptr[t]=ibin ;
+
+  if(t<args.nhits) {
+	 x_ptr[t]=dphi_hit ;
+  	i_ptr[t]=ibin ;
+  }
 
 // This assummed  hist_hitgeo_matchprevious_dphi has same low, up and nbins 
 
   if( is_second_spy ) {
      bool *   match = hspy.hist_hitgeo_matchprevious_dphi.match ;
 
-     match[t]=is_matched ;
+     if (t < args.nhits ) match[t]=is_matched ;
   }
 
 //  bins.m_hist_hitgeo_dphi.set(dphi_hit, hit.E());
@@ -485,19 +490,13 @@ __global__  void simulate_chain0_A( float E, int nhits,  Chain0_Args args ) {
     if ( t  >= nhits ) break ; 
     Hit hit ;
     hit.E()=E ;
-    //float layer_energy = 0.0;
     CenterPositionCalculation_d( hit, args) ;
-//    Bins bins;
-//    double eta_boundary = 1.0;
-//    if(args.spy) ValidationHitSpy_d( hit, layer_energy, args, bins, true, true, eta_boundary) ;
     long long pre_cell = -5 ;
-    if(args.spy) ValidationHitSpy_d( hit,  args, t, pre_cell, false ) ;
+    //if(args.spy) ValidationHitSpy_d( hit,  args, t, pre_cell, false ) ;
     HistoLateralShapeParametrization_d(hit,t,  args) ;
+    if(args.spy) ValidationHitSpy_d( hit,  args, t, pre_cell, false ) ;
     HitCellMappingWiggle_d ( hit, args, t ) ;
-//    if(args.spy) ValidationHitSpy_d(hit, layer_energy, args, bins, true, true, eta_boundary);
     if(args.spy) ValidationHitSpy_d( hit,  args, t , pre_cell,  true ) ;
-//  do something 
-//if(t==0) printf("rand(0)=%f\n", args.rand[0]);
   }
  
 }
@@ -528,7 +527,9 @@ __global__  void simulate_chain0_C() {
 }
 
 
-__host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned long long seed ){ 
+
+
+__host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, unsigned long long seed ){ 
 
       Rand4Hits * rd4h = new Rand4Hits ;
 	float * f  ;
@@ -540,6 +541,9 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned lo
 
          rd4h->set_rand_ptr(f) ;
 	 rd4h->set_gen(gen) ;
+
+	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
+	rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1 ) ; 
 
 	return  (void* ) rd4h ;
 
@@ -555,7 +559,7 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
 __global__  void simulate_chain0_clean(Chain0_Args args) {
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
  if(tid < args.ncells ) args.hitcells_b[tid]= false ;
- if(tid < args.nhits) args.hitcells_l[tid] = 0 ;
+ if(tid < args.maxhitct) args.hitcells_l[tid] = 0 ;
  if(tid ==0 ) args.hitcells_ct[0]= 0 ; 
 }
 
@@ -615,7 +619,7 @@ sdata[tid] += sdata[tid + 1];
 }
 
 
-__global__ void simulate_chain0_hist_merge(unsigned int * hitct_b, int ct_blks, unsigned int ct , Chain0_Args args) {
+__global__ void simulate_chain0_hist_merge(unsigned int * hitct_b, int ct_blks, unsigned int ct , Chain0_Args & args) {
 extern __shared__ int sdata[] ;
 int tid=threadIdx.x;
 
@@ -649,9 +653,9 @@ __host__ int highestPowerof2(unsigned int n)
     int res = 1; 
   
     // Try all powers starting from 2^1 
-    for (int i=0; i<8*sizeof(unsigned int); i++) 
+    for (unsigned int i=0; i<8*sizeof(unsigned int); i++) 
     { 
-        int curr = 1 << i; 
+        unsigned int curr = 1 << i; 
   
         // If current power is more than n, break 
         if (curr > n) 
@@ -666,7 +670,7 @@ __host__ int highestPowerof2(unsigned int n)
 
 #include "kern_hitspy_hist.cu"
 
-__host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& args ) {
+__host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args & args ) {
 
         Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
 	
@@ -678,12 +682,17 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 
 	 
 	unsigned long  ncells = args.ncells ; 
+	args.maxhitct=MAXHITCT;
+
+
+
+/*
+        if(0) {
 	gpuQ(cudaMalloc((void**)&(args.hitcells_b), args.ncells*sizeof(bool)));
 	gpuQ(cudaMalloc((void**)&(args.hitcells_l), args.nhits*sizeof(unsigned long)));
 	gpuQ(cudaMalloc((void**)&(args.hitcells), args.nhits*sizeof(unsigned long)));
 	gpuQ(cudaMalloc((void**)&(args.hitcells_ct), sizeof(unsigned int)));
 	if (args.spy) {
-//	if (0) {
 	gpuQ(cudaMalloc((void**)&(args.hs1.hist_hitgeo_dphi.x_ptr), sizeof(float)*args.nhits )) ;
 	gpuQ(cudaMalloc((void**)&(args.hs1.hist_hitgeo_dphi.i_ptr), sizeof(short)*args.nhits )) ;
 	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_dphi.x_ptr), sizeof(float)*args.nhits )) ;
@@ -702,18 +711,100 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 	args.hs2.hist_hitgeo_dphi.ct_array=(int* ) malloc(args.hs2.hist_hitgeo_dphi.nbin*sizeof(int) ) ;
 	args.hs2.hist_hitgeo_matchprevious_dphi.ct_array=(int* ) malloc(args.hs2.hist_hitgeo_matchprevious_dphi.nbin*sizeof(int) ) ;
 
+        
+  
+	} //if(spy)
+
+	} //if(0/1) 
+*/
 
 
-	}
+args.hitcells_b=rd4h->get_B_ptrs()[0] ;
+args.hitcells=rd4h->get_Ul_ptrs()[0] ;    //maxhit
+args.hitcells_l=rd4h->get_Ul_ptrs()[1] ; //maxhitct
+args.hitcells_ct= rd4h->get_Ui_ptrs()[0] ; //single value, number of  uniq hit cells
+
+//std::cout<<"hitcells_b: " << args.hitcells_b << ", args.hitcells=" << args.hitcells 
+//    << ", args.hitcells_l="<< args.hitcells_l << ", args.hitcells_ct=" << args.hitcells_ct << std::endl ;
+
+
+args.hitcounts_b= rd4h->get_Ui_ptrs()[1] ;  // block wise counts results
+
+args.hitcells_h = rd4h->get_hitcells() ; //host hit cells indexes
+args.hitcells_ct_h =  rd4h->get_hitcells_ct() ;
+
+if(args.spy) {
+args.hs1.hist_hitgeo_dphi.x_ptr=rd4h->get_F_ptrs()[0] ;
+args.hs2.hist_hitgeo_dphi.x_ptr=rd4h->get_F_ptrs()[1] ;
+args.hs2.hist_hitgeo_matchprevious_dphi.x_ptr=args.hs2.hist_hitgeo_dphi.x_ptr ;
+args.hs1.hist_hitgeo_dphi.i_ptr=rd4h->get_S_ptrs()[0] ;      
+args.hs2.hist_hitgeo_dphi.i_ptr=rd4h->get_S_ptrs()[1] ;      
+args.hs2.hist_hitgeo_matchprevious_dphi.i_ptr=args.hs2.hist_hitgeo_dphi.i_ptr;      
+
+args.hs1.hist_hitgeo_dphi.hb_ptr=rd4h->get_I_ptrs()[0] ;
+args.hs2.hist_hitgeo_dphi.hb_ptr=rd4h->get_I_ptrs()[1] ;
+args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr=rd4h->get_I_ptrs()[2] ;
+
+args.hs_sumx=rd4h->get_F_ptrs()[2] ;
+
+args.hs2.hist_hitgeo_matchprevious_dphi.match=rd4h->get_B_ptrs()[1] ;
+
+
+args.hs1.hist_hitgeo_dphi.ct_array_g=rd4h->get_D_ptrs()[0];
+args.hs2.hist_hitgeo_dphi.ct_array_g=rd4h->get_D_ptrs()[1];
+args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_g=rd4h->get_D_ptrs()[2];
+
+args.hs1.hist_hitgeo_dphi.sumw2_array_g=rd4h->get_D_ptrs()[3];
+args.hs2.hist_hitgeo_dphi.sumw2_array_g=rd4h->get_D_ptrs()[4];
+args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_g=rd4h->get_D_ptrs()[5];
+args.hs_sumwx_g=rd4h->get_D_ptrs()[6] ;
+
+args.hs_nentries=rd4h->get_Ull_ptrs()[0] ;
+args.hs_sumwx_h=rd4h->get_hist_stat_h() ;
+
+args.hs1.hist_hitgeo_dphi.ct_array_h=rd4h-> get_array_h_ptrs()[0] ;
+args.hs2.hist_hitgeo_dphi.ct_array_h=rd4h-> get_array_h_ptrs()[1] ;
+args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_h=rd4h-> get_array_h_ptrs()[2] ;
+args.hs1.hist_hitgeo_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_ptrs()[0] ;
+args.hs2.hist_hitgeo_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_ptrs()[1] ;
+args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_ptrs()[2] ;
+
+
+
+}
+
+
  	cudaError_t err = cudaGetLastError();
-// 	cudaDeviceSynchronize() ;
-// if (err != cudaSuccess) {
-//        std::cout<< "before "<<cudaGetErrorString(err)<< std::endl;
-//}
+
+   if(args.is_first && args.spy) {
+
+
+//	std::cout<<" first event , memset 0 the hitspy histgrams storages on GPU " << std::endl ;
+//	std::cout<< "Pointers: " << std::endl 
+//		<<args.hs1.hist_hitgeo_dphi.ct_array_g <<std::endl  
+//		<<args.hs1.hist_hitgeo_dphi.sumw2_array_g <<std::endl  
+//		<<args.hs2.hist_hitgeo_dphi.ct_array_g <<std::endl  
+//		<<args.hs2.hist_hitgeo_dphi.sumw2_array_g <<std::endl  
+		; 
+	gpuQ(cudaMemset(args.hs1.hist_hitgeo_dphi.ct_array_g, 0 ,(args.hs1.hist_hitgeo_dphi.nbin+2)*sizeof(double) )) ;
+	gpuQ(cudaMemset(args.hs1.hist_hitgeo_dphi.sumw2_array_g, 0 ,(args.hs1.hist_hitgeo_dphi.nbin+2)*sizeof(double)) ) ;
+
+	gpuQ(cudaMemset(args.hs2.hist_hitgeo_dphi.ct_array_g, 0 ,(args.hs2.hist_hitgeo_dphi.nbin+2)*sizeof(double)) ) ;
+	gpuQ(cudaMemset(args.hs2.hist_hitgeo_dphi.sumw2_array_g, 0 ,(args.hs2.hist_hitgeo_dphi.nbin+2)*sizeof(double)) ) ;
+
+	gpuQ(cudaMemset(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_g, 0 ,(args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2)*sizeof(double)) ) ;
+	gpuQ(cudaMemset(args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_g, 0 ,(args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2)*sizeof(double)) ) ;
+
+	gpuQ(cudaMemset(args.hs_sumwx_g,0, 12*sizeof(double))) ;
+	gpuQ(cudaMemset(args.hs_nentries,0, 3*sizeof(unsigned long long ))) ;
+
+
+  } 
         
 	int blocksize=BLOCK_SIZE ;
 	int threads_tot= args.ncells  ;
 	int nblocks= (threads_tot + blocksize-1 )/blocksize ;        
+
 
 	simulate_chain0_clean <<< nblocks, blocksize >>>( args) ;
 // 	cudaDeviceSynchronize() ;
@@ -722,15 +813,16 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 //}
 
 
+//args.spy=false ;
 	blocksize=BLOCK_SIZE ;
 	threads_tot= (nhits +NLOOPS-1) /NLOOPS  ;
 	nblocks= (threads_tot + blocksize-1 )/blocksize ;        
 
 //	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize 
-//                << ", total Threads: " << threads_tot << std::endl ;
+ //               << ", total Threads: " << threads_tot << std::endl ;
 
   simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ; 
-//  cudaDeviceSynchronize() ;
+  cudaDeviceSynchronize() ;
   err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
@@ -739,18 +831,18 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 
   nblocks = (ncells + blocksize -1 )/blocksize ;
   simulate_chain0_B1 <<<nblocks,blocksize >>> (args) ;
-//  cudaDeviceSynchronize() ;
-// err = cudaGetLastError();
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
-
 }
 
    unsigned int ct ;
    gpuQ(cudaMemcpy(&ct, args.hitcells_ct,sizeof(unsigned int), cudaMemcpyDeviceToHost));
-   unsigned long *hitcells ;
-   hitcells=(unsigned long * ) malloc(sizeof(unsigned long)*ct) ;
-   int * hitcells_ct=(int * ) malloc(sizeof(int* )*ct) ;
+   unsigned long *hitcells =args.hitcells_h;
+   int * hitcells_ct =args.hitcells_ct_h ;
+//   hitcells=(unsigned long * ) malloc(sizeof(unsigned long)*ct) ; //list of hit cells
+ //  int * hitcells_ct=(int * ) malloc(sizeof(int )*ct) ;    
  // check result 
    gpuQ(cudaMemcpy(hitcells, args.hitcells_l, ct*sizeof(unsigned long), cudaMemcpyDeviceToHost));
 
@@ -762,12 +854,12 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
    if(blocksize <32 ) blocksize=32;
    nblocks = (args.nhits + blocksize-1)/blocksize ;
 //std::cout<<"blocksize="<<blocksize << " Nhits="<<args.nhits << " ct="<<ct<<" nblocks="<<nblocks<< std::endl ;  
-	unsigned int * hitcounts_b ;
-	gpuQ(cudaMalloc((void**)&(hitcounts_b), ct*nblocks*sizeof(unsigned int)));
+//	unsigned int * hitcounts_b ;
+//	gpuQ(cudaMalloc((void**)&(hitcounts_b), ct*nblocks*sizeof(unsigned int)));
 
 // std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
-   simulate_chain0_block_hist<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (hitcounts_b,ct,args) ;
+   simulate_chain0_block_hist<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (args.hitcounts_b,ct,args) ;
   cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
@@ -782,18 +874,18 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args& arg
 
 //	std::cout<<"merge Block size,nblocks="<< blocksize<< " " <<nblocks <<std::endl ;
 
-    simulate_chain0_hist_merge<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(hitcounts_b,ct_b,ct,args) ;
+    simulate_chain0_hist_merge<<<nblocks,blocksize,blocksize*sizeof(unsigned int) >>>(args.hitcounts_b,ct_b,ct,args) ;
   cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_hist_merge "<<cudaGetErrorString(err)<< std::endl;
 }
-   gpuQ(cudaMemcpy(hitcells_ct, hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
+   gpuQ(cudaMemcpy(hitcells_ct, args.hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
 
 // pass result back 
    args.ct=ct;
-   args.hitcells_h=hitcells ;
-   args.hitcells_ct_h=hitcells_ct ;
+//   args.hitcells_h=hitcells ;
+//   args.hitcells_ct_h=hitcells_ct ;
 
 /*
 int total_ct=0 ;
@@ -808,7 +900,7 @@ if(args.spy) {
    blocksize= highestPowerof2(args.nhits)/512 ;
    if(blocksize <32 ) blocksize=32;
    nblocks = (args.nhits + blocksize-1)/blocksize ;
-   int nbins= args.hs1.hist_hitgeo_dphi.nbin ;
+   int nbins= args.hs1.hist_hitgeo_dphi.nbin+2 ;
 
 //std::cout<< "nbin= "<<nbins << ", blocksize= " << blocksize 
 //	<< ",nblock= "<<nblocks << ", args.hs1.hist_hitgeo_dphi.i_ptr=" << args.hs1.hist_hitgeo_dphi.i_ptr
@@ -824,29 +916,66 @@ if(args.spy) {
    int nbsz=highestPowerof2(nblocks-1) ;
    if (nbsz < 64) nbsz=64 ; 
    hitspy_hist_stgB<<< nbins, nbsz, sizeof(int)*nbsz >>> 
-	(args.hs1.hist_hitgeo_dphi.hb_ptr,  nblocks,  nbins ) ;
-   gpuQ(cudaMemcpy(args.hs1.hist_hitgeo_dphi.ct_array, args.hs1.hist_hitgeo_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+	(args.hs1.hist_hitgeo_dphi.hb_ptr, args.hs1.hist_hitgeo_dphi.ct_array_g ,args.hs1.hist_hitgeo_dphi.sumw2_array_g, &args.hs_nentries[0],
+		 &args.hs_sumwx_g[0], nblocks,  nbins,E, false ,args.nhits ) ;
+//   gpuQ(cudaMemcpy(args.hs1.hist_hitgeo_dphi.ct_array, args.hs1.hist_hitgeo_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
+ if (err != cudaSuccess) {
+        std::cout<< "hitspy_hist_stgB "<<cudaGetErrorString(err)<< std::endl;
+}
+
+//std::cout<<"E="<<E<< std::endl ;
 
 //hs2
-    nbins = args.hs2.hist_hitgeo_dphi.nbin ;
+    nbins = args.hs2.hist_hitgeo_dphi.nbin+2 ;
    hitspy_hist_stgA<<< nblocks, blocksize, sizeof(int)* nbins >>>
        (args.hs2.hist_hitgeo_dphi.i_ptr, nbins, args.nhits,
                 args.hs2.hist_hitgeo_dphi.hb_ptr)       ;
    hitspy_hist_stgB<<< nbins, nbsz, sizeof(int)*nbsz >>> 
-	(args.hs2.hist_hitgeo_dphi.hb_ptr,  nblocks,  nbins ) ;
- gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_dphi.ct_array, args.hs2.hist_hitgeo_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+	(args.hs2.hist_hitgeo_dphi.hb_ptr, args.hs2.hist_hitgeo_dphi.ct_array_g,args.hs2.hist_hitgeo_dphi.sumw2_array_g, &args.hs_nentries[1],
+		 &args.hs_sumwx_g[4], nblocks,  nbins,E, false, args.nhits ) ;
+// gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_dphi.ct_array, args.hs2.hist_hitgeo_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
+ if (err != cudaSuccess) {
+        std::cout<< "hitspy_hist_stgB "<<cudaGetErrorString(err)<< std::endl;
+}
 
 //hs2 matched 
-    nbins = args.hs2.hist_hitgeo_matchprevious_dphi.nbin ;
+    nbins = args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2 ;
    hitspy_hist_matched_stgA<<< nblocks, blocksize, sizeof(int)* nbins >>>
        (args.hs2.hist_hitgeo_matchprevious_dphi.i_ptr,
 	args.hs2.hist_hitgeo_matchprevious_dphi.match, 
 	nbins, 
 	args.nhits,
         args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr)       ;
+
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
+ if (err != cudaSuccess) {
+        std::cout<< "hitspy_hist_stgB "<<cudaGetErrorString(err)<< std::endl;
+}
+//int t[256*781];
+// gpuQ(cudaMemcpy(t, args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr, 781*nbins*sizeof(int), cudaMemcpyDeviceToHost));
+
+//for(int ii=0; ii<256*781 ; ii++) if(t[ii] !=0 )  std::cout<<"hb_ptr"<<ii<<"="<<t[ii] <<std::endl;
+
+
    hitspy_hist_stgB<<< nbins, nbsz, sizeof(int)*nbsz >>> 
-	(args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr,  nblocks,  nbins ) ;
-   gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array, args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+	(args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr, args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_g,
+		args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_g, &args.hs_nentries[2], 
+		&args.hs_sumwx_g[8], nblocks,  nbins,E,true,args.nhits ) ;
+  // gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array, args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr, nbins*sizeof(int), cudaMemcpyDeviceToHost));
+  cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
+ if (err != cudaSuccess) {
+        std::cout<< "hitspy_hist_stgB "<<cudaGetErrorString(err)<< std::endl;
+}
+
+//std::cout<<"3"<< std::endl ;
 
 //sumx, sumx2
    nblocks = (args.nhits -1 )/(2*blocksize) +1 ;
@@ -858,15 +987,15 @@ if(args.spy) {
 
 //std::cout << "blocksize="<<nbsz <<" , nblocks="<<nblocks <<  std::endl ;
 
-  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[0],  &args.hs_sumx[1024]  );
-   gpuQ(cudaMemcpy(&args.hs1.hist_hitgeo_dphi.sumx, &args.hs_sumx[0], sizeof(float), cudaMemcpyDeviceToHost));
-   gpuQ(cudaMemcpy(&args.hs1.hist_hitgeo_dphi.sumx2, &args.hs_sumx[1024], sizeof(float), cudaMemcpyDeviceToHost));
+  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[0],   &args.hs_sumx[1024],&args.hs_sumwx_g[0],E  );
+ //  gpuQ(cudaMemcpy(&args.hs1.hist_hitgeo_dphi.sumx, &args.hs_sumx[0], sizeof(float), cudaMemcpyDeviceToHost));
+ //  gpuQ(cudaMemcpy(&args.hs1.hist_hitgeo_dphi.sumx2, &args.hs_sumx[1024], sizeof(float), cudaMemcpyDeviceToHost));
     
    hitspy_hist_sumx_stgA<<< nblocks, blocksize,sizeof(float)* blocksize*2 >>>
 	(  args.hs2.hist_hitgeo_dphi.x_ptr, nhits, &args.hs_sumx[2048],  &args.hs_sumx[3072]  ) ;
-  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[2048],  &args.hs_sumx[3072]  ) ;
-   gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_dphi.sumx, &args.hs_sumx[2048], sizeof(float), cudaMemcpyDeviceToHost));
-   gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_dphi.sumx2, &args.hs_sumx[3072], sizeof(float), cudaMemcpyDeviceToHost));
+  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[2048],  &args.hs_sumx[3072],&args.hs_sumwx_g[4],E  ) ;
+ //  gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_dphi.sumx, &args.hs_sumx[2048], sizeof(float), cudaMemcpyDeviceToHost));
+//   gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_dphi.sumx2, &args.hs_sumx[3072], sizeof(float), cudaMemcpyDeviceToHost));
     
 
    hitspy_hist_sumx_matched_stgA<<< nblocks, blocksize,sizeof(float)* blocksize*2 >>>
@@ -875,9 +1004,9 @@ if(args.spy) {
 	&args.hs_sumx[4096],  
 	&args.hs_sumx[5120], 
 	args.hs2.hist_hitgeo_matchprevious_dphi.match) ;
-  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[4096],  &args.hs_sumx[5120]  ) ;
-   gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_matchprevious_dphi.sumx, &args.hs_sumx[4096], sizeof(float), cudaMemcpyDeviceToHost));
-   gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_matchprevious_dphi.sumx2, &args.hs_sumx[5120], sizeof(float), cudaMemcpyDeviceToHost));
+  hitspy_hist_sumx_stgB<<<1, nbsz, sizeof(float)*nbsz*2 >>> (  nblocks, &args.hs_sumx[4096],  &args.hs_sumx[5120],&args.hs_sumwx_g[8], E  ) ;
+  // gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_matchprevious_dphi.sumx, &args.hs_sumx[4096], sizeof(float), cudaMemcpyDeviceToHost));
+  // gpuQ(cudaMemcpy(&args.hs2.hist_hitgeo_matchprevious_dphi.sumx2, &args.hs_sumx[5120], sizeof(float), cudaMemcpyDeviceToHost));
     
 
 }
@@ -888,13 +1017,85 @@ if(args.spy) {
         std::cout<< "hitspy_hist_stgB "<<cudaGetErrorString(err)<< std::endl;
 }
 
+
+if(args.is_last && args.spy) {
+  //std::cout<<" Last event" <<std::endl ;
+
+  double *  buffer = args.hs_sumwx_h ;
+  gpuQ(cudaMemcpy(buffer, args.hs_sumwx_g, 12*sizeof(double), cudaMemcpyDeviceToHost));
+  args.hs1.hist_hitgeo_dphi.sumx_h=buffer[0] ;
+  args.hs1.hist_hitgeo_dphi.sumx2_h=buffer[1] ;
+  args.hs1.hist_hitgeo_dphi.sumw_h=buffer[2] ;
+  args.hs1.hist_hitgeo_dphi.sumw2_h=buffer[3] ;
+
+  args.hs2.hist_hitgeo_dphi.sumx_h=buffer[4] ;
+  args.hs2.hist_hitgeo_dphi.sumx2_h=buffer[5] ;
+  args.hs2.hist_hitgeo_dphi.sumw_h=buffer[6] ;
+  args.hs2.hist_hitgeo_dphi.sumw2_h=buffer[7] ;
+
+  args.hs2.hist_hitgeo_matchprevious_dphi.sumx_h=buffer[8] ;
+  args.hs2.hist_hitgeo_matchprevious_dphi.sumx2_h=buffer[9] ;
+  args.hs2.hist_hitgeo_matchprevious_dphi.sumw_h=buffer[10] ;
+  args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_h=buffer[11] ;
+
+  unsigned long long nentry_buffer[3] ;
+  gpuQ(cudaMemcpy(nentry_buffer, args.hs_nentries, 3*sizeof(unsigned long long), cudaMemcpyDeviceToHost));
+  args.hs1.hist_hitgeo_dphi.nentries=nentry_buffer[0] ;
+  args.hs2.hist_hitgeo_dphi.nentries=nentry_buffer[1] ;
+  args.hs2.hist_hitgeo_matchprevious_dphi.nentries=nentry_buffer[2] ;
+
+//int nbins = args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2;
+//std::cout<< "Nentries for histSpy histo="<< nentry_buffer[0]<<", "<< nentry_buffer[1] << ", " << nentry_buffer[2] <<" "<< nbins<< std::endl ;
+//for (int jj=0 ;jj<12 ;jj++) 
+//std::cout<<"scaler Buffer["<<jj<<"]="<<buffer[jj]<<std::endl;
+
+  gpuQ(cudaMemcpy(args.hs1.hist_hitgeo_dphi.ct_array_h, args.hs1.hist_hitgeo_dphi.ct_array_g,
+	(args.hs1.hist_hitgeo_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_dphi.ct_array_h, args.hs2.hist_hitgeo_dphi.ct_array_g, 
+	(args.hs2.hist_hitgeo_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_h,
+	 args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_g, 
+	(args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+
+  gpuQ(cudaMemcpy(args.hs1.hist_hitgeo_dphi.sumw2_array_h, args.hs1.hist_hitgeo_dphi.sumw2_array_g,
+	(args.hs1.hist_hitgeo_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_dphi.sumw2_array_h, args.hs2.hist_hitgeo_dphi.sumw2_array_g, 
+	(args.hs2.hist_hitgeo_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+  gpuQ(cudaMemcpy(args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h,
+	 args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_g, 
+	(args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2)*sizeof(double), cudaMemcpyDeviceToHost));
+
+
+//for(int ii=0; ii<nbins ; ++ii) {
+//std::cout<<args.hs1.hist_hitgeo_dphi.ct_array_h[ii]<<", "<<args.hs2.hist_hitgeo_dphi.ct_array_h[ii]<<", "
+//  	<<args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_h[ii] <<"        "<< args.hs1.hist_hitgeo_dphi.sumw2_array_h[ii]<<", "
+//	<<args.hs2.hist_hitgeo_dphi.sumw2_array_h[ii]<<", "<<args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h[ii]<< std::endl;
+
+	
+// need to take sqrt to enable TH1's  SetError() method ;
+  for(int ii=0; ii<args.hs1.hist_hitgeo_dphi.nbin+2 ; ++ii) 
+	args.hs1.hist_hitgeo_dphi.sumw2_array_h[ii]=sqrt(args.hs1.hist_hitgeo_dphi.sumw2_array_h[ii]);
+
+  for(int ii=0; ii<args.hs2.hist_hitgeo_dphi.nbin+2 ; ++ii) 
+	args.hs2.hist_hitgeo_dphi.sumw2_array_h[ii]=sqrt(args.hs2.hist_hitgeo_dphi.sumw2_array_h[ii]);
+
+  for(int ii=0; ii<args.hs2.hist_hitgeo_matchprevious_dphi.nbin+2 ; ++ii) 
+	args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h[ii]=sqrt(args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h[ii]);
+
+  
+
+
+
+}//if(args.spy)
+
+/*
+if(0){
 	cudaFree( args.hitcells);
 	cudaFree( args.hitcells_ct);
 	cudaFree( args.hitcells_b);
 	cudaFree( args.hitcells_l);
 	cudaFree( hitcounts_b);
 	if(args.spy) {
-//	if(0) {
 	cudaFree(args.hs1.hist_hitgeo_matchprevious_dphi.match) ;
 	cudaFree(args.hs1.hist_hitgeo_dphi.x_ptr) ;
 	cudaFree(args.hs1.hist_hitgeo_dphi.i_ptr) ;
@@ -916,6 +1117,9 @@ if(args.spy) {
 	}
 //	free(hitcells)  ;
 //	free(hitcells_ct)  ;
+}
+
+*/
 
 }
 
