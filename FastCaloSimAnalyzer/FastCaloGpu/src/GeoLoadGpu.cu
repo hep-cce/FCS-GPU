@@ -147,8 +147,8 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 // each Region allocate a grid (long Long) gpu array 
 //  copy array to GPU
 //  save to regions m_cell_g ; 
-    for(int ir=0 ; ir< m_nregions ; ++ir) {
-	std::cout << "debug m_regions_g[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
+    for(unsigned int ir=0 ; ir< m_nregions ; ++ir) {
+//	std::cout << "debug m_regions_g[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
 	long long * ptr_g ;
         if(cudaSuccess != cudaMalloc((void**) &ptr_g,
 		 sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi())) return false ;

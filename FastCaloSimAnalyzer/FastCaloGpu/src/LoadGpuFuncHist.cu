@@ -4,7 +4,7 @@ LoadGpuFuncHist::~LoadGpuFuncHist(){
   free(m_hf); 
   cudaFree((*m_hf_d).low_edge);
   cudaFree((*m_hf_d).h_szs);
-  for(int i=0 ; i< (*m_d_hf).nhist ; ++i ){
+  for(unsigned int i=0 ; i< (*m_d_hf).nhist ; ++i ){
     cudaFree((*m_hf_d).h_contents[i]);
     cudaFree((*m_hf_d).h_borders[i]);
   }
@@ -83,7 +83,7 @@ void LoadGpuFuncHist::LD() {
   float * * borders_ptr = (float* *) malloc(hf.nhist*sizeof(float*)) ;
   
 
-  for( int i =0 ; i< hf.nhist ; ++i) {
+  for( unsigned int i =0 ; i< hf.nhist ; ++i) {
 
       gpuQ(cudaMalloc((void**)(contents_ptr+i) ,  h_szs[i]*sizeof(uint32_t))) ;
       gpuQ(cudaMalloc((void**)&(borders_ptr[i]) ,  (h_szs[i]+1)*sizeof(float))) ;

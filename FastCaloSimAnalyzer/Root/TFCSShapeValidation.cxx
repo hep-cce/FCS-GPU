@@ -37,7 +37,8 @@
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
 
-  std::chrono::duration<double> TFCSShapeValidation::time_g ;
+  std::chrono::duration<double> TFCSShapeValidation::time_g1 ;
+  std::chrono::duration<double> TFCSShapeValidation::time_g2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_h ;
 
 
@@ -54,7 +55,7 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
 #ifdef USE_GPU
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
 #endif
 
 
@@ -75,7 +76,7 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
    m_randEngine->setSeed(seed);
 #ifdef USE_GPU
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
 #endif
 
 
@@ -103,6 +104,13 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
    auto start = std::chrono::system_clock::now();
 
+   
+	time_g1=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_g2=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
+  
+	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
+	std::chrono::duration<double> t_bc= std::chrono::duration<double,std::ratio<1>>::zero();
 
 #ifdef USE_GPU
 
@@ -110,13 +118,6 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
   if (m_gl->LoadGpu())
 	std::cout <<"GPU Geometry loaded!!!" <<std::endl  ;
-#endif
-   
-	time_g=std::chrono::duration<double,std::ratio<1>>::zero();
-	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
-  
-	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
-	std::chrono::duration<double> t_bc= std::chrono::duration<double,std::ratio<1>>::zero();
    
   //m_debug=1 ;
    auto t1 = std::chrono::system_clock::now();
@@ -124,6 +125,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
 
 
+  if(0) {
   std::cout << "Geo size: " << m_geo->get_cells()->size() << std::endl ;
   std::cout << "Geo region size: " ;
    for(int  isample=0; isample <24; isample++) {
@@ -155,7 +157,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
         std::cout<< "Total cells for all regions and samples: " << t_cells <<std::endl;
 
 
-
+  }
+#endif
 
   int nentries = m_nentries;
   int layer = m_layer;
@@ -191,12 +194,23 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     if(nentries<100) m_nprint=1;
   }
   
+   TFCSSimulationState::EventStatus es = { -1 , false, false } ;
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
   //for (int ievent = m_firstevent; ievent < 100; ievent++)
-  //for (int ievent = m_firstevent; ievent < 2; ievent++)
- // for (int ievent = m_firstevent; ievent < 1; ievent++)
+ //for (int ievent = m_firstevent; ievent < 2; ievent++)
+  //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
+
+   es.ievent=ievent ;
+
+  bool first = (ievent==m_firstevent ) ? true : false ;
+  es.is_first=first ;
+  
+  bool last =(ievent == (nentries-1)) ? true : false ;
+  es.is_last= last  ;
+  
+
    auto t4 = std::chrono::system_clock::now();
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      m_chain->GetEntry(ievent);
@@ -342,6 +356,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #ifdef USE_GPU
 	chain_simul.set_gpu_rand(m_rd4h) ;
 	chain_simul.set_geold(m_gl) ;
+	chain_simul.set_es(&es) ;
 #endif  
 //        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
 
@@ -360,9 +375,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #endif 
   
    auto t3 = std::chrono::system_clock::now();
-   diff = t3-t2;
-   std::cout <<  "Time of  eventloop  :" << diff.count() <<" s" <<  std::endl ;
-   std::cout <<  "Time of  eventloop  GPU Chain0:" << time_g.count() <<" s" <<  std::endl ;
+    std::chrono::duration<double> diff1 = t3-t2;
+   std::cout <<  "Time of  eventloop  :" << diff1.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  GPU ChainA:" << time_g1.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
 

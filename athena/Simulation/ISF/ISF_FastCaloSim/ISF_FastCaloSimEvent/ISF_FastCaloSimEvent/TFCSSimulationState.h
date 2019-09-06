@@ -17,6 +17,8 @@ namespace CLHEP
  class HepRandomEngine;
 }
 
+
+
 class TFCSSimulationState:public TObject
 {
   public:
@@ -47,10 +49,17 @@ class TFCSSimulationState:public TObject
     void set_SF(double mysf) {m_SF = mysf;}
     double get_SF() {return m_SF;}
 #ifdef USE_GPU
+    struct EventStatus {
+    	long int ievent ;
+  	bool is_first ;
+  	bool is_last ; 
+    } ;
     void * get_gpu_rand(){ return m_gpu_rand; };
     void set_gpu_rand(void * rand ){ m_gpu_rand=rand ; } ;
     void * get_geold() { return m_geold; };
     void set_geold(void * geold ){ m_geold=geold ; } ;
+    void set_es(EventStatus * es ) {m_es= es ;} ; 
+    EventStatus * get_es() {return m_es; } ;
 #endif
     void clear();
   private:
@@ -65,6 +74,7 @@ class TFCSSimulationState:public TObject
 #ifdef USE_GPU
     void * m_gpu_rand ;
     void * m_geold ;
+    EventStatus * m_es ;
 #endif
     Cellmap_t m_cells;
     

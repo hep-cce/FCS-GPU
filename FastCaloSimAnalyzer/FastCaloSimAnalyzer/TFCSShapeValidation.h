@@ -44,7 +44,8 @@ public:
    int get_layer() const {return m_layer;};
 
    static std::chrono::duration<double>  time_h ;
-   static std::chrono::duration<double>  time_g ;
+   static std::chrono::duration<double>  time_g1 ;
+   static std::chrono::duration<double>  time_g2 ;
 
 #ifdef USE_GPU
    void GeoLg() ;
