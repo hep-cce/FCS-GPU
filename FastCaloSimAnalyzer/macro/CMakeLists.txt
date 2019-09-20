@@ -40,3 +40,10 @@ fcs_make_task(runTFCSShapeValidation
   DEPENDENCY ${AthenaStandalone_LIB}
   DEPENDENCY ${FastCaloSimAnalyzer_LIB}
 )
+
+fcs_make_task(runTFCSSimulation
+  SOURCE runTFCSSimulation.cxx
+  DEPENDENCY ${FastCaloSimCommon_LIB}
+  DEPENDENCY ${AthenaStandalone_LIB}
+  DEPENDENCY ${FastCaloSimAnalyzer_LIB}
+)
