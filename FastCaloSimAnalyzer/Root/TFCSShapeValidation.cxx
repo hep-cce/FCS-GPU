@@ -194,7 +194,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     if(nentries<100) m_nprint=1;
   }
   
+#ifdef USE_GPU
    TFCSSimulationState::EventStatus es = { -1 , false, false } ;
+#endif
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
   //for (int ievent = m_firstevent; ievent < 100; ievent++)
@@ -202,6 +204,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
 
+#ifdef USE_GPU
    es.ievent=ievent ;
 
   bool first = (ievent==m_firstevent ) ? true : false ;
@@ -210,10 +213,11 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   bool last =(ievent == (nentries-1)) ? true : false ;
   es.is_last= last  ;
   
+#endif
 
-   auto t4 = std::chrono::system_clock::now();
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      m_chain->GetEntry(ievent);
+   auto t4 = std::chrono::system_clock::now();
 
      ///////////////////////////////////
      //// Initialize truth

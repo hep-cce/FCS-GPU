@@ -1088,38 +1088,6 @@ if(args.is_last && args.spy) {
 
 }//if(args.spy)
 
-/*
-if(0){
-	cudaFree( args.hitcells);
-	cudaFree( args.hitcells_ct);
-	cudaFree( args.hitcells_b);
-	cudaFree( args.hitcells_l);
-	cudaFree( hitcounts_b);
-	if(args.spy) {
-	cudaFree(args.hs1.hist_hitgeo_matchprevious_dphi.match) ;
-	cudaFree(args.hs1.hist_hitgeo_dphi.x_ptr) ;
-	cudaFree(args.hs1.hist_hitgeo_dphi.i_ptr) ;
-	cudaFree(args.hs2.hist_hitgeo_dphi.x_ptr) ;
-	cudaFree(args.hs2.hist_hitgeo_dphi.i_ptr) ;
-
-
-	cudaFree(args.hs1.hist_hitgeo_dphi.hb_ptr) ;
-	cudaFree(args.hs2.hist_hitgeo_dphi.hb_ptr) ;
-	cudaFree(args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr) ;
-
-	cudaFree(args.hs_sumx ) ;
-
-	free(args.hs1.hist_hitgeo_dphi.ct_array); 
-	free(args.hs2.hist_hitgeo_dphi.ct_array); 
-	free(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array); 
-
-
-	}
-//	free(hitcells)  ;
-//	free(hitcells_ct)  ;
-}
-
-*/
 
 }
 
