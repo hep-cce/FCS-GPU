@@ -217,7 +217,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      int64_t localEntry = m_chain->LoadTree(ievent);
-     m_chain->GetEntry(localEntry);
+     for (TBranch *branch : m_branches) {
+        branch->GetEntry(localEntry);
+    }
    auto t4 = std::chrono::system_clock::now();
 
      ///////////////////////////////////
@@ -239,7 +241,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      
      if (m_debug >= 1) {
        std::cout << std::endl << "Event: " << ievent ;
-       std::cout << " pca = " << pca()<<" m_pca="<< m_pca<<" ";
+      //  std::cout << " pca = " << pca()<<" m_pca="<< m_pca<<" ";
        truthTLV.Print();
      }
 

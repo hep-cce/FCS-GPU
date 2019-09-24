@@ -14,7 +14,6 @@
 #include "TH1D.h"
 #include "TProfile.h"
 #include "TProfile2D.h"
-#include "TChain.h"
 #include "TString.h"
 #include "TCanvas.h"
 #include "TLegend.h"
@@ -625,6 +624,8 @@ double TFCSAnalyzerBase::Mom2Ekin_max(int pdgid, double mom)
 
 void TFCSAnalyzerBase::InitInputTree(TChain* mychain, int layer) {
 
+	m_branches.clear();
+
 	m_cellVector      = nullptr;
 	m_avgcellVector   = nullptr;
 	m_truthCollection = nullptr;
@@ -667,54 +668,55 @@ void TFCSAnalyzerBase::InitInputTree(TChain* mychain, int layer) {
 	m_total_energy = 0;
 
 
-	TString b_Sampling = Form("Sampling_%i", layer);
-	TString b_AvgSampling = Form("AvgSampling_%i", layer);
+	// TString b_Sampling = Form("Sampling_%i", layer);
+	// TString b_AvgSampling = Form("AvgSampling_%i", layer);
 
-	mychain->SetBranchAddress(b_Sampling, &m_cellVector);
-	mychain->SetBranchAddress(b_AvgSampling, &m_avgcellVector);
+	// TODO: check where these are used
+	// setBranch(mychain, m_branches, b_Sampling, &m_cellVector);
+	// setBranch(mychain, m_branches, b_AvgSampling, &m_avgcellVector);
 
-	mychain->SetBranchAddress("TruthCollection", &m_truthCollection);
-	mychain->SetBranchAddress("TruthPx", &m_truthPx);
-	mychain->SetBranchAddress("TruthPy", &m_truthPy);
-	mychain->SetBranchAddress("TruthPz", &m_truthPz);
-	mychain->SetBranchAddress("TruthE", &m_truthE);
-	mychain->SetBranchAddress("TruthPDG", &m_truthPDGID);
+	// setBranch(mychain, m_branches, "TruthCollection", &m_truthCollection);
+	setBranch(mychain, m_branches, "TruthPx", &m_truthPx);
+	setBranch(mychain, m_branches, "TruthPy", &m_truthPy);
+	setBranch(mychain, m_branches, "TruthPz", &m_truthPz);
+	setBranch(mychain, m_branches, "TruthE", &m_truthE);
+	setBranch(mychain, m_branches, "TruthPDG", &m_truthPDGID);
 
 
-	mychain->SetBranchAddress("newTTC_entrance_OK", &m_TTC_entrance_OK);
-	mychain->SetBranchAddress("newTTC_entrance_eta", &m_TTC_entrance_eta);
-	mychain->SetBranchAddress("newTTC_entrance_phi", &m_TTC_entrance_phi);
-	mychain->SetBranchAddress("newTTC_entrance_r", &m_TTC_entrance_r);
-	mychain->SetBranchAddress("newTTC_entrance_z", &m_TTC_entrance_z);
+	setBranch(mychain, m_branches, "newTTC_entrance_OK", &m_TTC_entrance_OK);
+	setBranch(mychain, m_branches, "newTTC_entrance_eta", &m_TTC_entrance_eta);
+	setBranch(mychain, m_branches, "newTTC_entrance_phi", &m_TTC_entrance_phi);
+	setBranch(mychain, m_branches, "newTTC_entrance_r", &m_TTC_entrance_r);
+	setBranch(mychain, m_branches, "newTTC_entrance_z", &m_TTC_entrance_z);
 
-	mychain->SetBranchAddress("newTTC_mid_OK", &m_TTC_mid_OK);
-	mychain->SetBranchAddress("newTTC_mid_eta", &m_TTC_mid_eta);
-	mychain->SetBranchAddress("newTTC_mid_phi", &m_TTC_mid_phi);
-	mychain->SetBranchAddress("newTTC_mid_r", &m_TTC_mid_r);
-	mychain->SetBranchAddress("newTTC_mid_z", &m_TTC_mid_z);
+	setBranch(mychain, m_branches, "newTTC_mid_OK", &m_TTC_mid_OK);
+	setBranch(mychain, m_branches, "newTTC_mid_eta", &m_TTC_mid_eta);
+	setBranch(mychain, m_branches, "newTTC_mid_phi", &m_TTC_mid_phi);
+	setBranch(mychain, m_branches, "newTTC_mid_r", &m_TTC_mid_r);
+	setBranch(mychain, m_branches, "newTTC_mid_z", &m_TTC_mid_z);
 
-	mychain->SetBranchAddress("newTTC_back_OK", &m_TTC_back_OK);
-	mychain->SetBranchAddress("newTTC_back_eta", &m_TTC_back_eta);
-	mychain->SetBranchAddress("newTTC_back_phi", &m_TTC_back_phi);
-	mychain->SetBranchAddress("newTTC_back_r", &m_TTC_back_r);
-	mychain->SetBranchAddress("newTTC_back_z", &m_TTC_back_z);
+	setBranch(mychain, m_branches, "newTTC_back_OK", &m_TTC_back_OK);
+	setBranch(mychain, m_branches, "newTTC_back_eta", &m_TTC_back_eta);
+	setBranch(mychain, m_branches, "newTTC_back_phi", &m_TTC_back_phi);
+	setBranch(mychain, m_branches, "newTTC_back_r", &m_TTC_back_r);
+	setBranch(mychain, m_branches, "newTTC_back_z", &m_TTC_back_z);
 
-	mychain->SetBranchAddress("newTTC_IDCaloBoundary_eta", &m_TTC_IDCaloBoundary_eta);
-	mychain->SetBranchAddress("newTTC_IDCaloBoundary_phi", &m_TTC_IDCaloBoundary_phi);
-	mychain->SetBranchAddress("newTTC_IDCaloBoundary_r", &m_TTC_IDCaloBoundary_r);
-	mychain->SetBranchAddress("newTTC_IDCaloBoundary_z", &m_TTC_IDCaloBoundary_z);
+	setBranch(mychain, m_branches, "newTTC_IDCaloBoundary_eta", &m_TTC_IDCaloBoundary_eta);
+	setBranch(mychain, m_branches, "newTTC_IDCaloBoundary_phi", &m_TTC_IDCaloBoundary_phi);
+	setBranch(mychain, m_branches, "newTTC_IDCaloBoundary_r", &m_TTC_IDCaloBoundary_r);
+	setBranch(mychain, m_branches, "newTTC_IDCaloBoundary_z", &m_TTC_IDCaloBoundary_z);
 
-	mychain->SetBranchAddress("total_hit_energy", &m_total_hit_energy);
-	mychain->SetBranchAddress("total_cell_energy", &m_total_cell_energy);
+	// setBranch(mychain, m_branches, "total_hit_energy", &m_total_hit_energy);
+	// setBranch(mychain, m_branches, "total_cell_energy", &m_total_cell_energy);
 
-	mychain->SetBranchAddress("firstPCAbin", &m_pca);
-	mychain->SetBranchAddress("energy_totalE", &m_total_energy);
+	// setBranch(mychain, m_branches, "firstPCAbin", &m_pca);
+	// setBranch(mychain, m_branches, "energy_totalE", &m_total_energy);
 
-	for (int i = 0; i < 24; ++i) {
-		if (mychain->GetLeaf(Form("energy_layer%d", i))) {
-			mychain->SetBranchAddress(Form("energy_layer%d", i), &m_total_layer_cell_energy[i]);
-		}
-	}
+	// for (int i = 0; i < 24; ++i) {
+	// 	if (mychain->GetLeaf(Form("energy_layer%d", i))) {
+	// 		setBranch(mychain, m_branches, Form("energy_layer%d", i), &m_total_layer_cell_energy[i]);
+	// 	}
+	// }
 }
 
 float TFCSAnalyzerBase::DeltaPhi(float phi1, float phi2)

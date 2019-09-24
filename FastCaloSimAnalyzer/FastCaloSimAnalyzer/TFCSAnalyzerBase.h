@@ -8,18 +8,18 @@
 #include "FCS_Cell.h"
 #include <map>
 
+#include <TChain.h>
+
 class TH1;
 class TH2;
 class TH1F;
 class TH2F;
 class TH1D;
+class TBranch;
 class TCanvas;
 class TProfile;
 class TProfile2D;
-class TChain;
 class TTree;
-
-
 
 
 class TFCSAnalyzerBase
@@ -129,6 +129,24 @@ protected:
    std::map< std::string , TH1* > m_histMap;
 
    // * reading input TTree
+   template <typename T>
+   void setBranch(TChain *chain,
+                  std::vector<TBranch *> &branches,
+                  const std::string &name,
+                  T var)
+   {
+      unsigned int found{};
+      chain->SetBranchStatus(name.c_str(), true, &found);
+      if (found == 0) {
+         throw std::runtime_error("branch missing " + name);
+      }
+
+      chain->SetBranchAddress(name.c_str(), var);
+
+      branches.push_back(chain->GetBranch(name.c_str()));
+   }
+
+   std::vector<TBranch *> m_branches;
 
    int m_pca;
    float m_total_hit_energy;
