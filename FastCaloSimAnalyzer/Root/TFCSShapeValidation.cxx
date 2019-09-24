@@ -216,7 +216,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #endif
 
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
-     m_chain->GetEntry(ievent);
+     int64_t localEntry = m_chain->LoadTree(ievent);
+     m_chain->GetEntry(localEntry);
    auto t4 = std::chrono::system_clock::now();
 
      ///////////////////////////////////
@@ -389,6 +390,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   for (int ii=0 ; ii<5; ii++) 
 	std::cout << "Time for Chain "<< ii <<" is "<< t_c[ii].count() <<" s" << std::endl ; 
  
+#ifdef FCS_DEBUG
+  m_chain->GetTree()->PrintCacheStats();
+#endif
+
 /*  
   TCanvas* c;
   c=new TCanvas(hist_cellSFvsE->GetName(),hist_cellSFvsE->GetTitle());
