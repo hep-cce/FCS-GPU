@@ -221,7 +221,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
         branch->GetEntry(localEntry);
     }
 
+    if (m_debug >= 1) {
       std::cout << "Number of particles: " <<  m_truthPDGID->size() << std::endl;
+    }
 
     size_t particles = m_truthPDGID->size();
     for (size_t p = 0; p < particles; p++)
