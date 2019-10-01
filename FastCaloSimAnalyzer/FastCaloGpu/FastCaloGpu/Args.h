@@ -13,6 +13,8 @@
 
 typedef struct Chain0_Args {
 
+bool debug ;
+
 float extrapol_eta_ent ;
 float extrapol_phi_ent ;
 float extrapol_r_ent ;
@@ -35,6 +37,7 @@ void * rd4h ;
 
 FH2D*  fh2d ;
 FHs*   fhs ;
+FH2D	fh2d_v ;  // host struct so we have info
 
 GeoGpu * geo ;
 

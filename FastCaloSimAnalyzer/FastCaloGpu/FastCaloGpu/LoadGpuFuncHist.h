@@ -18,6 +18,7 @@ public :
 	FHs * hf() {return m_hf ; } ;
 	FHs * d_hf() {return m_d_hf ; } ;
 	FH2D * hf2d() {return m_hf2d ; } ;
+	FH2D * hf2d_d() {return m_hf2d_d ; } ;
 	FH2D * d_hf2d() {return m_d_hf2d ; } ;
 
 	void LD();

@@ -5,7 +5,7 @@
 #include "gpuQ.h"
 #include "Args.h"
 
-#define BLOCK_SIZE 512 
+#define BLOCK_SIZE 256 
 #define NLOOPS 1
 
 #define M_PI 3.14159265358979323846
@@ -132,8 +132,23 @@ if (err != cudaSuccess) {
 
 }
 
+__device__  int find_index_f( float* array, int size, float value) {
+
+int  low=0 ; 
+int  high=size-1 ;
+int  m_index= (high-low)/2 ;
+while (m_index != low ) {
+     if( value > array[m_index] ) low=m_index ; 
+     else high=m_index ;  
+       m_index=(high-low)/2 +low ;
+}
+return m_index ;
+
+} 
+
 
 __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
+
 
  int nbinsx=(*hf2d).nbinsx;
  int nbinsy=(*hf2d).nbinsy;
@@ -141,6 +156,7 @@ __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1,
  float* HistoBorders= (*hf2d).h_bordersx ;
  float* HistoBordersy= (*hf2d).h_bordersy ; 
 
+ /*
  int ibin = nbinsx*nbinsy-1 ;
  for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
     if   (HistoContents[i]> rnd0 ) {
@@ -148,6 +164,8 @@ __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1,
 	 break ;
 	}
  } 
+*/
+ int ibin=find_index_f(HistoContents, nbinsx*nbinsy, rnd0 ) ;
 
 
   int biny = ibin/nbinsx;
@@ -163,6 +181,7 @@ __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1,
     valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) / 2;
   }
   valuey = HistoBordersy[biny] + (HistoBordersy[biny+1]-HistoBordersy[biny]) * rnd1;
+
 
 }
 
@@ -478,7 +497,7 @@ __device__ void HitCellMappingWiggle_d( Hit& hit,  Chain0_Args args, unsigned lo
 
 }
 
-
+#include "kern_main_chain.cu"
 
 
 
@@ -559,7 +578,10 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
 __global__  void simulate_chain0_clean(Chain0_Args args) {
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
  if(tid < args.ncells ) args.hitcells_b[tid]= false ;
- if(tid < args.maxhitct) args.hitcells_l[tid] = 0 ;
+ if(tid < args.maxhitct) {
+    args.hitcells_l[tid] = 0 ;
+    args.hitcounts_b[tid] =0 ; 
+ }
  if(tid ==0 ) args.hitcells_ct[0]= 0 ; 
 }
 
@@ -608,6 +630,8 @@ for(int j =0 ; j< (ct+blockDim.x -1)/blockDim.x ; ++j ) {
 
 
 }
+
+#include "kern_hits_counts.cu"
 
 __device__ void warpReduce(volatile int* sdata, int tid) {
 sdata[tid] += sdata[tid + 32];
@@ -821,7 +845,13 @@ args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_p
 //	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize 
  //               << ", total Threads: " << threads_tot << std::endl ;
 
-  simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ; 
+
+  int fh_size=args.fh2d_v.nbinsx+args.fh2d_v.nbinsy+2+(args.fh2d_v.nbinsx+1)*(args.fh2d_v.nbinsy+1) ;
+ if(args.debug) std::cout<<"2DHisto_Func_size: " << args.fh2d_v.nbinsx << ", " << args.fh2d_v.nbinsy << "= " << fh_size <<std::endl ; 
+if(fh_size > 600) 
+ simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ;
+else  simulate_chain0_A_sh <<<nblocks, blocksize, fh_size*sizeof(float)   >>> (E, nhits, args ) ; 
+
   cudaDeviceSynchronize() ;
   err = cudaGetLastError();
  if (err != cudaSuccess) {
@@ -846,8 +876,9 @@ args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_p
  // check result 
    gpuQ(cudaMemcpy(hitcells, args.hitcells_l, ct*sizeof(unsigned long), cudaMemcpyDeviceToHost));
 
-//	std::cout<<"hit cell ct="<<ct<<std::endl;
-//	std::cout<<"hit cell [0]="<<hitcells[0]<<std::endl;
+ if(args.debug)	std::cout<<"hit cell counts="<<ct<<std::endl;
+//for (int tt=0; tt<ct ; tt++)
+//	std::cout<<"hit cell ["<<tt<<"]="<<hitcells[tt]<<std::endl;
 
 
    blocksize= highestPowerof2(args.nhits)/512 ;
@@ -859,12 +890,22 @@ args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_p
 
 // std::cout<<"nblocks for hit counts="<<nblocks<< ", blocksize="<<blocksize<<std::endl ;
 
+if(args.nhits < 100000) {
+    simulate_chain0_hit_ct_small <<<nblocks, blocksize, ct*(sizeof(unsigned long)+sizeof(unsigned int)) >>>(args.hitcounts_b,ct,args) ;
+ cudaDeviceSynchronize() ;
+ err = cudaGetLastError();
+ if (err != cudaSuccess) {
+        std::cout<< "simulate_chain0_hit_ct_small "<<cudaGetErrorString(err)<< std::endl;
+ }
+
+} else {
+
    simulate_chain0_block_hist<<<nblocks, blocksize,ct*(sizeof(unsigned long)+sizeof(unsigned int))>>> (args.hitcounts_b,ct,args) ;
   cudaDeviceSynchronize() ;
  err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_block_hist "<<cudaGetErrorString(err)<< std::endl;
-}
+ }
    
 
     int ct_b = nblocks ;  
@@ -879,6 +920,8 @@ args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_p
  err = cudaGetLastError();
  if (err != cudaSuccess) {
         std::cout<< "simulate_chain0_hist_merge "<<cudaGetErrorString(err)<< std::endl;
+ }
+
 }
    gpuQ(cudaMemcpy(hitcells_ct, args.hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
 

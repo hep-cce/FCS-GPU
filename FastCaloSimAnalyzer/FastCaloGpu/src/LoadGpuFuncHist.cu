@@ -26,7 +26,9 @@ void LoadGpuFuncHist::LD2D() {
     return ;
   }
   
-  FH2D hf = { 0, 0, 0,0, 0 };
+  FH2D * hf_ptr =new FH2D ;
+  FH2D  hf = { 0, 0, 0,0, 0 };
+    
   
   hf.nbinsx = (*m_hf2d).nbinsx ; 
   hf.nbinsy = (*m_hf2d).nbinsy ; 
@@ -43,7 +45,8 @@ void LoadGpuFuncHist::LD2D() {
 	cudaMemcpyHostToDevice)) ;
   gpuQ(cudaMemcpy( hf.h_contents, (*m_hf2d).h_contents,  (hf.nbinsx*hf.nbinsy)*sizeof(float), 
 	cudaMemcpyHostToDevice)) ;
-  m_hf2d_d = &hf ;
+  *(hf_ptr)= hf ;
+  m_hf2d_d = hf_ptr ;
 
   gpuQ(cudaMalloc((void**)&m_d_hf2d , sizeof(FH2D))) ;
   gpuQ(cudaMemcpy( m_d_hf2d, m_hf2d_d,   sizeof(FH2D), cudaMemcpyHostToDevice)) ;

@@ -112,13 +112,14 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   } 
       
    
-    if ( nhit > 2000 && (our_chainA || our_chainB) ) {
+    if ( nhit > MIN_GPU_HITS && (our_chainA || our_chainB) ) {
 	  int cs = calosample();
 
          GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
 
 	Chain0_Args args ;
           
+	  args.debug=debug ;
 	  args.cs = cs ;
           args.extrapol_eta_ent=extrapol->eta(cs, SUBPOS_ENT) ;
           args.extrapol_eta_ext=extrapol->eta(cs, SUBPOS_EXT) ;
@@ -229,6 +230,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		args.is_phi_symmetric=((TFCSHistoLateralShapeParametrization *) hitsim)->is_phi_symmetric() ;
 		args.fh2d = ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->d_hf2d() ; 
 
+	//std::cout<<"Hitsim_ptr="<<hitsim<<", Ld_FH_ptr="<<  ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH() <<",FH2d_ptr="<< args.fh2d <<std::endl ;
+ 
+		args.fh2d_v = *(((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()) ;
+
 	}
 //	if(ichn==3) {
 	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
@@ -319,9 +324,9 @@ auto t2 = std::chrono::system_clock::now();
   }
   
   auto t2 = std::chrono::system_clock::now();
-    if ( nhit >2000 && our_chainA ) {
+    if ( nhit >MIN_GPU_HITS  && our_chainA ) {
     TFCSShapeValidation::time_g1 += (t2-start) ;
-   } else if (nhit >2000 && our_chainB) {
+   } else if (nhit >MIN_GPU_HITS && our_chainB) {
      TFCSShapeValidation::time_g2 += (t2-start) ;
    } else  {
   auto t2 = std::chrono::system_clock::now();
