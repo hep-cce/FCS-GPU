@@ -220,16 +220,25 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      for (TBranch *branch : m_branches) {
         branch->GetEntry(localEntry);
     }
-   auto t4 = std::chrono::system_clock::now();
+
+    if (m_debug >= 1) {
+      std::cout << "Number of particles: " <<  m_truthPDGID->size() << std::endl;
+    }
+
+    size_t particles = m_truthPDGID->size();
+    for (size_t p = 0; p < particles; p++)
+    {
+    
+    auto t4 = std::chrono::system_clock::now();
 
      ///////////////////////////////////
      //// Initialize truth
      ///////////////////////////////////
-     float px = m_truthPx->at(0);
-     float py = m_truthPy->at(0);
-     float pz = m_truthPz->at(0);
-     float E = m_truthE->at(0);
-     int pdgid = m_truthPDGID->at(0);
+     float px = m_truthPx->at(p);
+     float py = m_truthPy->at(p);
+     float pz = m_truthPz->at(p);
+     float E = m_truthE->at(p);
+     int pdgid = m_truthPDGID->at(p);
 
      TFCSTruthState& truthTLV=m_truthTLV[ievent];
      truthTLV.SetPxPyPzE(px, py, pz, E);
@@ -277,10 +286,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_EXT, (*m_truthCollection)[0].TTC_back_z[i]);
 
 		      //extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, true);
-		      //extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_eta->at(0).at(i));
-		      //extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_phi->at(0).at(i));
-		      //extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_r->at(0).at(i));
-		      //extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(0).at(i));
+		      //extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_eta->at(p).at(i));
+		      //extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_phi->at(p).at(i));
+		      //extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_r->at(p).at(i));
+		      //extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(p).at(i));
 		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, true);
 		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_eta[i] + (*m_truthCollection)[0].TTC_back_eta[i]));
 		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_phi[i] + (*m_truthCollection)[0].TTC_back_phi[i]));
@@ -289,48 +298,52 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		    }
      } else {
         if(m_TTC_IDCaloBoundary_eta->size()>0) {
-          extrapol.set_IDCaloBoundary_eta(m_TTC_IDCaloBoundary_eta->at(0));
-          extrapol.set_IDCaloBoundary_phi(m_TTC_IDCaloBoundary_phi->at(0));
-          extrapol.set_IDCaloBoundary_r(m_TTC_IDCaloBoundary_r->at(0));
-          extrapol.set_IDCaloBoundary_z(m_TTC_IDCaloBoundary_z->at(0));
+          extrapol.set_IDCaloBoundary_eta(m_TTC_IDCaloBoundary_eta->at(p));
+          extrapol.set_IDCaloBoundary_phi(m_TTC_IDCaloBoundary_phi->at(p));
+          extrapol.set_IDCaloBoundary_r(m_TTC_IDCaloBoundary_r->at(p));
+          extrapol.set_IDCaloBoundary_z(m_TTC_IDCaloBoundary_z->at(p));
+
+          if (std::isnan(m_TTC_IDCaloBoundary_eta->at(p)) || std::abs(m_TTC_IDCaloBoundary_eta->at(p)) > 5) {
+            continue;
+          }
         }
 
-		    TTC_eta = ((*m_TTC_entrance_eta).at(0).at(layer) + (*m_TTC_back_eta).at(0).at(layer) ) / 2 ;
+		    TTC_eta = ((*m_TTC_entrance_eta).at(p).at(layer) + (*m_TTC_back_eta).at(p).at(layer) ) / 2 ;
 
-		    TTC_phi = ((*m_TTC_entrance_phi).at(0).at(layer) + (*m_TTC_back_phi).at(0).at(layer)) / 2 ;
-		    TTC_r = ((*m_TTC_entrance_r).at(0).at(layer) + (*m_TTC_back_r).at(0).at(layer) ) / 2 ;
-		    TTC_z = ((*m_TTC_entrance_z).at(0).at(layer) + (*m_TTC_back_z).at(0).at(layer) ) / 2 ;
+		    TTC_phi = ((*m_TTC_entrance_phi).at(p).at(layer) + (*m_TTC_back_phi).at(p).at(layer)) / 2 ;
+		    TTC_r = ((*m_TTC_entrance_r).at(p).at(layer) + (*m_TTC_back_r).at(p).at(layer) ) / 2 ;
+		    TTC_z = ((*m_TTC_entrance_z).at(p).at(layer) + (*m_TTC_back_z).at(p).at(layer) ) / 2 ;
 		
         for(int i=0;i<CaloCell_ID_FCS::MaxSample;++i) {
 //          if(m_total_layer_cell_energy[i]==0) continue;
 		      //extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_ENT, true);
-		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_OK->at(0).at(i));
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_eta->at(0).at(i));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_phi->at(0).at(i));
-		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_r->at(0).at(i));
-		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_z->at(0).at(i));
+		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_OK->at(p).at(i));
+		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_eta->at(p).at(i));
+		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_phi->at(p).at(i));
+		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_r->at(p).at(i));
+		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_ENT, m_TTC_entrance_z->at(p).at(i));
 
 		      //extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_EXT, true);
-		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_OK->at(0).at(i));
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_eta->at(0).at(i));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_phi->at(0).at(i));
-		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_r->at(0).at(i));
-		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_z->at(0).at(i));
+		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_OK->at(p).at(i));
+		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_eta->at(p).at(i));
+		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_phi->at(p).at(i));
+		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_r->at(p).at(i));
+		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_EXT, m_TTC_back_z->at(p).at(i));
 
 		      /*
 		      //extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, true);
-		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_OK->at(0).at(i));
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_eta->at(0).at(i));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_phi->at(0).at(i));
-		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_r->at(0).at(i));
-		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(0).at(i));
+		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_OK->at(p).at(i));
+		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_eta->at(p).at(i));
+		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_phi->at(p).at(i));
+		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_r->at(p).at(i));
+		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(p).at(i));
 		      */
 		      
 		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, (extrapol.OK(i,TFCSExtrapolationState::SUBPOS_ENT) && extrapol.OK(i,TFCSExtrapolationState::SUBPOS_EXT)));
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_eta->at(0).at(i)+m_TTC_back_eta->at(0).at(i)));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_phi->at(0).at(i)+m_TTC_back_phi->at(0).at(i)));
-		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_r->at(0).at(i)+m_TTC_back_r->at(0).at(i)));
-		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_z->at(0).at(i)+m_TTC_back_z->at(0).at(i)));
+		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_eta->at(p).at(i)+m_TTC_back_eta->at(p).at(i)));
+		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_phi->at(p).at(i)+m_TTC_back_phi->at(p).at(i)));
+		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_r->at(p).at(i)+m_TTC_back_r->at(p).at(i)));
+		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_z->at(p).at(i)+m_TTC_back_z->at(p).at(i)));
 		      
 		    }
      }
@@ -376,6 +389,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	t_c[ii++] += e-s ;
 	
      }
+    } // end loop over particles
   } // end loop over events
 #ifdef USE_GPU
  if(m_rd4h) CaloGpuGeneral::Rand4Hits_finish( m_rd4h ) ;
