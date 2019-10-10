@@ -215,12 +215,12 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   
 #endif
 
-   auto t4 = std::chrono::system_clock::now();
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      int64_t localEntry = m_chain->LoadTree(ievent);
      for (TBranch *branch : m_branches) {
         branch->GetEntry(localEntry);
     }
+   auto t4 = std::chrono::system_clock::now();
 
      ///////////////////////////////////
      //// Initialize truth
