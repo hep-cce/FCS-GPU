@@ -146,6 +146,20 @@ return m_index ;
 
 } 
 
+__device__  int find_index_uint32( uint32* array, int size, float value) {
+
+int  low=0 ;
+int  high=size-1 ;
+int  m_index= (high-low)/2 ;
+while (m_index != low ) {
+     if( value > array[m_index] ) low=m_index ;
+     else high=m_index ;
+       m_index=(high-low)/2 +low ;
+}
+return m_index ;
+
+}
+
 
 __device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
 
@@ -190,7 +204,7 @@ __device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders 
 
 
   uint32_t int_rnd=s_MaxValue*rnd;
-
+/*
   int  ibin=nbins-1 ;
   for ( int i=0 ; i < nbins ; ++i) {
     if   (contents[i]> int_rnd ) {
@@ -198,6 +212,8 @@ __device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders 
          break ;
         }
   }
+*/
+  int ibin=find_index_uint32(contents, nbins, int_rnd ) ;
 
   int binx = ibin;
 
@@ -469,6 +485,7 @@ __device__ void HitCellMappingWiggle_d( Hit& hit,  Chain0_Args args, unsigned lo
 
  }
 
+ /*
  int bin= nhist ;
   for (int i =0; i< nhist+1 ; ++i ) {
  	if(bin_low_edge[i] > eta ) {
@@ -476,6 +493,9 @@ __device__ void HitCellMappingWiggle_d( Hit& hit,  Chain0_Args args, unsigned lo
 	  break ;
 	}
   }
+*/
+
+int ibin=find_index_f(bin_low_edge, nhist+1, eta ) ;
 
   bin -= 1; 
 
