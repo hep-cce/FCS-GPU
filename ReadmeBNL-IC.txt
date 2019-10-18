@@ -12,4 +12,4 @@ make -j 8
 #to your work directory
 
 cd $your_work_directy
-srun -A cce -p long -N1 -n1 runTFCSShapeValidation
+srun -A cce -p long -N1 -n1 runTFCSSimulation
