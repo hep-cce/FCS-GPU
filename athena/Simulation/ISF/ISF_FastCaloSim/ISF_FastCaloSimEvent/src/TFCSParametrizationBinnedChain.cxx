@@ -10,6 +10,8 @@
 #include <iterator>
 #include <iostream>
 
+#include <typeinfo>
+
 //=============================================
 //======= TFCSParametrizationBinnedChain =========
 //=============================================
@@ -59,6 +61,10 @@ const std::string TFCSParametrizationBinnedChain::get_bin_text(int bin) const
 
 FCSReturnCode TFCSParametrizationBinnedChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
+    ATH_MSG_DEBUG("In BinnedChain, sub Chain size "<< chain().size()   ) ;
+    for (auto ichain : chain() ) ATH_MSG_DEBUG ( "Chain["<<ichain<<"] name:"<< typeid(*(ichain)).name()<< " Title="<< ichain->GetName()  ) ;
+    for (int ii=0 ; ii<m_bin_start.size() ; ii++ )  ATH_MSG_DEBUG ( "bin_start["<<ii<<"]="<< m_bin_start[ii]  ) ;
+  
   for(unsigned int ichain=0;ichain<m_bin_start[0];++ichain) {
     ATH_MSG_DEBUG("now run for all bins: "<<chain()[ichain]->GetName());
     if (simulate_and_retry(chain()[ichain], simulstate, truth, extrapol) != FCSSuccess) {

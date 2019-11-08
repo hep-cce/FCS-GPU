@@ -8,6 +8,7 @@
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 #include <iostream>
+#include <typeinfo>
 
 //=============================================
 //======= TFCSParametrizationPDGIDSelectChain =========
@@ -27,6 +28,7 @@ void TFCSParametrizationPDGIDSelectChain::recalc()
 FCSReturnCode TFCSParametrizationPDGIDSelectChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
   for(auto param: chain()) {
+     ATH_MSG_DEBUG("Sel: "<< typeid( *(param)).name() <<" try " <<param->GetName()) ;
     if(param->is_match_pdgid(truth->pdgid())) {
       ATH_MSG_DEBUG("pdgid="<<truth->pdgid()<<", now run: "<<param->GetName()<< ((SimulateOnlyOnePDGID()==true) ? ", abort PDGID loop afterwards" : ", continue PDGID loop afterwards"));
 

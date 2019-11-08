@@ -111,6 +111,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   
 	std::chrono::duration<double> t_c[5]= {std::chrono::duration<double,std::ratio<1>>::zero()};
 	std::chrono::duration<double> t_bc= std::chrono::duration<double,std::ratio<1>>::zero();
+    std::chrono::duration<double> t_io = std::chrono::duration<double,std::ratio<1>>::zero();
 
 #ifdef USE_GPU
 
@@ -199,9 +200,6 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #endif
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
-  //for (int ievent = m_firstevent; ievent < 100; ievent++)
- //for (int ievent = m_firstevent; ievent < 2; ievent++)
-  //for (int ievent = m_firstevent; ievent < 1; ievent++)
   {
 
 #ifdef USE_GPU
@@ -216,10 +214,13 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #endif
 
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
+     auto t6 = std::chrono::system_clock::now();
      int64_t localEntry = m_chain->LoadTree(ievent);
      for (TBranch *branch : m_branches) {
         branch->GetEntry(localEntry);
     }
+     auto t7 = std::chrono::system_clock::now();
+     t_io += t7-t6 ;
 
     if (m_debug >= 1) {
       std::cout << "Number of particles: " <<  m_truthPDGID->size() << std::endl;
@@ -250,7 +251,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      
      if (m_debug >= 1) {
        std::cout << std::endl << "Event: " << ievent ;
-      //  std::cout << " pca = " << pca()<<" m_pca="<< m_pca<<" ";
+        std::cout << " pca = " << pca()<<" m_pca="<< m_pca<<" "<<std::endl;
        truthTLV.Print();
      }
 
@@ -366,11 +367,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	auto s = std::chrono::system_clock::now();
        if (m_debug >= 1) {
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
-       }
-//         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
-//		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
-//		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
-
+         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
+		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
+		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
+}
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
 #ifdef USE_GPU
@@ -402,6 +402,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  I/O read from tree:" << t_io.count() <<" s" <<  std::endl ;
 
   for (int ii=0 ; ii<5; ii++) 
 	std::cout << "Time for Chain "<< ii <<" is "<< t_c[ii].count() <<" s" << std::endl ; 
