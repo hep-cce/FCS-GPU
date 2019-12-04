@@ -1,5 +1,7 @@
 #include "Rand4Hits.h"
 
+/*
+//this is not used 
 float *  Rand4Hits::HitsRandGen(unsigned int nhits, unsigned long long seed ) {
 
   gpuQ(cudaMalloc((void**)&m_rand_ptr , 3*nhits*sizeof(float))) ;
@@ -13,7 +15,10 @@ float *  Rand4Hits::HitsRandGen(unsigned int nhits, unsigned long long seed ) {
 } 
 
 
-void  Rand4Hits::allocate_hist(long long maxhits, unsigned short maxbins, unsigned short maxhitct, int n_hist, int n_match){
+*/
+
+
+void  Rand4Hits::allocate_hist(long long maxhits, unsigned short maxbins, unsigned short maxhitct, int n_hist, int n_match, bool hitspy){
 int n_float= 1+ (n_hist-n_match)+2*n_hist+1 ;   //7
 int n_short= n_hist-1 ;        //2
 int n_int= n_hist;    //3
@@ -95,6 +100,6 @@ m_array_h_ptrs[ii]=(double*) malloc(maxbins*sizeof(double)) ;
 m_sumw2_array_h_ptrs[ii]=(double*) malloc(maxbins*sizeof(double)) ;
 }
 
-
 }
+
 

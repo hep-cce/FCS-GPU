@@ -55,7 +55,7 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
 #ifdef USE_GPU
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed,true) ;
 #endif
 
 
@@ -75,8 +75,12 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
    m_randEngine = new CLHEP::TRandomEngine();
    m_randEngine->setSeed(seed);
 #ifdef USE_GPU
+   auto t0 = std::chrono::system_clock::now();
    m_gl =0 ;
-   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed) ;
+   m_rd4h = CaloGpuGeneral::Rand4Hits_init(MAXHITS,MAXBINS,seed,true) ;
+   auto t1 = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff = t1-t0 ;
+  std::cout<<"Time of Rabd4Hit_init: " << diff.count() << " s" << std::endl ;   
 #endif
 
 
@@ -100,9 +104,11 @@ void TFCSShapeValidation::LoadGeo()
 
 void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 {
-  LoadGeo();
-
    auto start = std::chrono::system_clock::now();
+  LoadGeo();
+   auto t_01 = std::chrono::system_clock::now();
+   std::chrono::duration<double> diff; 
+
 
    
 	time_g1=std::chrono::duration<double,std::ratio<1>>::zero();
@@ -122,8 +128,6 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    
   //m_debug=1 ;
    auto t1 = std::chrono::system_clock::now();
-   std::chrono::duration<double> diff = t1-start;
-   std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
 
 
   if(0) {
@@ -166,12 +170,14 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   std::cout << "TFCSShapeValidation::LoopEvents(): Running on layer = " << layer << ", pcabin = " << pcabin << std::endl ;
 
   InitInputTree(m_chain, layer);
+   auto t_02 = std::chrono::system_clock::now();
 
   ///////////////////////////////////
   //// Initialize truth, extraplolation and all validation structures
   ///////////////////////////////////
   m_truthTLV.resize(nentries);
   m_extrapol.resize(nentries);
+   auto t_03 = std::chrono::system_clock::now();
   
   for(auto& validation : m_validations) {
     std::cout << "========================================================"<<std::endl;
@@ -227,6 +233,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     }
 
     size_t particles = m_truthPDGID->size();
+    //std::cout << std::endl << "Event: " << ievent <<"Number of Particles: "<< particles << std::endl;
     for (size_t p = 0; p < particles; p++)
     {
     
@@ -391,12 +398,21 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      }
     } // end loop over particles
   } // end loop over events
+   auto t_04 = std::chrono::system_clock::now();
 #ifdef USE_GPU
  if(m_rd4h) CaloGpuGeneral::Rand4Hits_finish( m_rd4h ) ;
 #endif 
   
    auto t3 = std::chrono::system_clock::now();
     std::chrono::duration<double> diff1 = t3-t2;
+   diff = t_01-start;
+   std::cout <<  "Time of  LoadGeo cpu IO:" << diff.count() <<" s" << std::endl ;
+   //diff = t1-t_01;
+   //std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
+  // diff = t_02-t1;
+  // std::cout <<  "Time of  InitInputTree :" << diff.count() <<" s" << std::endl ;
+   //diff = t_03-t_02;
+   //std::cout <<  "Time of  resizeTruth :" << diff.count() <<" s" << std::endl ;
    std::cout <<  "Time of  eventloop  :" << diff1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainA:" << time_g1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;

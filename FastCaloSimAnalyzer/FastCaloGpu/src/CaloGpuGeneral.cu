@@ -4,6 +4,7 @@
 
 #include "gpuQ.h"
 #include "Args.h"
+#include <chrono>
 
 #define BLOCK_SIZE 256 
 #define NLOOPS 1
@@ -95,6 +96,7 @@ __global__  void test_rand(float * r ) {
 
 }
 
+/*
 __host__ void CaloGpuGeneral::Gpu_Chain_Test() {
 
         std::cout<< " calling testHelloixxx()"<< std::endl;
@@ -131,7 +133,7 @@ if (err != cudaSuccess) {
 }
 
 }
-
+*/
 __device__  int find_index_f( float* array, int size, float value) {
 
 int  low=0 ; 
@@ -566,21 +568,44 @@ __global__  void simulate_chain0_C() {
 
 
 
-__host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, unsigned long long seed ){ 
+__host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, unsigned long long seed, bool hitspy ){ 
 
+   auto t0 = std::chrono::system_clock::now();
       Rand4Hits * rd4h = new Rand4Hits ;
 	float * f  ;
 	curandGenerator_t gen ;
+   auto t1 = std::chrono::system_clock::now();
        gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
+   auto t2 = std::chrono::system_clock::now();
         
         CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
         CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
-
+   auto t3 = std::chrono::system_clock::now();
          rd4h->set_rand_ptr(f) ;
 	 rd4h->set_gen(gen) ;
+	 rd4h->set_t_a_hits(maxhits);
+	 rd4h->set_c_hits(0) ;
+	CURAND_CALL(curandGenerateUniform(gen, f, 3*maxhits));
+   auto t4 = std::chrono::system_clock::now();
 
 	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
-	rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1 ) ; 
+	rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
+   auto t5 = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> diff1 = t1-t0 ;
+  std::chrono::duration<double> diff2 = t2-t1 ;
+  std::chrono::duration<double> diff3 = t3-t2 ;
+  std::chrono::duration<double> diff4 = t4-t3 ;
+  std::chrono::duration<double> diff5 = t5-t4 ;
+  std::cout<<"Time of R4hit: " << diff1.count() << 
+     ","<< 
+       diff2.count() <<  
+     ","<< 
+       diff3.count() <<  
+     ","<< 
+       diff4.count() <<  
+     ","<< 
+       diff5.count() <<  " s" << std::endl ;
 
 	return  (void* ) rd4h ;
 
@@ -716,49 +741,19 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args & ar
 
         Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
 	
+        float * r= rd4h->rand_ptr(nhits)  ;
+//	std::cout<<"rd4h: maxhit: " << rd4h->get_t_a_hits() <<" Current Hits :" << rd4h->get_c_hits()
+//		<< " Nhits="<< nhits
+//		<< std::endl ;
+
+	rd4h->add_a_hits(nhits) ;
+	args.rand =r;
 	
-        float * r= rd4h->rand_ptr()  ;
-         args.rand = r ;
-  CURAND_CALL(curandGenerateUniform(rd4h->gen(), r, 3*nhits));
-
-
 	 
 	unsigned long  ncells = args.ncells ; 
 	args.maxhitct=MAXHITCT;
 
 
-
-/*
-        if(0) {
-	gpuQ(cudaMalloc((void**)&(args.hitcells_b), args.ncells*sizeof(bool)));
-	gpuQ(cudaMalloc((void**)&(args.hitcells_l), args.nhits*sizeof(unsigned long)));
-	gpuQ(cudaMalloc((void**)&(args.hitcells), args.nhits*sizeof(unsigned long)));
-	gpuQ(cudaMalloc((void**)&(args.hitcells_ct), sizeof(unsigned int)));
-	if (args.spy) {
-	gpuQ(cudaMalloc((void**)&(args.hs1.hist_hitgeo_dphi.x_ptr), sizeof(float)*args.nhits )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs1.hist_hitgeo_dphi.i_ptr), sizeof(short)*args.nhits )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_dphi.x_ptr), sizeof(float)*args.nhits )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_dphi.i_ptr), sizeof(short)*args.nhits )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_matchprevious_dphi.match), sizeof(bool)*args.nhits )) ;
-
-	// assume only 2 stages, nblocks of first stage < 1024 ,  each histogram  need store 1st stage output nblock*nbin 
-	gpuQ(cudaMalloc((void**)&(args.hs1.hist_hitgeo_dphi.hb_ptr), sizeof(int)*args.hs1.hist_hitgeo_dphi.nbin*1024 )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_dphi.hb_ptr), sizeof(int)*args.hs2.hist_hitgeo_dphi.nbin*1024 )) ;
-	gpuQ(cudaMalloc((void**)&(args.hs2.hist_hitgeo_matchprevious_dphi.hb_ptr), sizeof(int)*args.hs2.hist_hitgeo_matchprevious_dphi.nbin*1024 )) ;
-
-        // for store sumx sumx2  for each histogram
-	gpuQ(cudaMalloc((void**)&(args.hs_sumx), sizeof(float)*1024*6 )) ;
-	
-	args.hs1.hist_hitgeo_dphi.ct_array=(int* ) malloc(args.hs1.hist_hitgeo_dphi.nbin*sizeof(int) ) ;
-	args.hs2.hist_hitgeo_dphi.ct_array=(int* ) malloc(args.hs2.hist_hitgeo_dphi.nbin*sizeof(int) ) ;
-	args.hs2.hist_hitgeo_matchprevious_dphi.ct_array=(int* ) malloc(args.hs2.hist_hitgeo_matchprevious_dphi.nbin*sizeof(int) ) ;
-
-        
-  
-	} //if(spy)
-
-	} //if(0/1) 
-*/
 
 
 args.hitcells_b=rd4h->get_B_ptrs()[0] ;

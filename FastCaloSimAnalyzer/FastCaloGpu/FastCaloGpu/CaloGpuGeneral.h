@@ -13,7 +13,7 @@ void  GpuHitChain0 () ;
 
 void  Gpu_Chain_Test();
 
-void *   Rand4Hits_init(long long ,unsigned short,  unsigned long long);
+void *   Rand4Hits_init(long long ,unsigned short,  unsigned long long ,bool );
 void    Rand4Hits_finish(void *);
 
 void  simulate_hits( float, int, Chain0_Args&  ) ;
