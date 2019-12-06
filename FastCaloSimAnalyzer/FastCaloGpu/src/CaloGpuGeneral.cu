@@ -464,6 +464,9 @@ __device__ void HitCellMapping_d( Hit& hit,unsigned long t, Chain0_Args args ) {
 
   args.hitcells_b[cellele]= true ;
   args.hitcells[t]=cellele ;
+
+  atomicAdd(&args.cells_energy[cellele], hit.E()) ; 
+
   
 /*
   CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
@@ -553,6 +556,10 @@ __global__  void simulate_chain0_B1( Chain0_Args args) {
         if(args.hitcells_b[tid]) {
 		unsigned int ct = atomicAdd(args.hitcells_ct,1) ;
 		args.hitcells_l[ct]=tid; 
+		Cell_E ce;
+		ce.cellid=tid ;
+		ce.energy=args.cells_energy[tid] ;
+		args.hitcells_E[ct] = ce ;
 //		printf("atomic tid=%lu,ct=%d\n", tid,ct);
 	}
  }
@@ -575,11 +582,11 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned sh
 	float * f  ;
 	curandGenerator_t gen ;
    auto t1 = std::chrono::system_clock::now();
-       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
-   auto t2 = std::chrono::system_clock::now();
         
         CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
         CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
+   auto t2 = std::chrono::system_clock::now();
+       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
    auto t3 = std::chrono::system_clock::now();
          rd4h->set_rand_ptr(f) ;
 	 rd4h->set_gen(gen) ;
@@ -590,6 +597,7 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned sh
 
 	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
 	rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
+	rd4h->allocate_simulation(maxhits,maxbin,2000, 200000) ; 
    auto t5 = std::chrono::system_clock::now();
 
   std::chrono::duration<double> diff1 = t1-t0 ;
@@ -620,7 +628,10 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
 
 __global__  void simulate_chain0_clean(Chain0_Args args) {
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
- if(tid < args.ncells ) args.hitcells_b[tid]= false ;
+ if(tid < args.ncells ) {
+	 args.hitcells_b[tid]= false ;
+	 args.cells_energy[tid] =0.0 ; 
+	}
  if(tid < args.maxhitct) {
     args.hitcells_l[tid] = 0 ;
     args.hitcounts_b[tid] =0 ; 
@@ -755,6 +766,9 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args & ar
 
 
 
+args.cells_energy=rd4h->get_cells_energy(); // Hit cell energy map , size of ncells(~200k float) 
+args.hitcells_E=rd4h->get_cell_e(); // Hit cell energy map, moved together  
+args.hitcells_E_h=rd4h->get_cell_e_h(); // Host array  
 
 args.hitcells_b=rd4h->get_B_ptrs()[0] ;
 args.hitcells=rd4h->get_Ul_ptrs()[0] ;    //maxhit
@@ -861,27 +875,28 @@ args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h=rd4h-> get_sumw2_array_h_p
 
   int fh_size=args.fh2d_v.nbinsx+args.fh2d_v.nbinsy+2+(args.fh2d_v.nbinsx+1)*(args.fh2d_v.nbinsy+1) ;
  if(args.debug) std::cout<<"2DHisto_Func_size: " << args.fh2d_v.nbinsx << ", " << args.fh2d_v.nbinsy << "= " << fh_size <<std::endl ; 
-if(fh_size > 600) 
+//if(fh_size > 600) 
  simulate_chain0_A <<<nblocks, blocksize  >>> (E, nhits, args  ) ;
-else  simulate_chain0_A_sh <<<nblocks, blocksize, fh_size*sizeof(float)   >>> (E, nhits, args ) ; 
+//else  simulate_chain0_A_sh <<<nblocks, blocksize, fh_size*sizeof(float)   >>> (E, nhits, args ) ; 
 
-  cudaDeviceSynchronize() ;
-  err = cudaGetLastError();
- if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
-}
+//  cudaDeviceSynchronize() ;
+//  err = cudaGetLastError();
+// if (err != cudaSuccess) {
+//        std::cout<< "simulate_chain0_A "<<cudaGetErrorString(err)<< std::endl;
+//}
 
 
   nblocks = (ncells + blocksize -1 )/blocksize ;
   simulate_chain0_B1 <<<nblocks,blocksize >>> (args) ;
-  cudaDeviceSynchronize() ;
- err = cudaGetLastError();
- if (err != cudaSuccess) {
-        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
-}
+//  cudaDeviceSynchronize() ;
+// err = cudaGetLastError();
+// if (err != cudaSuccess) {
+//        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
+//}
 
    unsigned int ct ;
    gpuQ(cudaMemcpy(&ct, args.hitcells_ct,sizeof(unsigned int), cudaMemcpyDeviceToHost));
+/*
    unsigned long *hitcells =args.hitcells_h;
    int * hitcells_ct =args.hitcells_ct_h ;
 //   hitcells=(unsigned long * ) malloc(sizeof(unsigned long)*ct) ; //list of hit cells
@@ -937,21 +952,25 @@ if(args.nhits < 100000) {
 
 }
    gpuQ(cudaMemcpy(hitcells_ct, args.hitcounts_b, ct*sizeof(int), cudaMemcpyDeviceToHost));
+*/
+   gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E, ct*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+   
 
 // pass result back 
    args.ct=ct;
 //   args.hitcells_h=hitcells ;
 //   args.hitcells_ct_h=hitcells_ct ;
 
+
 /*
 int total_ct=0 ;
 for(int ii =0 ; ii<ct ; ++ii) {
-	std::cout<< "CT["<<hitcells[ii]<<"]=" << hitcells_ct[ii]<<std::endl ;
+	std::cout<< "CT["<<hitcells[ii]<<"]=" << hitcells_ct[ii]<<", Engery="<<hitcells_ct[ii]*E<<", cell["<<args.hitcells_E_h[ii].cellid<<"]="<<args.hitcells_E_h[ii].energy<<std::endl ;
 	total_ct += hitcells_ct[ii] ;
 }
 std::cout << "Total Counts =" << total_ct << " nhits=" << args.nhits<< std::endl;
-
 */
+
 if(args.spy) {
    blocksize= highestPowerof2(args.nhits)/512 ;
    if(blocksize <32 ) blocksize=32;

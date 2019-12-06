@@ -5,11 +5,13 @@
 #include <curand.h>
 
 #include "gpuQ.h"
+#include "GpuGeneral_structs.h"
 
 
 #define CURAND_CALL(x)  if((x)!=CURAND_STATUS_SUCCESS) { \
     printf("Error at %s:%d\n",__FILE__,__LINE__);\
     exit(EXIT_FAILURE) ; }
+
 
 class Rand4Hits {
   public:
@@ -39,6 +41,12 @@ class Rand4Hits {
      curandGenerator_t gen() {return m_gen ; } ; 
      void allocate_hist( long long maxhits, unsigned short maxbins,unsigned short maxhitct, int n_hist, int n_match , bool hitspy);
 
+     void allocate_simulation( long long maxhits, unsigned short maxbins,unsigned short maxhitct, unsigned long n_cells);
+
+     float * get_cells_energy(){return m_cells_energy ; } ;
+     Cell_E * get_cell_e(){return m_cell_e ; } ;
+     Cell_E * get_cell_e_h(){return m_cell_e_h ; } ;
+
      float ** get_F_ptrs(){return m_F_ptrs ; } ;
      double ** get_D_ptrs(){return m_D_ptrs ; } ;
      short ** get_S_ptrs(){return m_S_ptrs ;} ;
@@ -67,6 +75,9 @@ class Rand4Hits {
       curandGenerator_t m_gen;
       
 //patch in some GPU pointers for cudaMalloc
+      float * m_cells_energy ;
+      Cell_E * m_cell_e ;
+
       float ** m_F_ptrs ;
       short ** m_S_ptrs ;
       int ** m_I_ptrs ;
@@ -79,6 +90,7 @@ class Rand4Hits {
 //host side ;
       unsigned long * m_hitcells;
       int * m_hitcells_ct ;
+      Cell_E * m_cell_e_h ;
 
       double * m_hist_stat_h ;
       double** m_array_h_ptrs ;

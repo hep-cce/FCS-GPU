@@ -16,7 +16,16 @@ float *  Rand4Hits::HitsRandGen(unsigned int nhits, unsigned long long seed ) {
 
 
 */
+void  Rand4Hits::allocate_simulation(long long maxhits, unsigned short maxbins, unsigned short maxhitct, unsigned long n_cells){
 
+float * Cells_Energy ;
+gpuQ(cudaMalloc((void**)&Cells_Energy , n_cells* sizeof(float))) ;
+m_cells_energy = Cells_Energy ;
+Cell_E * cell_e ;
+gpuQ(cudaMalloc((void**)&cell_e ,maxhitct* sizeof(Cell_E))) ;
+m_cell_e = cell_e ; 
+m_cell_e_h = (Cell_E * ) malloc(maxhitct* sizeof(Cell_E)) ; 
+}
 
 void  Rand4Hits::allocate_hist(long long maxhits, unsigned short maxbins, unsigned short maxhitct, int n_hist, int n_match, bool hitspy){
 int n_float= 1+ (n_hist-n_match)+2*n_hist+1 ;   //7

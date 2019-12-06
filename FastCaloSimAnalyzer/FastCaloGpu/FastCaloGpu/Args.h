@@ -6,10 +6,12 @@
 #include "Hit.h"
 
 #include "Hitspy_Hist.h"
+#include "GpuGeneral_structs.h"
 
 #define MAXHITS 200000 
 #define MAXBINS 1024  
 #define MAXHITCT 2000  
+
 
 typedef struct Chain0_Args {
 
@@ -50,6 +52,10 @@ unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes
 unsigned int * hitcells_ct ;  //GPU pointer for number of uniq hit cells 
 unsigned long ncells ;
 unsigned int maxhitct;
+
+float * cells_energy ; // big, all cells, ~ 200K array
+Cell_E *  hitcells_E ; // array with only hit cells (Mem maxhitct )
+Cell_E *  hitcells_E_h ; // host array
 
 unsigned int * hitcounts_b ; // GPU pointer for interm blockwise result of hit counts
 
