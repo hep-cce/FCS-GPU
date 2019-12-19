@@ -51,6 +51,15 @@ class TFCSSimulationState:public TObject
 #ifdef USE_GPU
     struct EventStatus {
     	long int ievent ;
+    	int ip ; //particle
+    	int iv ; //validation index
+	long int hits ; //hits in this simualation_stat
+	long int index ;  //index since last GPU simulation
+        long int tot_hits;  // Total hits since last GPY simulation
+	bool gpu ;  // Do it via GPU ?
+	void  * hitparams ;
+	long * simbins ; 
+	int n_simbins ; 
   	bool is_first ;
   	bool is_last ; 
     } ;
@@ -58,8 +67,21 @@ class TFCSSimulationState:public TObject
     void set_gpu_rand(void * rand ){ m_gpu_rand=rand ; } ;
     void * get_geold() { return m_geold; };
     void set_geold(void * geold ){ m_geold=geold ; } ;
-    void set_es(EventStatus * es ) {m_es= es ;} ; 
-    EventStatus * get_es() {return m_es; } ;
+    void set_es(EventStatus  es ) {
+				m_es.ievent= es.ievent ;
+				m_es.ip= es.ip ;
+				m_es.iv= es.iv ;
+				m_es.hits= es.hits ;
+				m_es.index= es.index ;
+				m_es.tot_hits= es.tot_hits ;
+				m_es.gpu=es.gpu;
+				m_es.hitparams=es.hitparams;
+				m_es.simbins=es.simbins;
+				m_es.n_simbins=es.n_simbins;
+				m_es.is_first= es.is_first ;
+				m_es.is_last= es.is_last ;
+				} ; 
+    EventStatus * get_es() {return &m_es; } ;
 #endif
     void clear();
   private:
@@ -74,7 +96,7 @@ class TFCSSimulationState:public TObject
 #ifdef USE_GPU
     void * m_gpu_rand ;
     void * m_geold ;
-    EventStatus * m_es ;
+    EventStatus  m_es ;
 #endif
     Cellmap_t m_cells;
     

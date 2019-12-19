@@ -1,0 +1,16 @@
+#ifndef GPU_PARAMS_H
+#define GPU_PARAMS_H
+
+#define MAXHITS 1500000 
+#define MAXBINS 1024  
+#define MAXHITCT 2000  
+
+
+#define  MIN_GPU_HITS  256
+#define  MAX_SIM 200
+#define  MAX_SIMBINS MAX_SIM*24 
+
+#define  MAX_CELLS  200000
+
+
+#endif

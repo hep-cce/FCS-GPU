@@ -4,8 +4,10 @@
 #include <stdio.h>
 #include <curand.h>
 
+#include "GpuParams.h"
 #include "gpuQ.h"
 #include "GpuGeneral_structs.h"
+
 
 
 #define CURAND_CALL(x)  if((x)!=CURAND_STATUS_SUCCESS) { \
@@ -41,11 +43,16 @@ class Rand4Hits {
      curandGenerator_t gen() {return m_gen ; } ; 
      void allocate_hist( long long maxhits, unsigned short maxbins,unsigned short maxhitct, int n_hist, int n_match , bool hitspy);
 
-     void allocate_simulation( long long maxhits, unsigned short maxbins,unsigned short maxhitct, unsigned long n_cells);
+     void allocate_simulation(  int  maxbins, int maxhitcts,  unsigned long n_cells);
 
      float * get_cells_energy(){return m_cells_energy ; } ;
      Cell_E * get_cell_e(){return m_cell_e ; } ;
      Cell_E * get_cell_e_h(){return m_cell_e_h ; } ;
+     int * get_ct() {return m_ct ; } ;
+     int * get_ct_h() {return m_ct_h ; } ;
+
+     HitParams * get_hitparams() {return m_hitparams ; };
+     long * get_simbins() {return m_simbins ; } ;
 
      float ** get_F_ptrs(){return m_F_ptrs ; } ;
      double ** get_D_ptrs(){return m_D_ptrs ; } ;
@@ -77,6 +84,10 @@ class Rand4Hits {
 //patch in some GPU pointers for cudaMalloc
       float * m_cells_energy ;
       Cell_E * m_cell_e ;
+      int * m_ct ;
+
+      HitParams * m_hitparams ;
+      long * m_simbins ;
 
       float ** m_F_ptrs ;
       short ** m_S_ptrs ;
@@ -91,6 +102,7 @@ class Rand4Hits {
       unsigned long * m_hitcells;
       int * m_hitcells_ct ;
       Cell_E * m_cell_e_h ;
+      int * m_ct_h ;
 
       double * m_hist_stat_h ;
       double** m_array_h_ptrs ;

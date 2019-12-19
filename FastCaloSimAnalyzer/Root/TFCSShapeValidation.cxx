@@ -172,44 +172,54 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   InitInputTree(m_chain, layer);
    auto t_02 = std::chrono::system_clock::now();
 
-  ///////////////////////////////////
-  //// Initialize truth, extraplolation and all validation structures
-  ///////////////////////////////////
-  m_truthTLV.resize(nentries);
-  m_extrapol.resize(nentries);
+   ///////////////////////////////////
+   //// Initialize truth, extraplolation and all validation structures
+   ///////////////////////////////////
+   m_truthTLV.resize(nentries);
+   m_extrapol.resize(nentries);
    auto t_03 = std::chrono::system_clock::now();
-  
-  for(auto& validation : m_validations) {
-    std::cout << "========================================================"<<std::endl;
-    if(m_debug >= 1) validation.basesim()->setLevel(MSG::DEBUG,true);
-    validation.basesim()->set_geometry(m_geo);
+
+   for(auto& validation : m_validations) {
+	   std::cout << "========================================================"<<std::endl;
+	   if(m_debug >= 1) validation.basesim()->setLevel(MSG::DEBUG,true);
+	   validation.basesim()->set_geometry(m_geo);
 #ifdef FCS_DEBUG
-    validation.basesim()->Print();
+	   validation.basesim()->Print();
 #endif
-    validation.simul().reserve(nentries);
-    std::cout << "========================================================"<<std::endl<<std::endl;
-  }
-  
-  ///////////////////////////////////
-  //// Event loop
-  ///////////////////////////////////
-  if(m_nprint<0) {
-    m_nprint=250;
-    if(nentries<5000) m_nprint=100;
-    if(nentries<1000) m_nprint=50;
-    if(nentries<500) m_nprint=20;
-    if(nentries<100) m_nprint=1;
-  }
-  
+	   validation.simul().reserve(nentries);
+	   std::cout << "========================================================"<<std::endl<<std::endl;
+   }
+
+   ///////////////////////////////////
+   //// Event loop
+   ///////////////////////////////////
+   if(m_nprint<0) {
+	   m_nprint=250;
+	   if(nentries<5000) m_nprint=100;
+	   if(nentries<1000) m_nprint=50;
+	   if(nentries<500) m_nprint=20;
+	   if(nentries<100) m_nprint=1;
+   }
+
 #ifdef USE_GPU
-   TFCSSimulationState::EventStatus es = { -1 , false, false } ;
+   TFCSSimulationState::EventStatus es = { -1 ,0, 0, 0,0,0,false,nullptr,nullptr,0,  false, false } ;
+   long int index=0, tot_hits=0 ;
+   int n_simbins=0 ;
+   int iv=0 ;
+   int g_sims_v[MAX_SIM]  ;
+   int g_sims_st[MAX_SIM]  ;
+   long   simbins[MAX_SIMBINS] ; //max simulbins
+   HitParams hitparams[MAX_SIMBINS] ; // this array is holding hit paramters for each bin(event/particle/validation/cs)
+   es.hitparams=(void*) &(hitparams[0]) ;
+   es.simbins = &(simbins[0]) ;
+   es.n_simbins = 0 ;
+   std::chrono::duration<double> t_g_sim = std::chrono::duration<double,std::ratio<1>>::zero();
 #endif
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
   {
 
 #ifdef USE_GPU
-   es.ievent=ievent ;
 
   bool first = (ievent==m_firstevent ) ? true : false ;
   es.is_first=first ;
@@ -233,7 +243,6 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     }
 
     size_t particles = m_truthPDGID->size();
-    //std::cout << std::endl << "Event: " << ievent <<"Number of Particles: "<< particles << std::endl;
     for (size_t p = 0; p < particles; p++)
     {
     
@@ -368,34 +377,106 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      
 	auto t5 = std::chrono::system_clock::now();
 	t_bc += t5-t4 ;
+#ifdef USE_GPU
+	iv=0 ;
+#endif
 	int ii=0 ;
      for(auto& validation : m_validations) {
-
-	auto s = std::chrono::system_clock::now();
+		
+	auto ss = std::chrono::system_clock::now();
        if (m_debug >= 1) {
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
          std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
 		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
 		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
 }
+#ifdef USE_GPU
+	int vi =iv ;
+	int si = validation.simul().size();
+#endif
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
 #ifdef USE_GPU
+        es.ip=p; 
+	es.ievent=ievent ;
+	es.iv = iv ;
+	es.tot_hits = tot_hits ;
+	es.index = index ;
+	es.n_simbins = n_simbins ;
+	es.gpu = false ;
+        if( p != 0 ) es.is_first= false ;
+        if( p ==  (particles -1) && ievent == (nentries-1) ) es.is_last= true ;
+	else es.is_last = false ;
+
 	chain_simul.set_gpu_rand(m_rd4h) ;
 	chain_simul.set_geold(m_gl) ;
-	chain_simul.set_es(&es) ;
+	chain_simul.set_es(es) ;
 #endif  
-//        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
-
      validation.basesim()->simulate(chain_simul,&truthTLV,&extrapol); 
        if (m_debug >= 1) {
          chain_simul.Print();
          std::cout << "End simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<std::endl<<std::endl;
        }  
-	auto e = std::chrono::system_clock::now();
-	t_c[ii++] += e-s ;
+#ifdef USE_GPU
+	iv++ ;
+	if( (*chain_simul.get_es()).gpu == true ) {
+		g_sims_v[index]=vi  ;
+		g_sims_st[index]=si  ;
+		index ++ ;
+	}
+	tot_hits = (*(chain_simul.get_es())).tot_hits ;
+	n_simbins = (*(chain_simul.get_es())).n_simbins ; 
+	if(index >= MAX_SIM || tot_hits > (MAXHITS-100000) || es.is_last ) { 
+
+	//   here need to do GPU simulation !!!!.
 	
-     }
+
+        auto tg_s = std::chrono::system_clock::now();
+	CaloGpuGeneral::load_hitsim_params(m_rd4h, &(hitparams[0]),&(simbins[0]),  n_simbins ) ;  
+
+	Sim_Args args ;
+	args.debug = m_debug ;
+	args.rd4h = m_rd4h ;
+	args.geo = GeoLoadGpu::Geo_g ;
+	args.cells_energy = nullptr;
+	args.hitcells_E = nullptr ;
+	args.hitcells_E_h = nullptr ;
+	args.ct = nullptr ;
+	args.ct_h = nullptr ;
+	args.hitparams = nullptr ;
+	args.simbins = nullptr ;
+	args.nbins = n_simbins ;
+	args.nsims = index ;
+	args.nhits = tot_hits ;
+	args.ncells = GeoLoadGpu::num_cells ;
+	
+	CaloGpuGeneral::simulate_hits_gr(args) ;
+	
+	for ( int isim=0 ; isim < index ; isim++ ) {
+		TFCSSimulationState& sim=m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]] ;
+		for( int ii =0 ; ii< args.ct_h[isim] ;  ii++ ) {
+		   const CaloDetDescrElement * cellele = m_gl->index2cell(args.hitcells_E_h[ii+isim*MAXHITCT].cellid) ;
+                   sim.deposit(cellele ,args.hitcells_E_h[ii+isim*MAXHITCT].energy) ;	
+
+		}	
+	}
+
+   auto tg_e = std::chrono::system_clock::now();
+  t_g_sim += tg_e-tg_s ;
+
+//		std::cout<<"reset after Event: "<< ievent<<" partical "<< p << ",total Hits: " << tot_hits 
+//		<<", Index="<< index <<" , N_simbins="<< n_simbins<<std::endl;
+		index =0 ; 
+		tot_hits=0 ;
+		n_simbins = 0 ;
+	 }
+
+#endif
+	auto e = std::chrono::system_clock::now();
+	t_c[ii++] += e-ss ;
+	
+     } //validation loop
+    
     } // end loop over particles
   } // end loop over events
    auto t_04 = std::chrono::system_clock::now();
@@ -419,7 +500,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::cout <<  "Time of  eventloop  host Chain0:" << time_h.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  I/O read from tree:" << t_io.count() <<" s" <<  std::endl ;
-
+#ifdef USE_GPU
+   std::cout <<  "Time of  eventloop  GPU group Sim:" << t_g_sim.count() <<" s" <<  std::endl ;
+#endif
   for (int ii=0 ; ii<5; ii++) 
 	std::cout << "Time for Chain "<< ii <<" is "<< t_c[ii].count() <<" s" << std::endl ; 
  
