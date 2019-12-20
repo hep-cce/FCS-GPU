@@ -214,6 +214,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    es.simbins = &(simbins[0]) ;
    es.n_simbins = 0 ;
    std::chrono::duration<double> t_g_sim = std::chrono::duration<double,std::ratio<1>>::zero();
+   std::chrono::duration<double> t_g_sim_A = std::chrono::duration<double,std::ratio<1>>::zero();
+   std::chrono::duration<double> t_g_sim_B = std::chrono::duration<double,std::ratio<1>>::zero();
 #endif
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
@@ -433,6 +435,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
         auto tg_s = std::chrono::system_clock::now();
 	CaloGpuGeneral::load_hitsim_params(m_rd4h, &(hitparams[0]),&(simbins[0]),  n_simbins ) ;  
+        auto tg_s_A = std::chrono::system_clock::now();
+	t_g_sim_A += tg_s_A - tg_s ;
 
 	Sim_Args args ;
 	args.debug = m_debug ;
@@ -451,6 +455,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	args.ncells = GeoLoadGpu::num_cells ;
 	
 	CaloGpuGeneral::simulate_hits_gr(args) ;
+        auto tg_s_B = std::chrono::system_clock::now();
+	t_g_sim_B += tg_s_B - tg_s ;
 	
 	for ( int isim=0 ; isim < index ; isim++ ) {
 		TFCSSimulationState& sim=m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]] ;
@@ -501,7 +507,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::cout <<  "Time of  eventloop  before chain simul:" << t_bc.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  I/O read from tree:" << t_io.count() <<" s" <<  std::endl ;
 #ifdef USE_GPU
-   std::cout <<  "Time of  eventloop  GPU group Sim:" << t_g_sim.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  GPU group Sim_total:" << t_g_sim.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  GPU copy params:" << t_g_sim_A.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  GPU Sim:" << t_g_sim_B.count() <<" s" <<  std::endl ;
 #endif
   for (int ii=0 ; ii<5; ii++) 
 	std::cout << "Time for Chain "<< ii <<" is "<< t_c[ii].count() <<" s" << std::endl ; 

@@ -315,9 +315,3 @@ void TFCSLateralShapeParametrizationHitChain::Print(Option_t *option) const
 }
 
 
-#ifdef USE_GPU
-void gpu_hit_chain() {
-
-}
-
-#endif
