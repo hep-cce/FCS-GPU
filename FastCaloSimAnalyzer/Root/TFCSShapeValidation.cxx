@@ -461,11 +461,15 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	for ( int isim=0 ; isim < index ; isim++ ) {
 		TFCSSimulationState& sim=m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]] ;
 		for( int ii =0 ; ii< args.ct_h[isim] ;  ii++ ) {
+ //if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0 ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<", isim="<<isim <<", ii="<<ii << std::endl ;
+  //std::cout << "Id:" << args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
 		   const CaloDetDescrElement * cellele = m_gl->index2cell(args.hitcells_E_h[ii+isim*MAXHITCT].cellid) ;
+ // std::cout << ",Is" << isim <<"Ic"<<ii;
                    sim.deposit(cellele ,args.hitcells_E_h[ii+isim*MAXHITCT].energy) ;	
 
 		}	
 	}
+//   std::cout<<std::endl;
 
    auto tg_e = std::chrono::system_clock::now();
   t_g_sim += tg_e-tg_s ;

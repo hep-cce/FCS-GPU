@@ -354,9 +354,8 @@ __device__ void HitCellMapping_g_d( HitParams hp,Hit& hit,  Sim_Args args ) {
 
  long long  cellele= getDDE(args.geo, hp.cs,hit.eta(),hit.phi());
 
- if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
-
-  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
+// if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
+  if( cellele >= 0 )  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
 
 }
 
@@ -399,7 +398,7 @@ __device__ void HitCellMappingWiggle_g_d( HitParams hp,Hit& hit, long t,  Sim_Ar
     hit.phi()=Phi_mpi_pi(hit_phi_shifted);
   
 
-  HitCellMapping_g_d(hp, hit,  args) ;
+//  HitCellMapping_g_d(hp, hit,  args) ;
 
 }
 
@@ -415,7 +414,8 @@ __global__  void simulate_hits_de( const Sim_Args args ) {
      hit.E()= hp.E ;
      CenterPositionCalculation_g_d( hp, hit, args) ;
      HistoLateralShapeParametrization_g_d(hp, hit, t, args) ;
-     HitCellMappingWiggle_g_d ( hp, hit, t,args  ) ;
+     if( hp.cmw)HitCellMappingWiggle_g_d ( hp, hit, t,args  ) ;
+     HitCellMapping_g_d(hp, hit, args) ;
    }
 }
 
@@ -483,8 +483,11 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 // cpy result back 
 
    gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
-   gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), cudaMemcpyDeviceToHost));
 
+   gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+//   for( int isim=0 ; isim<args.nsims ; isim++ ) 
+  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+   
 } 
 
 

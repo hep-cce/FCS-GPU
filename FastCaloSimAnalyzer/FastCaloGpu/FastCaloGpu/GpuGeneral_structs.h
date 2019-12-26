@@ -27,5 +27,6 @@ typedef struct HitParams {
   float extrapol_z_ent; 
   float extrapol_z_ext; 
   float extrapWeight ;
+  bool cmw ; //Do CellMapingWiggle or direct CellMapping
 } HitParams ;
 #endif
