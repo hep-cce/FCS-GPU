@@ -1,4 +1,4 @@
-#ifndef GPU_GENERAL_STRUCT_
+#ifndef GPU_GENERAL_STRUCT_H
 #define GPU_GENERAL_STRUCT_H  
                              
 #include "FH_structs.h"     
