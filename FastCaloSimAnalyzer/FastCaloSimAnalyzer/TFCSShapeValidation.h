@@ -46,6 +46,8 @@ public:
    static std::chrono::duration<double>  time_h ;
    static std::chrono::duration<double>  time_g1 ;
    static std::chrono::duration<double>  time_g2 ;
+   static std::chrono::duration<double>  time_o1 ;
+   static std::chrono::duration<double>  time_o2 ;
 
 #ifdef USE_GPU
    void GeoLg() ;

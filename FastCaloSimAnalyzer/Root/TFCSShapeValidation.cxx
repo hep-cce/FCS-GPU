@@ -39,6 +39,8 @@
 
   std::chrono::duration<double> TFCSShapeValidation::time_g1 ;
   std::chrono::duration<double> TFCSShapeValidation::time_g2 ;
+  std::chrono::duration<double> TFCSShapeValidation::time_o1 ;
+  std::chrono::duration<double> TFCSShapeValidation::time_o2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_h ;
 
 
@@ -111,6 +113,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
 
    
+	time_o1=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_o2=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_g1=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_g2=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
@@ -407,12 +411,16 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     std::chrono::duration<double> diff1 = t3-t2;
    diff = t_01-start;
    std::cout <<  "Time of  LoadGeo cpu IO:" << diff.count() <<" s" << std::endl ;
-   //diff = t1-t_01;
-   //std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
-  // diff = t_02-t1;
-  // std::cout <<  "Time of  InitInputTree :" << diff.count() <<" s" << std::endl ;
-   //diff = t_03-t_02;
-   //std::cout <<  "Time of  resizeTruth :" << diff.count() <<" s" << std::endl ;
+#ifdef USE_GPU
+   diff = t1-t_01;
+   std::cout <<  "Time of  GPU GeoLg() :" << diff.count() <<" s" << std::endl ;
+   diff = t_02-t1;
+   std::cout <<  "Time of  InitInputTree :" << diff.count() <<" s" << std::endl ;
+   diff = t_03-t_02;
+   std::cout <<  "Time of  resizeTruth :" << diff.count() <<" s" << std::endl ;
+   std::cout <<  "Time of  eventloop GPU load FH  :" << time_o1.count() <<" s" <<  std::endl ;
+#endif 
+   std::cout <<  "Time of  eventloop  LateralShapeParamHitChain  :" << time_o2.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  :" << diff1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainA:" << time_g1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;

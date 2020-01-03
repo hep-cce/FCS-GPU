@@ -5,6 +5,7 @@
 #include "ISF_FastCaloSimEvent/FastCaloSim_CaloCell_ID.h"
 
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
+#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
 
 
 #ifdef USE_GPU
@@ -16,7 +17,6 @@
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
 #include "FastCaloSimAnalyzer/TFCSValidationHitSpy.h"
 
-#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
 
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
@@ -70,6 +70,7 @@ int TFCSLateralShapeParametrizationHitChain::get_number_of_hits(TFCSSimulationSt
 
 FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
+    auto start = std::chrono::system_clock::now();
   // Call get_number_of_hits() only once, as it could contain a random number
   int nhit = get_number_of_hits(simulstate, truth, extrapol);
   if (nhit <= 0) {
@@ -86,7 +87,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
 #ifdef USE_GPU
 
-    auto start = std::chrono::system_clock::now();
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
   std::string sB[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
@@ -223,10 +223,14 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	//	TFCS2DFunctionHistogram h=((TFCSHistoLateralShapeParametrization *) hitsim)->histogram() ;
 	//	std::cout << "size of hist: "<<h.get_HistoBordersx().size() <<", "<<h.get_HistoBordersy().size()  
 	//		<<"Pointer: " << &h <<std::endl ;
+   auto tt1 = std::chrono::system_clock::now();
 
 		((TFCSHistoLateralShapeParametrization *) hitsim)->LoadHistFuncs() ;
 	
-
+   auto tt2 = std::chrono::system_clock::now();
+   TFCSShapeValidation::time_o1 += (tt2-tt1) ;
+	
+   
 		args.is_phi_symmetric=((TFCSHistoLateralShapeParametrization *) hitsim)->is_phi_symmetric() ;
 		args.fh2d = ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->d_hf2d() ; 
 
@@ -246,7 +250,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		} 
 		
 	      }
+   auto tt1 = std::chrono::system_clock::now();
 	((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
+   auto tt2 = std::chrono::system_clock::now();
+   TFCSShapeValidation::time_o1 += (tt2-tt1) ;
 
         args.fhs=((TFCSHitCellMappingWiggle * ) hitsim )->LdFH()->d_hf(); 
 
@@ -328,11 +335,17 @@ auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_g1 += (t2-start) ;
    } else if (nhit >MIN_GPU_HITS && our_chainB) {
      TFCSShapeValidation::time_g2 += (t2-start) ;
-   } else  {
+   } else 
+#endif
+   {
   auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_h += (t2-start) ;
    }
-#endif
+   {
+  auto t3 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_o2 += (t3-start) ;
+   }
+  
   return FCSSuccess;
 }
 
