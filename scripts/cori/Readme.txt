@@ -5,7 +5,7 @@ Setup
 
 module load gcc/8.3.0
 module load cuda
-export ROOTDIR=/global/project/projectdirs/atlas/leggett/root/v6-14-08_gcc83
+export ROOTDIR=/global/cfs/cdirs/atlas/leggett/root/v6-14-08_gcc83
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$ROOTDIR/lib
 
 ## FastCaloSim built in $BLDDIR, configured with input data in
