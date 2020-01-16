@@ -38,7 +38,7 @@ SHM_DATA_DIR="/dev/shm/${USER}/FastCaloSimInputs"
 if [[ ! -d $SHM_DATA_DIR ]]; then
     echo "creating shm dir and copying input files"
     mkdir -p $SHM_DATA_DIR
-    cp -rp /global/project/projectdirs/atlas/leggett/data/FastCaloSimInputs/* $SHM_DATA_DIR
+    cp -rp /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs/* $SHM_DATA_DIR
     echo "done"
 else
     echo "input files already in $SHM_DATA_DIR"
