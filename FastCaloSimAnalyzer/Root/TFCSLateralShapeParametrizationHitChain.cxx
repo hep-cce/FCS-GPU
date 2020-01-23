@@ -21,8 +21,10 @@
 #include "HepPDT/ParticleData.hh"
 #include "HepPDT/ParticleDataTable.hh"
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
-#endif
 
+#include "CLHEP/Random/RandFlat.h"
+
+#endif
 
 
 #include <chrono>
@@ -68,6 +70,9 @@ int TFCSLateralShapeParametrizationHitChain::get_number_of_hits(TFCSSimulationSt
 FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
   // Call get_number_of_hits() only once, as it could contain a random number
+    auto start = std::chrono::system_clock::now();
+	  int cs = calosample();
+   
   int nhit = get_number_of_hits(simulstate, truth, extrapol);
   if (nhit <= 0) {
     ATH_MSG_ERROR("TFCSLateralShapeParametrizationHitChain::simulate(): number of hits could not be calculated");
@@ -81,7 +86,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
     ATH_MSG_DEBUG("E("<<calosample()<<")="<<simulstate.E(calosample())<<" #hits="<<nhit);
   }
 
-    auto start = std::chrono::system_clock::now();
 #ifdef USE_GPU
 
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
@@ -114,22 +118,36 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
       if (std::string(typeid( * hitsim ).name()).find(sC[ichn++]) == std::string::npos) 
 	   { our_chainC= false ; break ; }
   } 
+
+TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
       
-   
+ bool do_gpu_sim = (our_chainA || our_chainB || our_chainC ) && (nhit >1 ) && cs <21  ;
+
+//do_gpu_sim = false ;
+ 
     //if ( (our_chainA || our_chainB ) ) {
-    if ( (our_chainA || our_chainB || (our_chainC && nhit >1000 )) ) {
-	  int cs = calosample();
+//    if ( (our_chainA || our_chainB || (our_chainC && nhit >1000 )) ) {
+    if ( do_gpu_sim ) {
+
+  //For debug, validation so same randoms on host  
+if(0) {
+   for (int ir=0 ; ir< nhit ; ir++ ) {
+    float rand1 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
+    float rand2 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
+   if ( our_chainB) float rand2 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
+   } 
+} // debug
+
 
          GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
 
-	TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
 	(*es).hits=nhit ;
 	(*es).tot_hits+=nhit ;
 	int n_simbins = (*es).n_simbins ;
 	(*es).simbins[n_simbins]=(*es).tot_hits ;
-
+//if((*es).index < 5 ) std::cout << "Indenx0, nhits="<<nhit <<" , bin="<<n_simbins<<" ,TotalHits="<<(*es).tot_hits <<std::endl ;
 	HitParams * htparams= (HitParams *) ((*es).hitparams) ;
-	htparams[n_simbins].index= (*es).index ;
+	htparams[n_simbins].index= (*es).index ; //which event/particle 
 	htparams[n_simbins].cs= cs ;
 	htparams[n_simbins].pdgId= truth->pdgid()  ;
 	htparams[n_simbins].charge = HepPDT::ParticleID(htparams[n_simbins].pdgId).charge() ;
@@ -214,18 +232,21 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
 */
 	if(s.find("TFCSHistoLateralShapeParametrization") != std::string::npos ) {
-//  auto t3 = std::chrono::system_clock::now();
+  auto t3 = std::chrono::system_clock::now();
 
 		((TFCSHistoLateralShapeParametrization *) hitsim)->LoadHistFuncs() ;
 	//std::cout<<"2D funtion size:"<<" , ChainB:"<<our_chainB<<", "<<"nhits="<<nhit<<", "<< ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsx <<", " << ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsy <<std::endl ;
-//  auto t4 = std::chrono::system_clock::now();
-//    TFCSShapeValidation::time_h += (t4-t3) ;
+  auto t4 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_o1 += (t4-t3) ;
 
 		htparams[n_simbins].f2d = ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->d_hf2d() ;
 		htparams[n_simbins].is_phi_symmetric=((TFCSHistoLateralShapeParametrization *) hitsim)->is_phi_symmetric() ;
 	}
 	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
+  auto t3 = std::chrono::system_clock::now();
 		((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
+  auto t4 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_o1 += (t4-t3) ;
 	 	htparams[n_simbins].f1d = ((TFCSHitCellMappingWiggle * ) hitsim )->LdFH()->d_hf();
 	 	htparams[n_simbins].cmw = true;
 	} 
@@ -298,7 +319,8 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
     if ( our_chainA  ) {
     TFCSShapeValidation::time_g1 += (t2-start) ;
 //   } else if ( our_chainB || our_chainC) {
-   } else if ( our_chainB || (our_chainC && nhit>1000 ) ){
+//   } else if ( our_chainB || (our_chainC && nhit>1000 ) ){
+   } else if (do_gpu_sim ){
      TFCSShapeValidation::time_g2 += (t2-start) ;
    } else
 #endif
@@ -307,6 +329,16 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
   auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_h += (t2-start) ;
    }
+  auto t3 = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_o2 += (t3-start) ;
+//  std::cout <<"CS-Bin-Index " << simulstate.get_es()->bin_index <<" , " ;
+//  std::cout <<"DoneGPU " << do_gpu_sim <<" , " ;
+//  std::cout <<"iE-iP " << simulstate.get_es()->ievent<<" , "<<simulstate.get_es()->ip <<  " , nhits: "<< nhit <<" ,CaloSample: "<<cs ;
+//  std::cout << " ,Number Cells: "<< simulstate.cells().size() ;
+//  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) std::cout<<" ,"<< typeid( * hitsim ).name() <<" ," ;
+//  std::cout<<std::endl ;
+
+   es->bin_index++ ; 
 
   return FCSSuccess;
 }

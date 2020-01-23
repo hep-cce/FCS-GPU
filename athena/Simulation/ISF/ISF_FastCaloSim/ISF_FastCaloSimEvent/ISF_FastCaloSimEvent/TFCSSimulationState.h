@@ -55,6 +55,7 @@ class TFCSSimulationState:public TObject
     	int iv ; //validation index
 	long int hits ; //hits in this simualation_stat
 	long int index ;  //index since last GPU simulation
+	long int bin_index ;  //index of bins of CSs (from 1st event, for debug/validation) 
         long int tot_hits;  // Total hits since last GPY simulation
 	bool gpu ;  // Do it via GPU ?
 	void  * hitparams ;
@@ -73,6 +74,7 @@ class TFCSSimulationState:public TObject
 				m_es.iv= es.iv ;
 				m_es.hits= es.hits ;
 				m_es.index= es.index ;
+				m_es.bin_index= es.bin_index ;
 				m_es.tot_hits= es.tot_hits ;
 				m_es.gpu=es.gpu;
 				m_es.hitparams=es.hitparams;

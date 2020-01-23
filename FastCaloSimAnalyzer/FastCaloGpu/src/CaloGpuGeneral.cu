@@ -71,14 +71,16 @@ if(sampling<0) return -1;
 
 
 __device__  int find_index_f( float* array, int size, float value) {
-
+// fist index (from 0)  have element value > value 
+// array[i] > value ; array[i-1] <= value 
+// std::upbund( )
 int  low=0 ; 
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
-while (m_index != low ) {
-     if( value > array[m_index] ) low=m_index ; 
-     else high=m_index ;  
-       m_index=(high-low)/2 +low ;
+while (m_index != high ) {
+     if( value < array[m_index] ) high=m_index ; 
+     else low=m_index+1 ;  
+       m_index=(high+low+1)/2 ;
 }
 return m_index ;
 
@@ -86,28 +88,32 @@ return m_index ;
 
 
 
-__device__  int find_index_uint32( uint32_t* array, int size, float value) {
-
+__device__  int find_index_uint32( uint32_t* array, int size, uint32_t value) {
+// fist index i  have element value > value 
+// array[i] > value ; array[i-1] <= value
 int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
-while (m_index != low ) {
-     if( value > array[m_index] ) low=m_index ;
-     else high=m_index ;
-       m_index=(high-low)/2 +low ;
+while (m_index != high ) {
+     if( value < array[m_index] ) high=m_index ;
+     else low = m_index +1 ;
+       m_index=(high+low+1)/2  ;
 }
 return m_index ;
 
 }
 
 __device__  int find_index_long( long* array, int size, long value) {
-
+// find the first index of element which has vaule > value 
 int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
-while (m_index != low ) {
-     if( value > array[m_index] ) low=m_index ;
-     else high=m_index ;
+while (high != low ) {
+     if( value >array[m_index] ) low=m_index+1 ;
+     else if( value == array[m_index] )  {
+        return m_index + 1   ;
+       // return min(m_index + 1, size-1)   ;
+     } else  high=m_index ;
        m_index=(high-low)/2 +low ;
 }
 return m_index ;
@@ -354,7 +360,9 @@ __device__ void HitCellMapping_g_d( HitParams hp,Hit& hit,  Sim_Args args ) {
 
  long long  cellele= getDDE(args.geo, hp.cs,hit.eta(),hit.phi());
 
-// if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
+//if (hp.index ==0 ) printf("Tid: %d cellId: %ld  nhits: %ld \n" , threadIdx.x ,cellele, hp.nhits ) ; 
+
+ if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
   if( cellele >= 0 )  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
 
 }
@@ -409,7 +417,8 @@ __global__  void simulate_hits_de( const Sim_Args args ) {
     long t = threadIdx.x + blockIdx.x*blockDim.x ;
     if ( t  <  args.nhits ) {
      Hit hit ;
-     int bin = find_index_long(args.simbins, args.nbins, t) ;
+     int bin = find_index_long(args.simbins, args.nbins, t ) ;
+//  if(bin == 0 ) printf("tid=%ld args.nbins=%d \n", t, args.nbins) ; 
      HitParams hp =args.hitparams[bin] ;
      hit.E()= hp.E ;
      CenterPositionCalculation_g_d( hp, hit, args) ;
@@ -431,6 +440,7 @@ __global__  void simulate_hits_ct( const Sim_Args args) {
 		ce.cellid=cellid ;
 		ce.energy=args.cells_energy[tid] ;
 		args.hitcells_E[ct + sim*MAXHITCT] = ce ;
+//if(sim==0) printf("sim: %d  ct=%d cellid=%ld e=%f\n", sim, ct, cellid,  ce.energy); 
 	}
  }
 }

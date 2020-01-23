@@ -37,6 +37,8 @@
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
 
+  std::chrono::duration<double> TFCSShapeValidation::time_o1 ;
+  std::chrono::duration<double> TFCSShapeValidation::time_o2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_g1 ;
   std::chrono::duration<double> TFCSShapeValidation::time_g2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_h ;
@@ -111,6 +113,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
 
    
+	time_o1=std::chrono::duration<double,std::ratio<1>>::zero();
+	time_o2=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_g1=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_g2=std::chrono::duration<double,std::ratio<1>>::zero();
 	time_h=std::chrono::duration<double,std::ratio<1>>::zero() ;
@@ -202,8 +206,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    }
 
 #ifdef USE_GPU
-   TFCSSimulationState::EventStatus es = { -1 ,0, 0, 0,0,0,false,nullptr,nullptr,0,  false, false } ;
+   TFCSSimulationState::EventStatus es = { -1 ,0, 0, 0,0,0,0,false,nullptr,nullptr,0,  false, false } ;
    long int index=0, tot_hits=0 ;
+   long int bin_index=0 ;
    int n_simbins=0 ;
    int iv=0 ;
    int g_sims_v[MAX_SIM]  ;
@@ -217,6 +222,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
    std::chrono::duration<double> t_g_sim_A = std::chrono::duration<double,std::ratio<1>>::zero();
    std::chrono::duration<double> t_g_sim_B = std::chrono::duration<double,std::ratio<1>>::zero();
 #endif
+   std::chrono::duration<double> t_st= std::chrono::duration<double,std::ratio<1>>::zero();
    auto t2 = std::chrono::system_clock::now();
   for (int ievent = m_firstevent; ievent < nentries; ievent++)
   {
@@ -388,7 +394,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	auto ss = std::chrono::system_clock::now();
        if (m_debug >= 1) {
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
-         std::cout << "Simulate : " << typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
+         std::cout << "Simulate : " << "validation:"<<typeid(validation).name() <<", " <<typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
 		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
 		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
 }
@@ -396,14 +402,18 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	int vi =iv ;
 	int si = validation.simul().size();
 #endif
+        auto te1 = std::chrono::system_clock::now();
        validation.simul().emplace_back(m_randEngine);
        TFCSSimulationState& chain_simul = validation.simul().back();
+        auto te2 = std::chrono::system_clock::now();
+	t_st += te2-te1 ;
 #ifdef USE_GPU
         es.ip=p; 
 	es.ievent=ievent ;
 	es.iv = iv ;
 	es.tot_hits = tot_hits ;
 	es.index = index ;
+	es.bin_index = bin_index ;
 	es.n_simbins = n_simbins ;
 	es.gpu = false ;
         if( p != 0 ) es.is_first= false ;
@@ -424,8 +434,11 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	if( (*chain_simul.get_es()).gpu == true ) {
 		g_sims_v[index]=vi  ;
 		g_sims_st[index]=si  ;
-		index ++ ;
+		index ++ ; // index is particle/event which use GPU is some sample
 	}
+ //       else std::cout<<"Skipping GPU for E/P: " << ievent<< " , "<< p << std::endl ; 
+        
+	bin_index = (*(chain_simul.get_es())).bin_index ; 
 	tot_hits = (*(chain_simul.get_es())).tot_hits ;
 	n_simbins = (*(chain_simul.get_es())).n_simbins ; 
 	if(index >= MAX_SIM || tot_hits > (MAXHITS-100000) || es.is_last ) { 
@@ -460,6 +473,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	
 	for ( int isim=0 ; isim < index ; isim++ ) {
 		TFCSSimulationState& sim=m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]] ;
+//  std::cout << "gpucellCT["<<isim<<"]=" << args.ct_h[isim] <<std::endl ;
 		for( int ii =0 ; ii< args.ct_h[isim] ;  ii++ ) {
  //if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0 ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<", isim="<<isim <<", ii="<<ii << std::endl ;
   //std::cout << "Id:" << args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
@@ -498,12 +512,17 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     std::chrono::duration<double> diff1 = t3-t2;
    diff = t_01-start;
    std::cout <<  "Time of  LoadGeo cpu IO:" << diff.count() <<" s" << std::endl ;
-   //diff = t1-t_01;
-   //std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
-  // diff = t_02-t1;
-  // std::cout <<  "Time of  InitInputTree :" << diff.count() <<" s" << std::endl ;
-   //diff = t_03-t_02;
-   //std::cout <<  "Time of  resizeTruth :" << diff.count() <<" s" << std::endl ;
+#ifdef USE_GPU
+   diff = t1-t_01;
+   std::cout <<  "Time of  GeoLg() :" << diff.count() <<" s" << std::endl ;
+   diff = t_02-t1;
+   std::cout <<  "Time of  InitInputTree :" << diff.count() <<" s" << std::endl ;
+   diff = t_03-t_02;
+   std::cout <<  "Time of  resizeTruth :" << diff.count() <<" s" << std::endl ;
+   std::cout <<  "Time of  eventloop GPU load FH  :" << time_o1.count() <<" s" <<  std::endl ;
+#endif
+   std::cout <<  "Time of  eventloop  simulation state creation  :" << t_st.count() <<" s" <<  std::endl ;
+   std::cout <<  "Time of  eventloop  LateralShapeParamHitChain  :" << time_o2.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  :" << diff1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainA:" << time_g1.count() <<" s" <<  std::endl ;
    std::cout <<  "Time of  eventloop  GPU ChainB:" << time_g2.count() <<" s" <<  std::endl ;
