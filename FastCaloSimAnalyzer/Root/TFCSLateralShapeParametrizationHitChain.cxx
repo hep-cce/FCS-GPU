@@ -121,7 +121,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 
 TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
       
- bool do_gpu_sim = (our_chainA || our_chainB || our_chainC ) && (nhit >1 ) && cs <21  ;
+ //bool do_gpu_sim = (our_chainA || our_chainB || our_chainC ) && (nhit >1 ) && cs <21  ;
+ bool do_gpu_sim = (our_chainA || our_chainB || our_chainC )  && cs <21  ;
 
 //do_gpu_sim = false ;
  
@@ -331,13 +332,14 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
    }
   auto t3 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_o2 += (t3-start) ;
-//  std::cout <<"CS-Bin-Index " << simulstate.get_es()->bin_index <<" , " ;
-//  std::cout <<"DoneGPU " << do_gpu_sim <<" , " ;
-//  std::cout <<"iE-iP " << simulstate.get_es()->ievent<<" , "<<simulstate.get_es()->ip <<  " , nhits: "<< nhit <<" ,CaloSample: "<<cs ;
-//  std::cout << " ,Number Cells: "<< simulstate.cells().size() ;
-//  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) std::cout<<" ,"<< typeid( * hitsim ).name() <<" ," ;
-//  std::cout<<std::endl ;
-
+if(0) {
+  std::cout <<"CS-Bin-Index " << simulstate.get_es()->bin_index <<" , " ;
+  std::cout <<"DoneGPU " << do_gpu_sim <<" , " ;
+  std::cout <<"iE-iP " << simulstate.get_es()->ievent<<" , "<<simulstate.get_es()->ip <<  " , nhits: "<< nhit <<" ,CaloSample: "<<cs ;
+  std::cout << " ,Number Cells: "<< simulstate.cells().size() ;
+  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) std::cout<<" ,"<< typeid( * hitsim ).name() <<" ," ;
+  std::cout<<std::endl ;
+}
    es->bin_index++ ; 
 
   return FCSSuccess;
