@@ -332,6 +332,7 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
    }
   auto t3 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_o2 += (t3-start) ;
+#ifdef USE_GPU
 if(0) {
   std::cout <<"CS-Bin-Index " << simulstate.get_es()->bin_index <<" , " ;
   std::cout <<"DoneGPU " << do_gpu_sim <<" , " ;
@@ -341,7 +342,7 @@ if(0) {
   std::cout<<std::endl ;
 }
    es->bin_index++ ; 
-
+#endif
   return FCSSuccess;
 }
 
