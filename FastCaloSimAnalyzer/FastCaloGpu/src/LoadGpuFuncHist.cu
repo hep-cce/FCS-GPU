@@ -51,6 +51,8 @@ void LoadGpuFuncHist::LD2D() {
   gpuQ(cudaMalloc((void**)&m_d_hf2d , sizeof(FH2D))) ;
   gpuQ(cudaMemcpy( m_d_hf2d, m_hf2d_d,   sizeof(FH2D), cudaMemcpyHostToDevice)) ;
 
+//std::cout << "LD2D: bdx,y: "<<hf.nbinsx<<"," <<  hf.nbinsy << " memeory: " <<(hf.nbinsx+hf.nbinsy+2+ hf.nbinsy*hf.nbinsx)*sizeof(float) << " M of FH2D str: "<< sizeof(FH2D)  <<std::endl ;
+
 }
 
 
@@ -69,23 +71,27 @@ void LoadGpuFuncHist::LD() {
   unsigned int * h_szs = (*m_hf).h_szs ;    // already allocateded on host ; 
   
   
+// size_t  s=0 ;
 
   
   gpuQ(cudaMalloc((void**)&hf.low_edge , (hf.nhist+1)*sizeof(float))) ;
   gpuQ(cudaMemcpy( hf.low_edge, (*m_hf).low_edge,  (hf.nhist+1)*sizeof(float), 
 	cudaMemcpyHostToDevice)) ;
+//s += (hf.nhist+1)*sizeof(float) ;
 
   gpuQ(cudaMalloc((void**)&hf.h_szs , hf.nhist*sizeof(unsigned int))) ;
   gpuQ(cudaMemcpy( hf.h_szs, (*m_hf).h_szs,  hf.nhist*sizeof(unsigned int), 
 	cudaMemcpyHostToDevice)) ;
+//s += hf.nhist*sizeof(unsigned int) ;
 
   gpuQ(cudaMalloc((void**)&hf.h_contents , hf.nhist*sizeof(uint32_t * ))) ;
   gpuQ(cudaMalloc((void**)&hf.h_borders , hf.nhist*sizeof(float * ))) ;
 
+//s += hf.nhist * (sizeof(uint32_t * ) +sizeof(float * )) ;
+
   uint32_t* * contents_ptr = (uint32_t* *) malloc(hf.nhist*sizeof(uint32_t*)) ;
   float * * borders_ptr = (float* *) malloc(hf.nhist*sizeof(float*)) ;
   
-
   for( unsigned int i =0 ; i< hf.nhist ; ++i) {
 
       gpuQ(cudaMalloc((void**)(contents_ptr+i) ,  h_szs[i]*sizeof(uint32_t))) ;
@@ -95,6 +101,8 @@ void LoadGpuFuncHist::LD() {
       gpuQ(cudaMemcpy( borders_ptr[i], (*m_hf).h_borders[i],  (h_szs[i]+1) *sizeof(float),
 	cudaMemcpyHostToDevice)) ;
   //std::cout << ".....Loading  WiggleFunctionHistss, Size of Hists[" << i << "]=" << h_szs[i]<< std::endl ;  
+//   s += h_szs[i]*sizeof(uint32_t) +( h_szs[i]+1)*sizeof(float) ;
+
   }
   
   gpuQ(cudaMemcpy( hf.h_contents, contents_ptr ,hf.nhist*sizeof(uint32_t*),cudaMemcpyHostToDevice)) ;
@@ -104,9 +112,11 @@ void LoadGpuFuncHist::LD() {
   gpuQ(cudaMalloc((void**)&m_d_hf, sizeof(FHs) )) ;
   gpuQ(cudaMemcpy(m_d_hf, &hf, sizeof(FHs), cudaMemcpyHostToDevice)) ;
 
+
   free(contents_ptr) ;
   free(borders_ptr);
 
   m_hf_d = &hf ;
+//std::cout << "LD1D: nhist: "<<hf.nhist<<"   memeory: " <<s << " M of FHs str: "<< sizeof(FHs)  <<std::endl ;
 
 }

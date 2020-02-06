@@ -87,20 +87,26 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }
 
 #ifdef USE_GPU
-
+ if(0) {
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
   std::string sB[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle" } ;
   std::string sC[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMapping" } ;
- 
+ }
  if(debug) {
   std::cout<<"---xxx---nhits="<< nhit << ", " ;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
       std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
   }
   int ichn=0 ;
+ 
+  bool  our_chainA=false;
+  bool  our_chainB=false;
+  bool  our_chainC=false;
+/*
+   if(0) {
   bool  our_chainA=true;
   bool  our_chainB=true;
   bool  our_chainC=true;
@@ -118,11 +124,17 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
       if (std::string(typeid( * hitsim ).name()).find(sC[ichn++]) == std::string::npos) 
 	   { our_chainC= false ; break ; }
   } 
+  }
+*/
+  if(cs == 0 ||cs == 4 || (cs >=8 && cs <21 ) ) 
+     our_chainB =true ;
+  else if (cs > 0 && cs <8 && cs !=4 )  our_chainA=true ;
+  else our_chainC =true ;
 
 TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
       
  //bool do_gpu_sim = (our_chainA || our_chainB || our_chainC ) && (nhit >1 ) && cs <21  ;
- bool do_gpu_sim = (our_chainA || our_chainB || our_chainC )  && cs <21  ;
+ bool do_gpu_sim = (our_chainA || our_chainB ) &&  nhit>1   ;
 
 //do_gpu_sim = false ;
  
@@ -170,12 +182,14 @@ if(0) {
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
 
-	std::string s= std::string(typeid( * hitsim ).name()) ;
+//	std::string s= std::string(typeid( * hitsim ).name()) ;
 	
-	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
-        htparams[n_simbins].extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
+//	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
+        if(ichn==0 ) 
 
-	}
+      htparams[n_simbins].extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
+
+//	}
 /*
 	if(s.find("TFCSValidationHitSpy") != std::string::npos ) {
 	 args.spy=true ;
@@ -232,7 +246,8 @@ if(0) {
 	}
 
 */
-	if(s.find("TFCSHistoLateralShapeParametrization") != std::string::npos ) {
+//	if(s.find("TFCSHistoLateralShapeParametrization") != std::string::npos ) {
+       if( ichn== 1 ) { 
   auto t3 = std::chrono::system_clock::now();
 
 		((TFCSHistoLateralShapeParametrization *) hitsim)->LoadHistFuncs() ;
@@ -243,7 +258,8 @@ if(0) {
 		htparams[n_simbins].f2d = ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->d_hf2d() ;
 		htparams[n_simbins].is_phi_symmetric=((TFCSHistoLateralShapeParametrization *) hitsim)->is_phi_symmetric() ;
 	}
-	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
+//	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
+      if( ichn == 2 && our_chainA) {
   auto t3 = std::chrono::system_clock::now();
 		((TFCSHitCellMappingWiggle * ) hitsim )->LoadHistFuncs() ;
   auto t4 = std::chrono::system_clock::now();
@@ -317,11 +333,13 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
   }
   
   auto t2 = std::chrono::system_clock::now();
-    if ( our_chainA  ) {
-    TFCSShapeValidation::time_g1 += (t2-start) ;
+//    if ( our_chainA  ) {
+//    TFCSShapeValidation::time_g1 += (t2-start) ;
 //   } else if ( our_chainB || our_chainC) {
 //   } else if ( our_chainB || (our_chainC && nhit>1000 ) ){
-   } else if (do_gpu_sim ){
+  
+//   } else if (do_gpu_sim ){
+   if (do_gpu_sim ){
      TFCSShapeValidation::time_g2 += (t2-start) ;
    } else
 #endif
