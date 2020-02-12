@@ -4,6 +4,8 @@
 
 #include "gpuQ.h"
 #include "Args.h"
+#include "CU_BigMem.h"
+
 #include <chrono>
 
 #define BLOCK_SIZE 256 
@@ -216,6 +218,9 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
 	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
 	//rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
 	rd4h->allocate_simulation(maxbin,MAXHITCT, MAX_CELLS) ; 
+	CU_BigMem * bm = new CU_BigMem(M_SEG_SIZE) ;
+        CU_BigMem::bm_ptr = bm ;
+
    auto t5 = std::chrono::system_clock::now();
 
   std::chrono::duration<double> diff1 = t1-t0 ;
@@ -482,7 +487,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
         blocksize=BLOCK_SIZE ;
         threads_tot= args.nhits  ;
         nblocks= (threads_tot + blocksize-1 )/blocksize ;
-
+r
 	simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
 
 // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  

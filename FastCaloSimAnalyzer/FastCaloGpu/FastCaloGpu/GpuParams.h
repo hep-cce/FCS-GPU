@@ -12,5 +12,10 @@
 
 #define  MAX_CELLS  200000
 
+//Size of cuMalloc each time 
+#define M_SEG_SIZE  134217728
+//#define M_SEG_SIZE  67108864
+//#define M_SEG_SIZE  268435456
+
 
 #endif
