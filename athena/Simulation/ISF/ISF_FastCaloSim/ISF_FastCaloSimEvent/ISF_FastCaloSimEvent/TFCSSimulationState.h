@@ -22,7 +22,7 @@ namespace CLHEP
 class TFCSSimulationState:public TObject
 {
   public:
-    TFCSSimulationState(CLHEP::HepRandomEngine* randomEngine = nullptr);
+    TFCSSimulationState(CLHEP::HepRandomEngine* randomEngine = nullptr) ;
 
     CLHEP::HepRandomEngine* randomEngine() { return m_randomEngine; }
     void   setRandomEngine(CLHEP::HepRandomEngine *engine) { m_randomEngine = engine; }
@@ -41,8 +41,8 @@ class TFCSSimulationState:public TObject
 
     typedef std::map<const CaloDetDescrElement*,float> Cellmap_t;
 
-    Cellmap_t& cells() {return m_cells;};
-    const Cellmap_t& cells() const {return m_cells;};
+    Cellmap_t& cells() {return *m_cells;};
+    const Cellmap_t& cells() const {return * m_cells;};
     void deposit(const CaloDetDescrElement* cellele, float E);
     
     void Print(Option_t *option="") const;
@@ -100,7 +100,7 @@ class TFCSSimulationState:public TObject
     void * m_geold ;
     EventStatus  m_es ;
 #endif
-    Cellmap_t m_cells;
+    Cellmap_t * m_cells;
     
   ClassDef(TFCSSimulationState,1)  //TFCSSimulationState
 };

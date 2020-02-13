@@ -220,7 +220,6 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
 	rd4h->allocate_simulation(maxbin,MAXHITCT, MAX_CELLS) ; 
 	CU_BigMem * bm = new CU_BigMem(M_SEG_SIZE) ;
         CU_BigMem::bm_ptr = bm ;
-
    auto t5 = std::chrono::system_clock::now();
 
   std::chrono::duration<double> diff1 = t1-t0 ;
@@ -244,8 +243,11 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
 }
 __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
 
+ size_t free, total ;
+ gpuQ(cudaMemGetInfo(&free, &total)) ;
+ std::cout << "GPU memory used: "<< (total-free)/1000000 <<"  bm table allocate, used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " CU_BigMem::bm_ptr->used()<< std::endl ;
  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
-
+ if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
 }
 
 
@@ -487,7 +489,6 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
         blocksize=BLOCK_SIZE ;
         threads_tot= args.nhits  ;
         nblocks= (threads_tot + blocksize-1 )/blocksize ;
-r
 	simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
 
 // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  

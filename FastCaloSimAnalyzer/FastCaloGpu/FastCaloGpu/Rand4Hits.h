@@ -21,7 +21,14 @@ class Rand4Hits {
 		m_total_a_hits=0 ;
 	  }; 
      ~Rand4Hits() {gpuQ(cudaFree(m_rand_ptr));
-		 CURAND_CALL(curandDestroyGenerator(m_gen));};
+		 CURAND_CALL(curandDestroyGenerator(m_gen));
+		cudaFree(m_cells_energy) ;
+		cudaFree(m_cell_e) ;
+		cudaFree(m_ct) ;
+		cudaFree(m_hitparams) ;
+		cudaFree(m_simbins) ;
+		};
+		
      //float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
 
      float * rand_ptr(int nhits){

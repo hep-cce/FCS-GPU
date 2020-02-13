@@ -134,7 +134,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
       
  //bool do_gpu_sim = (our_chainA || our_chainB || our_chainC ) && (nhit >1 ) && cs <21  ;
- bool do_gpu_sim = (our_chainA || our_chainB ) &&  nhit>1   ;
+ bool do_gpu_sim = (our_chainA || our_chainB ) &&  nhit>0   ;
 
 //do_gpu_sim = false ;
  
