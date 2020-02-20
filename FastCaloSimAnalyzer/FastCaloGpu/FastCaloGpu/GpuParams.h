@@ -7,7 +7,7 @@
 
 
 #define  MIN_GPU_HITS  256
-#define  MAX_SIM  500 
+#define  MAX_SIM  300 
 #define  MAX_SIMBINS MAX_SIM*24 
 
 #define  MAX_CELLS  200000

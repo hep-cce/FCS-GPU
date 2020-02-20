@@ -245,7 +245,7 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
 
  size_t free, total ;
  gpuQ(cudaMemGetInfo(&free, &total)) ;
- std::cout << "GPU memory used: "<< (total-free)/1000000 <<"  bm table allocate, used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " CU_BigMem::bm_ptr->used()<< std::endl ;
+ std::cout << "GPU memory used(MB): "<< (total-free)/1000000 <<"  bm table allocate size(MB), used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " << CU_BigMem::bm_ptr->used()/1000000<< std::endl ;
  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
 }
