@@ -5,7 +5,6 @@
 #include "GeoGpu_structs.h"
 #include "Hit.h"
 
-#include "Hitspy_Hist.h"
 #include "GpuGeneral_structs.h"
 
 #define MAXHITS 200000 

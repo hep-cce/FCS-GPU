@@ -15,7 +15,6 @@
 #include "FastCaloSimAnalyzer/TFCSHistoLateralShapeParametrization.h"
 #include "FastCaloSimAnalyzer/TFCSHitCellMappingWiggle.h"
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
-#include "FastCaloSimAnalyzer/TFCSValidationHitSpy.h"
 
 
 #include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
@@ -71,6 +70,8 @@ int TFCSLateralShapeParametrizationHitChain::get_number_of_hits(TFCSSimulationSt
 FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
 {
     auto start = std::chrono::system_clock::now();
+
+    int cs = calosample();
   // Call get_number_of_hits() only once, as it could contain a random number
   int nhit = get_number_of_hits(simulstate, truth, extrapol);
   if (nhit <= 0) {
@@ -86,12 +87,13 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   }
 
 #ifdef USE_GPU
-
+/*
   std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
   std::string sB[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle" } ;
- 
+ */
+
  if(debug) {
   std::cout<<"---xxx---nhits="<< nhit << ", " ;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
@@ -99,21 +101,30 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   std::cout << std::endl ;
   }
   int ichn=0 ;
-  bool  our_chainA=true;
-  bool  our_chainB=true;
-  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
+  bool  our_chainA=false;
+  bool  our_chainB=false;
+  bool  our_chainC=false;
+/*
+   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
       if (std::string(typeid( * hitsim ).name()).find(sA[ichn++]) == std::string::npos) 
 	   { our_chainA= false ; break ; }
   } 
+
   ichn=0 ;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
       if (std::string(typeid( * hitsim ).name()).find(sB[ichn++]) == std::string::npos) 
 	   { our_chainB= false ; break ; }
   } 
-      
-   
-    if ( nhit > MIN_GPU_HITS && (our_chainA || our_chainB) ) {
-	  int cs = calosample();
+*/      
+  
+  if(cs == 0 ||cs == 4 || (cs >=8 && cs <21 ) )
+     our_chainB =true ;
+  else if (cs > 0 && cs <8 && cs !=4 )  our_chainA=true ;
+  else our_chainC =true ;
+
+ 
+//    if ( nhit > MIN_GPU_HITS && (our_chainA || our_chainB) ) {
+    if ( nhit > MIN_GPU_HITS &&   our_chainA ) {
 
          GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
 
@@ -146,9 +157,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
  	ichn=0 ;
  	for( auto hitsim : m_chain ) {
 
-	std::string s= std::string(typeid( * hitsim ).name()) ;
+//	std::string s= std::string(typeid( * hitsim ).name()) ;
 	
-	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
+//	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
+	if(ichn == 0  ) {
   //         std::cout<<"---m_extrapWeight"<< ((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() <<std::endl ;
          //  hitsim->Print();
            args.extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
@@ -156,8 +168,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 	}
 
 
-	//if(ichn==2) {
-	if(s.find("TFCSHistoLateralShapeParametrization") != std::string::npos ) {
+	if(ichn==1) {
 
 	//	TFCS2DFunctionHistogram h=((TFCSHistoLateralShapeParametrization *) hitsim)->histogram() ;
 	//	std::cout << "size of hist: "<<h.get_HistoBordersx().size() <<", "<<h.get_HistoBordersy().size()  
@@ -178,8 +189,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 		args.fh2d_v = *(((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()) ;
 
 	}
-//	if(ichn==3) {
-	if(s.find("TFCSHitCellMappingWiggle") != std::string::npos ) {
+	if(ichn==2) {
 	if(0) {
 		std::cout<< "---NumberOfBins:" << ((TFCSHitCellMappingWiggle * ) hitsim )->get_number_of_bins () << std::endl;
 		std::vector< const TFCS1DFunction* > funcs=  ((TFCSHitCellMappingWiggle * ) hitsim )->get_functions() ;
