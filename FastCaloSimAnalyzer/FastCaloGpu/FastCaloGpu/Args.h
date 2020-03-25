@@ -46,10 +46,10 @@ GeoGpu * geo ;
 bool is_first ; // first event 
 bool is_last ; // last event 
 
-bool * hitcells_b ;  // GPU array of whether a cell got hit
-unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
-unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes  
-unsigned int * hitcells_ct ;  //GPU pointer for number of uniq hit cells 
+//bool * hitcells_b ;  // GPU array of whether a cell got hit
+//unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
+//unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes  
+int * hitcells_ct ;  //GPU pointer for number of uniq hit cells 
 unsigned long ncells ;
 unsigned int maxhitct;
 
@@ -59,20 +59,9 @@ Cell_E *  hitcells_E_h ; // host array
 
 unsigned int * hitcounts_b ; // GPU pointer for interm blockwise result of hit counts
 
-unsigned long * hitcells_h ; //Host array of hit cell index
-int * hitcells_ct_h ; // host array of corresponding hit cell counts
+//unsigned long * hitcells_h ; //Host array of hit cell index
+//int * hitcells_ct_h ; // host array of corresponding hit cell counts
 unsigned int ct ;  // cells got hit for the event
-
-bool spy ;
-bool isBarrel ; 
-Hitspy_Hist hs1 ;
-Hitspy_Hist hs2 ;
-
-float * hs_sumx ; // for staged sumx , sumx2  6*1024
-double * hs_sumwx_g ; // for cross event sumwx on gpu 8 numbers
-double * hs_sumwx_h ; // for host stat array ;
-
-unsigned long long * hs_nentries ; //gpu point for 3* entry, accumulation of nhits
 
 } Chain0_Args ;
 
