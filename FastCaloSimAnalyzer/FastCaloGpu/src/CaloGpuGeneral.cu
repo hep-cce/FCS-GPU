@@ -74,13 +74,13 @@ __device__  int find_index_f( float* array, int size, float value) {
 // array[i] > value ; array[i-1] <= value
 // std::upbund( )
 
-int  low=0 ; 
+int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
-while (m_index != high ) {
-     if( value < array[m_index] ) high=m_index ; 
-     else low=m_index+1 ;  
-       m_index=(high+low+1)/2 ;
+while (high != low ) {
+     if( value >= array[m_index] ) low=m_index+1 ;
+     else high=m_index ;
+       m_index=(high+low)/2 ;
 }
 return m_index ;
 
