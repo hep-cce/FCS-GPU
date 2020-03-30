@@ -324,18 +324,14 @@ __global__  void simulate_A( float E, int nhits,  Chain0_Args args ) {
 
 __global__  void simulate_ct( Chain0_Args args) {
 
-//	printf("From kernel simulate_ct:\n" );
  unsigned long tid = threadIdx.x + blockIdx.x*blockDim.x ;
  if( tid < args.ncells) {
-       // if(args.hitcells_b[tid]) {
         if(args.cells_energy[tid]>0 ) {
 		unsigned int ct = atomicAdd(args.hitcells_ct,1) ;
-//		args.hitcells_l[ct]=tid; 
 		Cell_E ce;
 		ce.cellid=tid ;
 		ce.energy=args.cells_energy[tid] ;
 		args.hitcells_E[ct] = ce ;
-//		printf("atomic tid=%lu,ct=%d\n", tid,ct);
 	}
  }
 }
@@ -397,13 +393,8 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
 __global__  void simulate_clean(Chain0_Args args) {
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
  if(tid < args.ncells ) {
-//	 args.hitcells_b[tid]= false ;
 	 args.cells_energy[tid] =0.0 ; 
 	}
-// if(tid < args.maxhitct) {
-//    args.hitcells_l[tid] = 0 ;
-//    args.hitcounts_b[tid] =0 ; 
- //}
  if(tid ==0 ) args.hitcells_ct[0]= 0 ; 
 }
 
@@ -415,9 +406,6 @@ __host__ void CaloGpuGeneral::simulate_hits(float E, int nhits, Chain0_Args & ar
         Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
 	
         float * r= rd4h->rand_ptr(nhits)  ;
-//	std::cout<<"rd4h: maxhit: " << rd4h->get_t_a_hits() <<" Current Hits :" << rd4h->get_c_hits()
-//		<< " Nhits="<< nhits
-//		<< std::endl ;
 
 	rd4h->add_a_hits(nhits) ;
 	args.rand =r;
@@ -432,21 +420,7 @@ args.cells_energy=rd4h->get_cells_energy(); // Hit cell energy map , size of nce
 args.hitcells_E=rd4h->get_cell_e(); // Hit cell energy map, moved together  
 args.hitcells_E_h=rd4h->get_cell_e_h(); // Host array  
 
-/*
-args.hitcells_b=rd4h->get_B_ptrs()[0] ;
-args.hitcells=rd4h->get_Ul_ptrs()[0] ;    //maxhit
-args.hitcells_l=rd4h->get_Ul_ptrs()[1] ; //maxhitct
-*/
 args.hitcells_ct= rd4h->get_ct() ; //single value, number of  uniq hit cells
-
-//std::cout<<"hitcells_b: " << args.hitcells_b << ", args.hitcells=" << args.hitcells 
-//    << ", args.hitcells_l="<< args.hitcells_l << ", args.hitcells_ct=" << args.hitcells_ct << std::endl ;
-
-
-//args.hitcounts_b= rd4h->get_Ui_ptrs()[1] ;  // block wise counts results
-
-//args.hitcells_h = rd4h->get_hitcells() ; //host hit cells indexes
-//args.hitcells_ct_h =  rd4h->get_hitcells_ct() ;
 
 
  	cudaError_t err = cudaGetLastError();
@@ -465,7 +439,6 @@ args.hitcells_ct= rd4h->get_ct() ; //single value, number of  uniq hit cells
 
 
 	blocksize=BLOCK_SIZE ;
-	//threads_tot= (nhits +NLOOPS-1) /NLOOPS  ;
 	threads_tot = nhits  ;
 	nblocks= (threads_tot + blocksize-1 )/blocksize ;        
 
@@ -502,16 +475,6 @@ args.hitcells_ct= rd4h->get_ct() ; //single value, number of  uniq hit cells
 // pass result back 
    args.ct=ct;
 //   args.hitcells_ct_h=hitcells_ct ;
-
-
-/*
-int total_ct=0 ;
-for(int ii =0 ; ii<ct ; ++ii) {
-	std::cout<< "CT["<<hitcells[ii]<<"]=" << hitcells_ct[ii]<<", Engery="<<hitcells_ct[ii]*E<<", cell["<<args.hitcells_E_h[ii].cellid<<"]="<<args.hitcells_E_h[ii].energy<<std::endl ;
-	total_ct += hitcells_ct[ii] ;
-}
-std::cout << "Total Counts =" << total_ct << " nhits=" << args.nhits<< std::endl;
-*/
 
 
 
