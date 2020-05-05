@@ -8,10 +8,10 @@
 #include "CLHEP/Random/RandomEngine.h"
 
 namespace CLHEP {
-    
-namespace RandPoisson {
-  double shoot(HepRandomEngine *engine, double mean);
-}
+
+  namespace RandPoisson {
+    double shoot( HepRandomEngine* engine, double mean );
+  }
 
 } // namespace CLHEP
 

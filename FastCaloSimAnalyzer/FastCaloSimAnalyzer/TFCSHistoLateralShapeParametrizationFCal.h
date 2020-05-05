@@ -11,20 +11,20 @@
 
 class TH2;
 
-class TFCSHistoLateralShapeParametrizationFCal:public TFCSHistoLateralShapeParametrization {
+class TFCSHistoLateralShapeParametrizationFCal : public TFCSHistoLateralShapeParametrization {
 public:
-  TFCSHistoLateralShapeParametrizationFCal(const char* name=nullptr, const char* title=nullptr);
+  TFCSHistoLateralShapeParametrizationFCal( const char* name = nullptr, const char* title = nullptr );
   ~TFCSHistoLateralShapeParametrizationFCal();
 
-  virtual FCSReturnCode simulate_hit(Hit& hit,TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
-  
+  virtual FCSReturnCode simulate_hit( Hit& hit, TFCSSimulationState& simulstate, const TFCSTruthState* truth,
+                                      const TFCSExtrapolationState* extrapol ) override;
+
 private:
- 
-  ClassDefOverride(TFCSHistoLateralShapeParametrizationFCal,1)  //TFCSHistoLateralShapeParametrizationFCal
+  ClassDefOverride( TFCSHistoLateralShapeParametrizationFCal, 1 ) // TFCSHistoLateralShapeParametrizationFCal
 };
 
-#if defined(__ROOTCLING__) && defined(__FastCaloSimStandAlone__)
-#pragma link C++ class TFCSHistoLateralShapeParametrizationFCal+;
+#if defined( __ROOTCLING__ ) && defined( __FastCaloSimStandAlone__ )
+#  pragma link C++ class TFCSHistoLateralShapeParametrizationFCal + ;
 #endif
 
 #endif

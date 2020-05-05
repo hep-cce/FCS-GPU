@@ -6,8 +6,8 @@
 
 namespace CLHEP {
 
-HepRandomEngine::HepRandomEngine() {}
+  HepRandomEngine::HepRandomEngine() {}
 
-HepRandomEngine::~HepRandomEngine() {}
+  HepRandomEngine::~HepRandomEngine() {}
 
 } // namespace CLHEP

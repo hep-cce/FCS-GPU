@@ -7,17 +7,15 @@
 
 #include "ISF_FastCaloSimParametrization/CaloGeometry.h"
 
-class CaloGeometryFromFile : public CaloGeometry
-{
+class CaloGeometryFromFile : public CaloGeometry {
 public:
   CaloGeometryFromFile();
 
-  bool LoadGeometryFromFile(std::string fileName, std::string treeName,
-                            std::string hashFileName
-                            = "/eos/atlas/atlascerngroupdisk/proj-simul/"
-                              "CaloGeometry/cellId_vs_cellHashId_map.txt");
-  bool LoadFCalGeometryFromFiles(const std::array<std::string, 3> &fileNames);
-  void DrawFCalGraph(int isam, int color);
+  bool LoadGeometryFromFile( std::string fileName, std::string treeName,
+                             std::string hashFileName = "/eos/atlas/atlascerngroupdisk/proj-simul/"
+                                                        "CaloGeometry/cellId_vs_cellHashId_map.txt" );
+  bool LoadFCalGeometryFromFiles( const std::array<std::string, 3>& fileNames );
+  void DrawFCalGraph( int isam, int color );
 
 private:
   void calculateFCalRminRmax();

@@ -8,12 +8,12 @@
 #include "CLHEP/Random/RandomEngine.h"
 
 namespace CLHEP {
-    
-namespace RandFlat {
-  double shoot(HepRandomEngine *engine);
-  double shoot(HepRandomEngine *engine, double a, double b);
-  double shoot(HepRandomEngine *engine, double width);
-}
+
+  namespace RandFlat {
+    double shoot( HepRandomEngine* engine );
+    double shoot( HepRandomEngine* engine, double a, double b );
+    double shoot( HepRandomEngine* engine, double width );
+  } // namespace RandFlat
 
 } // namespace CLHEP
 

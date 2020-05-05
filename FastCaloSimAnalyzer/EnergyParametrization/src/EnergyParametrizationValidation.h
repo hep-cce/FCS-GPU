@@ -3,17 +3,16 @@
 
 #include <TH1D.h>
 
-class EnergyParametrizationValidation
-{
-  public:
-    EnergyParametrizationValidation() {};
-    virtual ~EnergyParametrizationValidation() = default;
+class EnergyParametrizationValidation {
+public:
+  EnergyParametrizationValidation(){};
+  virtual ~EnergyParametrizationValidation() = default;
 
-    static void autozoom(TH1D* h1, double &min, double &max, double &rmin, double &rmax);
-    static TH1D* refill(TH1D* h_in,double min, double max, double rmin, double rmax);
+  static void  autozoom( TH1D* h1, double& min, double& max, double& rmin, double& rmax );
+  static TH1D* refill( TH1D* h_in, double min, double max, double rmin, double rmax );
 
-  private:
-    ClassDef(EnergyParametrizationValidation, 1)
+private:
+  ClassDef( EnergyParametrizationValidation, 1 )
 };
 
 #endif
