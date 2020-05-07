@@ -50,6 +50,10 @@ else()
     set_target_properties(docopt_o PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 
     add_library(docopt SHARED $<TARGET_OBJECTS:docopt_o>)
+	set_target_properties(docopt PROPERTIES
+			VERSION ${PROJECT_VERSION}
+			SOVERSION ${PROJECT_VERSION_MAJOR}
+			)
     add_library(docopt_s STATIC $<TARGET_OBJECTS:docopt_o>)
 endif()
 
@@ -124,6 +128,9 @@ include(CMakePackageConfigHelpers)
 write_basic_package_version_file("${PROJECT_BINARY_DIR}/docopt-config-version.cmake" COMPATIBILITY SameMajorVersion)
 install(FILES docopt-config.cmake ${PROJECT_BINARY_DIR}/docopt-config-version.cmake DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
 install(EXPORT ${export_name} DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/docopt")
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/docopt.pc.in ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc @ONLY)
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/docopt.pc DESTINATION ${CMAKE_INSTALL_LIBDIR}/pkgconfig)
 
 #============================================================================
 # CPack

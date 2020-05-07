@@ -2,6 +2,8 @@
 #include "GeoRegion.cu"
 #include "Hit.h"
 
+#include "Rand4Hits.h"
+
 #include "Args.h"
 #include "gpuQ.h"
 #include <chrono>
