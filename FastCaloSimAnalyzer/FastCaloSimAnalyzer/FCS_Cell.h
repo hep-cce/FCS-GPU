@@ -33,13 +33,13 @@ struct FCS_hit // this is the FCS detailed hit
 {
   Long64_t identifier; // hit in the same tile cell can have two identifiers (for two PMTs)
   Long64_t cell_identifier;
-  int      sampling; // calorimeter layer
-  float hit_energy;  // energy is already scaled for the sampling fraction
-  float hit_time;
-  float hit_x;
-  float hit_y;
-  float hit_z;
-  bool  operator<( const FCS_hit& rhs ) const { return hit_energy > rhs.hit_energy; };
+  int      sampling;   // calorimeter layer
+  float    hit_energy; // energy is already scaled for the sampling fraction
+  float    hit_time;
+  float    hit_x;
+  float    hit_y;
+  float    hit_z;
+  bool     operator<( const FCS_hit& rhs ) const { return hit_energy > rhs.hit_energy; };
   // float  hit_sampfrac;
 };
 

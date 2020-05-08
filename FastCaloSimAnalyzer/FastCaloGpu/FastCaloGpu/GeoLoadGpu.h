@@ -40,14 +40,14 @@ public:
   // bool LoadGpu_Region(GeoRegion * ) ;
 
 protected:
-  unsigned long        m_ncells;       // number of cells
-  unsigned int         m_nregions;     // number of regions
-  t_cellmap*           m_cells;        // from Geometry class
-  GeoRegion*           m_regions;      // array of regions on host
-  GeoRegion*           m_regions_g;    // array of region on GPU
-  CaloDetDescrElement* m_cells_g;      // Cells in GPU
-  Identifier*          m_cellid_array; // cell id to Indentifier lookup table
-  int                  m_max_sample;   // Max number of samples
-  Rg_Sample_Index* m_sample_index_h;   // index for flatout of  GeoLookup over sample
+  unsigned long        m_ncells;         // number of cells
+  unsigned int         m_nregions;       // number of regions
+  t_cellmap*           m_cells;          // from Geometry class
+  GeoRegion*           m_regions;        // array of regions on host
+  GeoRegion*           m_regions_g;      // array of region on GPU
+  CaloDetDescrElement* m_cells_g;        // Cells in GPU
+  Identifier*          m_cellid_array;   // cell id to Indentifier lookup table
+  int                  m_max_sample;     // Max number of samples
+  Rg_Sample_Index*     m_sample_index_h; // index for flatout of  GeoLookup over sample
 };
 #endif

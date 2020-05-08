@@ -155,7 +155,7 @@ bool GeoLoadGpu::LoadGpu() {
     m_regions[ir].set_all_cells( m_cells_g ); // set this so all region instance know where the GPU cells are, before
                                               // copy to GPU
     //	std::cout<<"Gpu cell Pintor in region: " <<m_cells_g << " m_regions[ir].all_cells() " <<
-    //m_regions[ir].all_cells() << std::endl ;
+    // m_regions[ir].all_cells() << std::endl ;
   }
 
   // GPU allocate Regions data  and load them to GPU as array of regions

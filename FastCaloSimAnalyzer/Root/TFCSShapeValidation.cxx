@@ -522,8 +522,8 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
     std::cout << "neta " << neta << ", vector eta size " << ( *( glkup->cell_grid() ) ).size() << std::endl;
   for ( int ie = 0; ie < neta; ++ie ) {
     //    	if(nphi != (*(glkup->cell_grid()))[ie].size() )
-    //		 std::cout<<"neta " << neta << "nphi "<<nphi <<", vector phi size "<<  (*(glkup->cell_grid()))[ie].size() <<
-    //std::endl;
+    //		 std::cout<<"neta " << neta << "nphi "<<nphi <<", vector phi size "<<  (*(glkup->cell_grid()))[ie].size()
+    //<< std::endl;
 
     for ( int ip = 0; ip < nphi; ++ip ) {
 
