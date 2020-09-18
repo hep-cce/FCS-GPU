@@ -18,14 +18,14 @@ typedef struct HitParams {
   long nhits ;
   FHs * f1d ;
   FH2D * f2d ;   
-  float extrapol_eta_ent; 
-  float extrapol_eta_ext; 
-  float extrapol_phi_ent; 
-  float extrapol_phi_ext; 
-  float extrapol_r_ent; 
-  float extrapol_r_ext; 
-  float extrapol_z_ent; 
-  float extrapol_z_ext; 
+  double extrapol_eta_ent; 
+  double extrapol_eta_ext; 
+  double extrapol_phi_ent; 
+  double extrapol_phi_ext; 
+  double extrapol_r_ent; 
+  double extrapol_r_ext; 
+  double extrapol_z_ent; 
+  double extrapol_z_ext; 
   float extrapWeight ;
   bool cmw ; //Do CellMapingWiggle or direct CellMapping
 } HitParams ;
