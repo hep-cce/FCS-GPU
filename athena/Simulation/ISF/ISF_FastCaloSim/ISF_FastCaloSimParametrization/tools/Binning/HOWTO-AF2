@@ -1,0 +1,115 @@
+
+RUNNING THE CODE : ##############################
+
+No need to setup anything, just make : 
+
+make -f Makefile 
+./Plothits
+
+
+Inside the Plothits.cxx file : 
+
+PARAMETERS : 
+	   * "tolerance" (L.70) is the minimum energy density value acceptable per bin
+	   * "doPart" (L.73) is either "pi" or "e", for the pion and electron cases 
+	   * "selected_layer" (L.74) is the layer number under consideration
+	   * "rotZach" (L.102) is the rotation of pi/8 suggested by Zach (we can set it back to zero via this parameter)
+	   * "nAlphaBins" (L.174) is the number of bins in alpha (fixed at eight)
+	   * "rmax" (L.192) is the maximal number of bins in dr considered. From this number, a loop will be performed and the highest value allowing no null energy density bins will be used 
+	   * "nRsubBins" is the number of sub-bins in the last bin that should be tested
+	   * "nrelvar1" and "nrelvar2" are the relative energy density variations allowed (L.71-72) 
+
+TO CHANGE : 
+   	   * path for the output directory, called "outdir" (L.72)
+	   * path to the input files, called "myfile" (L.109, 112)
+
+EXPLANATION OF THE CODE :
+
+	   * the function used for plotting is called "fBinning", and is included in the fBinning.cxx file.
+	   * the function used for defining the binning is called "fVecBin", and is defined at the en of the Plothits.cxx file 
+
+	 1) BINNING : 
+	   * nxbins, nybins, xbins and ybins define the "default" binning for deta and dphi, based on Christopher's binning	   
+	   * nybinsPos and ybinsPos define the "default" binning for dR, using only the positive values from Christopher's binning
+	   * nxbinsReg and xbinsReg define a "regular" binning for the alpha angle 
+
+	 2) RESULTS WITH CHRISTOPHER'S BINNING (L.144-167)
+	 
+	 3) REBINNING IN ALPHA (L. 171-185) : eight bins are considered (fixed param)
+
+	 4) REBINNING IN R (L.189-273) : the number of maximum bins in dr is 50 (rmax). While we have empty bins (checked with the isEmptyBins variable), we reduce the number of dR bins, until all the bins are filled with some energy density. The check of empty bins is performed in L.240-266.
+
+	 5) NEED TO RECREATE FINAL BINNING IN DR OUTSIDE OF LOOP (L.277-307)
+
+	 6) CHECK LAST BIN IN DR (L.311-406)
+
+	 7) RECREATE THE FINAL BINNING IN DR OUTSIDE OF LOOP (L.414-440)
+
+	 8) ONE MORE FINAL CHECK (L.444-490)
+
+ 
+
+
+################################################
+
+
+Inside the ISF_FastCaloSimParameterization/, the DistanceCells.txt file is created from the testCaloGeometry.C macro (in the tools/ directory). If you want to run this file, DO NOT setup anything, 
+just use the default root version. 
+
+################################################################################################################################################################################################
+
+Ntuples coming from : 
+/afs/cern.ch/atlas/groups/Simulation/FastCaloSim/Zdenek_run240914_50GeV_pion_eta20_25/ISF_*
+
+Flavia's code : 
+svn co svn+ssh://svn.cern.ch/reps/atlasoff/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tags/ISF_FastCaloSimParametrization-00-00-28-02  ISF_FastCaloSimParametrization-00-00-28-02
+
+An example code on how to use the geometry package is here:
+https://svnweb.cern.ch/trac/atlasoff/browser/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tags/ISF_FastCaloSimParametrization-00-00-28-02/tools/testCaloGeometry.C
+
+The standalone 'geometry' file example is /afs/cern.ch/atlas/groups/Simulation/FastCaloSim/ATLAS-GEO-20-00-01.root
+
+########################################################################################################################################################################################################
+
+Ntuples are pions with E=10,50 GeV, eta =0.2,2.0,4.0
+	* eta=0.2 has also 3 different z positions for 10 GeV (some 50 GeV jobs failed), 
+	* all should have 5.5k events.
+	* the ntuples have only 1 truth particle (the original pion), with the extrapolated angles (if the extrapolation fails, the angles should be -999.)
+
+There are two ntuples for each file :
+
+1) the original:
+ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root  (same format as before, but some new variables added)
+
+2) the hit <-> cell merged ntuples:
+ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.merged.root
+
+which now have a truth information added to them with the FCS_truth class (https://svnweb.cern.ch/trac/atlasoff/browser/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tags/ISF_FastCaloSimParametrization-00-00-28-03/tools/FCS_Cell.h#L71) - the truth particle has a TLorentzVector and all the extrapolated eta/phi angles at each layer
+
+The merged ntuples are larger because at the moment they contain a lot of duplicated information - you can loop over all cells in the AllCells branch or get just cells in a particular layer Sampling_X. This branches are vectors of cells (https://svnweb.cern.ch/trac/atlasoff/browser/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tags/ISF_FastCaloSimParametrization-00-00-28-03/tools/FCS_Cell.h#L50), each cell has a vector of hits and g4hits associated to it.
+
+The full list of available files on eos:
+
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_-100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_-100_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_-100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_-100_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E10000_10000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E10000_10000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta200_205_Evts0-5500_vz_0_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_0_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta20_25_Evts0-5500_vz_100_origin_calo.pool.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.merged.root
+eos/atlas/user/z/zhubacek/FastCaloSim/NTUP_061114/OUTPUT_Merge_evgen_calo__211_E50000_50000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root/ISF_HitAnalysis_evgen_calo__211_E50000_50000_eta400_405_Evts0-5500_vz_0_origin_calo.pool.root
+
+#######################################################################################################################
+
+
+

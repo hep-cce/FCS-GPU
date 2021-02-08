@@ -1,0 +1,5 @@
+Unix.*.Root.DynamicPath:    .:$(ROOTSYS)/lib:$(HOME)/RootUtils/lib:
+Unix.*.Root.MacroPath:	    .:$(HOME)/RootUtils:
+
+Root.ShowPath: false
+

@@ -1,0 +1,20 @@
+package CaloGeoHelpers
+
+author Walter Lampl <walter.lampl@cern.ch>
+
+public
+
+# Central package(s):
+use AtlasPolicy   AtlasPolicy-*
+use CxxUtils       CxxUtils-*          Control
+
+# Apply the cmake-specific command to install the none-standard headers
+apply_pattern cmake_add_command command="athena_install_nonstandard_headers(CaloGeoHelpers/CaloSampling.def)"
+
+library CaloGeoHelpers ../Root/*.cxx ../src/*.cxx
+apply_pattern installed_library
+
+private
+use TestTools          TestTools-*          AtlasTest
+
+apply_pattern UnitTest_run unit_test=CaloPhiRange
