@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "runTFCSMergeParamEtaSlices.cxx"
 
 void runTFCSCalculateMemory( std::string file = "TFCSparam_v008.root", int int_Emin = 64, int int_Emax = 4194304,

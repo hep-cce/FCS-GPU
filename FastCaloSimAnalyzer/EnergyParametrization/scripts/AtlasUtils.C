@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+*/
+
 void ATLAS_LABEL(Double_t x,Double_t y,double size) 
 {
   TLatex l; l.SetTextAlign(12); l.SetTextSize(size); 

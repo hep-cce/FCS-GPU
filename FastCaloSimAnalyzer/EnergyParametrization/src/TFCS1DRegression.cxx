@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+*/
+
 
 #include "TFCS1DRegression.h"
 #include "ISF_FastCaloSimEvent/TFCS1DFunction.h"

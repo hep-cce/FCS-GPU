@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "CaloGpuGeneral_kk.h"
 #include "CaloGpuGeneral_cu.h"
 #include "Rand4Hits.h"

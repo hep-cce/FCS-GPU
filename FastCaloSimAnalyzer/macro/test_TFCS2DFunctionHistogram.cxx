@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "../../ISF_FastCaloSimEvent/ISF_FastCaloSimEvent/TFCS2DFunctionHistogram.h"
 #include "TRandom.h"
 
