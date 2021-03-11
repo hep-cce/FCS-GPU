@@ -1,14 +1,14 @@
 #ifndef RAND4HITS_H
 #define RAND4HITS_H
 
-#include <curand.h>
+#include <hiprand.h>
 #include <stdio.h>
 
 #include "GpuGeneral_structs.h"
 #include "gpuQ.h"
 
-#define CURAND_CALL( x )                                                                                               \
-  if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
+#define HIPRAND_CALL( x )                                                                                               \
+  if ( ( x ) != HIPRAND_STATUS_SUCCESS ) {                                                                              \
     printf( "Error at %s:%d\n", __FILE__, __LINE__ );                                                                  \
     exit( EXIT_FAILURE );                                                                                              \
   }
@@ -20,8 +20,8 @@ public:
     m_total_a_hits = 0;
   };
   ~Rand4Hits() {
-    gpuQ( cudaFree( m_rand_ptr ) );
-    CURAND_CALL( curandDestroyGenerator( m_gen ) );
+    gpuQ( hipFree( m_rand_ptr ) );
+    HIPRAND_CALL( hiprandDestroyGenerator( m_gen ) );
   };
   // float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
 
@@ -40,8 +40,8 @@ public:
   void              set_c_hits( int nhits ) { m_current_hits = nhits; };
   unsigned int      get_c_hits() { return m_current_hits; };
   unsigned int      get_t_a_hits() { return m_total_a_hits; };
-  void              set_gen( curandGenerator_t gen ) { m_gen = gen; };
-  curandGenerator_t gen() { return m_gen; };
+  void              set_gen( hiprandGenerator_t gen ) { m_gen = gen; };
+  hiprandGenerator_t gen() { return m_gen; };
 
   void allocate_simulation( long long maxhits, unsigned short maxbins, unsigned short maxhitct, unsigned long n_cells );
 
@@ -54,7 +54,7 @@ public:
   unsigned long* get_hitcells() { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };
 
-  void rd_regen() { CURAND_CALL( curandGenerateUniform( m_gen, m_rand_ptr, 3 * m_total_a_hits ) ); };
+  void rd_regen() { HIPRAND_CALL( hiprandGenerateUniform( m_gen, m_rand_ptr, 3 * m_total_a_hits ) ); };
   void add_a_hits( int nhits ) {
     if ( over_alloc( nhits ) )
       m_current_hits = nhits;
@@ -69,9 +69,9 @@ private:
   float*            m_rand_ptr;
   unsigned int      m_total_a_hits;
   unsigned int      m_current_hits;
-  curandGenerator_t m_gen;
+  hiprandGenerator_t m_gen;
 
-  // patch in some GPU pointers for cudaMalloc
+  // patch in some GPU pointers for hipMalloc
   float*  m_cells_energy;
   Cell_E* m_cell_e;
   int*    m_ct;

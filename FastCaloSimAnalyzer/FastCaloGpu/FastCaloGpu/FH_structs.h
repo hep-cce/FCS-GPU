@@ -1,6 +1,8 @@
 #ifndef FH_STRUCT_H
 #define FH_STRUCT_H
 
+#include <cstdint>
+
 typedef struct FHs {
   uint32_t      s_MaxValue;
   float*        low_edge;

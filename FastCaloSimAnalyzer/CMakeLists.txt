@@ -1,6 +1,7 @@
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
 cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_policy(SET CMP0074 NEW)
 
 # Add additional CMake macros and definitions
 set(CMAKE_MODULE_PATH
@@ -11,6 +12,10 @@ set(CMAKE_MODULE_PATH
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
+
+if(USE_KOKKOS)
+  find_package(Kokkos) 
+endif()
 
 include(FastCaloSim)
 include(XRootD)

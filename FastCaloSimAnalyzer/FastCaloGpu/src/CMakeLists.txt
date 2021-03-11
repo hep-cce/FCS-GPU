@@ -2,17 +2,30 @@
 
 # "First-class" CUDA support needs at least CMake 3.10.
 cmake_minimum_required( VERSION 3.10 )
+cmake_policy(SET CMP0074 NEW)
 
 # Set up the "modern" usage of CUDA with CMake.
-find_package(CUDA REQUIRED)
-enable_language( CUDA )
 
 #Need to do other way.
-#set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
+# set(CMAKE_CUDA_FLAGS "-arch=sm_75")
 # Sources
-set(FastCaloGpu_Srcs
-  GeoLoadGpu.cu
-)
+
+if(USE_KOKKOS)
+
+  # set(CMAKE_MODULE_PATH "/opt/rocm/hip/cmake" ${CMAKE_MODULE_PATH})
+  # find_package(HIP)
+
+  
+  find_package(HIP REQUIRED)
+#  enable_language( HIP )
+
+  set(FastCaloGpu_Srcs GeoLoadGpu.cpp )
+else()
+  find_package(CUDA REQUIRED)
+  enable_language( CUDA )
+  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
+endif()
+
 
 # # Global include is needed for dictionary generation to work
 #include_directories(../../)
@@ -29,15 +42,23 @@ set(FastCaloGpu_Srcs
 #)
 
 #This seems to be a hack to avoid a cmake error 
-set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES})
+set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
 
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
 add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 
-target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/hiprand/include )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/rocrand/include )
 
-target_link_libraries(${FastCaloGpu_LIB} PUBLIC ${CUDA_curand_LIBRARY})
+target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
+target_link_libraries(${FastCaloGpu_LIB}  PUBLIC /opt/rocm/hiprand/lib/libhiprand.so)
+
+if(USE_KOKKOS)
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
+endif()
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
