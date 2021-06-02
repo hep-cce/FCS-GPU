@@ -1,6 +1,7 @@
 #include "hip/hip_runtime.h"
 #include <iostream>
 #include "GeoLoadGpu.h"
+#include "gpuQ.h"
 
 
 __global__  void testHello() {
@@ -80,6 +81,10 @@ bool GeoLoadGpu::LoadGpu()
 	std::cout<< "Geometry is empty " << std::endl ;
 	return false ;
     }
+
+    hipDeviceProp_t prop;
+    gpuQ( hipGetDeviceProperties( &prop, 0 ) );
+    std::cout << "Executing on GPU: " << prop.name << std::endl;
 
 
    GeoGpu geo_gpu_h ;
