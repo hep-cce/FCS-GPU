@@ -1,10 +1,11 @@
+#include "hip/hip_runtime.h"
 #include <iostream>
 #include "GeoLoadGpu.h"
 
 
 __global__  void testHello() {
 
-printf("Hello, I am from GPU thread %d\n", threadIdx.x);
+  printf("Hello, I am from GPU thread %d\n", hipThreadIdx_x);
 }
 
 __global__  void testCell(CaloDetDescrElement * cells , unsigned long index ) {
@@ -87,8 +88,8 @@ bool GeoLoadGpu::LoadGpu()
 
     // Allocate Device memory for cells and copy cells as array
     // move cells on host to a array first
-    if(cudaSuccess != cudaMalloc((void**)&m_cells_g, sizeof(CaloDetDescrElement)*m_ncells)) return false ;
-	std::cout<< "cuMalloc " << m_ncells << " cells" << std::endl;
+    if(hipSuccess != hipMalloc((void**)&m_cells_g, sizeof(CaloDetDescrElement)*m_ncells)) return false ;
+	std::cout<< "hipMalloc " << m_ncells << " cells" << std::endl;
 
 	    
 
@@ -105,16 +106,16 @@ bool GeoLoadGpu::LoadGpu()
     }
  
 	
-        if(cudaSuccess != cudaMemcpy(&m_cells_g[0], cells_Host ,sizeof(CaloDetDescrElement)*m_ncells , cudaMemcpyHostToDevice)) return false ;
-	std::cout<< "cudaMemcpy " << ii  << " cells" <<" Total:" << ii* sizeof(CaloDetDescrElement) << " Bytes"<<  std::endl;
+        if(hipSuccess != hipMemcpy(&m_cells_g[0], cells_Host ,sizeof(CaloDetDescrElement)*m_ncells , hipMemcpyHostToDevice)) return false ;
+	std::cout<< "hipMemcpy " << ii  << " cells" <<" Total:" << ii* sizeof(CaloDetDescrElement) << " Bytes"<<  std::endl;
 
     free(cells_Host) ;
 
 if(0) {
     //sanity check/test
-    testHello <<<1, 1>>> () ;
-    testCell <<<1, 1>>> (m_cells_g, 1872 ) ;
-    cudaDeviceSynchronize() ;
+    hipLaunchKernelGGL(testHello, dim3(1), dim3(1), 0, 0) ;
+    hipLaunchKernelGGL(testCell, dim3(1), dim3(1), 0, 0, m_cells_g, 1872 ) ;
+    hipDeviceSynchronize() ;
 
      std::cout<<" ID of 2000's cell "<< m_cellid_array[2000] <<std::endl ;
      Identifier  Id  = m_cellid_array[2000] ;
@@ -124,19 +125,19 @@ if(0) {
 	
     std::cout<<"GPU Kernel cell test lauched" << std::endl  ;
 
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) { 
-    	std::cout<< cudaGetErrorString(err)<< std::endl;
+    hipError_t err = hipGetLastError();
+    if (err != hipSuccess) { 
+    	std::cout<< hipGetErrorString(err)<< std::endl;
 	return false ;
     }
 }
 
 Rg_Sample_Index * SampleIndex_g ;
-if(cudaSuccess != cudaMalloc((void**) &SampleIndex_g,
+if(hipSuccess != hipMalloc((void**) &SampleIndex_g,
                  sizeof( Rg_Sample_Index  ) *m_max_sample )) return false ;
 
 // copy sample_index array  to gpu
-if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_Index)*m_max_sample ,cudaMemcpyHostToDevice)){
+if(hipSuccess != hipMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_Index)*m_max_sample ,hipMemcpyHostToDevice)){
        std::cout << "Error copy sample index "<< std::endl ;
 
  return false ;
@@ -150,11 +151,11 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
     for(unsigned int ir=0 ; ir< m_nregions ; ++ir) {
 //	std::cout << "debug m_regions_g[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
 	long long * ptr_g ;
-        if(cudaSuccess != cudaMalloc((void**) &ptr_g,
+        if(hipSuccess != hipMalloc((void**) &ptr_g,
 		 sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi())) return false ;
   //      std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
-     	if(cudaSuccess != cudaMemcpy(ptr_g, m_regions[ir].cell_grid() , 
-		sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi() , cudaMemcpyHostToDevice)) return false ;
+     	if(hipSuccess != hipMemcpy(ptr_g, m_regions[ir].cell_grid() , 
+		sizeof(long long )* m_regions[ir].cell_grid_eta()*m_regions[ir].cell_grid_phi() , hipMemcpyHostToDevice)) return false ;
   //      std::cout<< "cpy grid "<<  ir  << std::endl;
 	 m_regions[ir].set_cell_grid_g(ptr_g) ;
          m_regions[ir].set_all_cells(m_cells_g) ; // set this so all region instance know where the GPU cells are, before copy to GPU  	
@@ -163,9 +164,9 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 
 // GPU allocate Regions data  and load them to GPU as array of regions
    
-    if(cudaSuccess != cudaMalloc((void**)&m_regions_g, sizeof(GeoRegion)*m_nregions)) return false ;
+    if(hipSuccess != hipMalloc((void**)&m_regions_g, sizeof(GeoRegion)*m_nregions)) return false ;
   //      std::cout<< "cuMalloc "<< m_nregions << " regions" << std::endl;
-    if(cudaSuccess != cudaMemcpy(m_regions_g, m_regions,sizeof(GeoRegion)*m_nregions, cudaMemcpyHostToDevice)) return false ; 
+    if(hipSuccess != hipMemcpy(m_regions_g, m_regions,sizeof(GeoRegion)*m_nregions, hipMemcpyHostToDevice)) return false ; 
 //        std::cout<< "Regions Array Copied , size (Byte) " <<  sizeof(GeoRegion)*m_nregions << "sizeof cell *" << sizeof(CaloDetDescrElement *) << std::endl;
 //        std::cout<< "Region Pointer GPU print from host" <<  m_regions_g  << std::endl;
 
@@ -178,27 +179,27 @@ if(cudaSuccess != cudaMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_
 
  // Now copy this to GPU and set the staic memner to thsi pointer  
 	GeoGpu * Gptr ;
-        cudaMalloc((void**)&Gptr, sizeof(GeoGpu)) ;
-	cudaMemcpy(Gptr,&geo_gpu_h,sizeof(GeoGpu),cudaMemcpyHostToDevice) ;
+        hipMalloc((void**)&Gptr, sizeof(GeoGpu)) ;
+	hipMemcpy(Gptr,&geo_gpu_h,sizeof(GeoGpu),hipMemcpyHostToDevice) ;
 
 	Geo_g= Gptr ;
 
 
 // more test for region grids
 if(0) {
-    testGeo<<<1,1 >>> (m_cells_g, m_regions_g,m_ncells, m_nregions, 14, 0, 32 ); 
-    cudaDeviceSynchronize() ;
-    cudaError_t err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        std::cout<< cudaGetErrorString(err)<< std::endl;
+    hipLaunchKernelGGL(testGeo, dim3(1), dim3(1 ), 0, 0, m_cells_g, m_regions_g,m_ncells, m_nregions, 14, 0, 32 ); 
+    hipDeviceSynchronize() ;
+    hipError_t err = hipGetLastError();
+    if (err != hipSuccess) {
+        std::cout<< hipGetErrorString(err)<< std::endl;
         return false ;
     }
 	
-    testGeo_g<<<1,1 >>> (Geo_g, 14, 0, 32 ); 
-    cudaDeviceSynchronize() ;
-    err = cudaGetLastError();
-    if (err != cudaSuccess) {
-        std::cout<< cudaGetErrorString(err)<< std::endl;
+    hipLaunchKernelGGL(testGeo_g, dim3(1), dim3(1 ), 0, 0, Geo_g, 14, 0, 32 ); 
+    hipDeviceSynchronize() ;
+    err = hipGetLastError();
+    if (err != hipSuccess) {
+        std::cout<< hipGetErrorString(err)<< std::endl;
         return false ;
     }
 	
@@ -223,6 +224,6 @@ if(0) {
 
 }  
 
-#include "Rand4Hits.cu"
-#include "CaloGpuGeneral.cu"
-#include "LoadGpuFuncHist.cu"
+#include "CaloGpuGeneral.cpp"
+#include "LoadGpuFuncHist.cpp"
+#include "Rand4Hits.cpp"

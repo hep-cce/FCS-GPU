@@ -3,19 +3,18 @@
 # "First-class" CUDA support needs at least CMake 3.10.
 cmake_minimum_required( VERSION 3.10 )
 
-# Set up the "modern" usage of CUDA with CMake.
-find_package(CUDA REQUIRED)
-enable_language( CUDA )
-
-#Need to do other way.
-#set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
-# Sources
-set(FastCaloGpu_Srcs
-  GeoLoadGpu.cu
-)
+# use HIP
+find_package(HIP REQUIRED)
+set(FastCaloGpu_Srcs GeoLoadGpu.cpp )
 
 # # Global include is needed for dictionary generation to work
 #include_directories(../../)
+
+## for HIP
+include_directories( /opt/rocm/hip/include )
+add_compile_definitions(__HIP_PLATFORM_AMD__ HIP_PLATFORM_AMD __HIP_PLATFORM_HCC__ HIP_PLATFORM_HCC)
+
+
 
 # Add dictionary dependencies
 #fcs_dictionary_dependency(${FastCaloGpu_LIB})
@@ -28,16 +27,15 @@ set(FastCaloGpu_Srcs
 #  LINKDEF LinkDef.h
 #)
 
-#This seems to be a hack to avoid a cmake error 
-set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES})
-
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
 add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/hiprand/include )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/rocrand/include )
 
-target_link_libraries(${FastCaloGpu_LIB} PUBLIC ${CUDA_curand_LIBRARY})
+target_link_libraries(${FastCaloGpu_LIB}  PUBLIC /opt/rocm/hiprand/lib/libhiprand.so)
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}

@@ -8,10 +8,10 @@
 #ifndef IdentifierStandAlone
 #define IdentifierStandAlone
 
-#ifdef __CUDACC__
-#define CUDA_HOSTDEV __host__ __device__
+#ifdef __HIPCC__
+#define HIP_HOSTDEV __host__ __device__
 #else
-#define CUDA_HOSTDEV
+#define HIP_HOSTDEV
 #endif
 
 class Identifier
@@ -31,22 +31,22 @@ class Identifier
     max_value = ~(static_cast<value_type>(0))
   } max_value_type;
 
-CUDA_HOSTDEV  Identifier():m_id(max_value) {};
-CUDA_HOSTDEV  Identifier(const Identifier& value):m_id(value.m_id) {};
-CUDA_HOSTDEV  Identifier(value_type value):m_id(value) {};
+HIP_HOSTDEV  Identifier():m_id(max_value) {};
+HIP_HOSTDEV  Identifier(const Identifier& value):m_id(value.m_id) {};
+HIP_HOSTDEV  Identifier(value_type value):m_id(value) {};
   
-CUDA_HOSTDEV  operator value_type() const { return m_id; }
+HIP_HOSTDEV  operator value_type() const { return m_id; }
   
-CUDA_HOSTDEV  Identifier& operator = (const Identifier& old) {m_id=old;return (*this);};
-CUDA_HOSTDEV  Identifier& operator = (value_type value) {m_id=value;return (*this);};
-CUDA_HOSTDEV  bool operator == (const Identifier& other) const {return (m_id == other.m_id);}
-CUDA_HOSTDEV  bool operator != (const Identifier& other) const {return (m_id != other.m_id);}
-CUDA_HOSTDEV  bool operator < (const Identifier& other) const {return (m_id < other.m_id);}
-CUDA_HOSTDEV  bool operator > (const Identifier& other) const {return (m_id > other.m_id);}
-CUDA_HOSTDEV  bool operator <= (const Identifier& other) const {return (m_id <= other.m_id);}
-CUDA_HOSTDEV  bool operator >= (const Identifier& other) const {return (m_id >= other.m_id);}
-CUDA_HOSTDEV  bool operator == (Identifier::value_type other) const {return (m_id == other);}
-CUDA_HOSTDEV  bool operator != (Identifier::value_type other) const {return (m_id != other);}
+HIP_HOSTDEV  Identifier& operator = (const Identifier& old) {m_id=old;return (*this);};
+HIP_HOSTDEV  Identifier& operator = (value_type value) {m_id=value;return (*this);};
+HIP_HOSTDEV  bool operator == (const Identifier& other) const {return (m_id == other.m_id);}
+HIP_HOSTDEV  bool operator != (const Identifier& other) const {return (m_id != other.m_id);}
+HIP_HOSTDEV  bool operator < (const Identifier& other) const {return (m_id < other.m_id);}
+HIP_HOSTDEV  bool operator > (const Identifier& other) const {return (m_id > other.m_id);}
+HIP_HOSTDEV  bool operator <= (const Identifier& other) const {return (m_id <= other.m_id);}
+HIP_HOSTDEV  bool operator >= (const Identifier& other) const {return (m_id >= other.m_id);}
+HIP_HOSTDEV  bool operator == (Identifier::value_type other) const {return (m_id == other);}
+HIP_HOSTDEV  bool operator != (Identifier::value_type other) const {return (m_id != other);}
   
   protected:
   value_type m_id;

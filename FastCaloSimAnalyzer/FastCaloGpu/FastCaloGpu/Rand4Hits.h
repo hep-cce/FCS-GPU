@@ -2,7 +2,7 @@
 #define RAND4HITS_H
 
 #include <stdio.h>
-#include <curand.h>
+#include <hiprand.h>
 
 #include "GpuParams.h"
 #include "gpuQ.h"
@@ -10,7 +10,7 @@
 
 
 
-#define CURAND_CALL(x)  if((x)!=CURAND_STATUS_SUCCESS) { \
+#define HIPRAND_CALL(x)  if((x)!=HIPRAND_STATUS_SUCCESS) { \
     printf("Error at %s:%d\n",__FILE__,__LINE__);\
     exit(EXIT_FAILURE) ; }
 
@@ -20,13 +20,13 @@ class Rand4Hits {
      Rand4Hits(){ m_rand_ptr =0 ;
 		m_total_a_hits=0 ;
 	  }; 
-     ~Rand4Hits() {gpuQ(cudaFree(m_rand_ptr));
-		 CURAND_CALL(curandDestroyGenerator(m_gen));
-		cudaFree(m_cells_energy) ;
-		cudaFree(m_cell_e) ;
-		cudaFree(m_ct) ;
-		cudaFree(m_hitparams) ;
-		cudaFree(m_simbins) ;
+     ~Rand4Hits() {gpuQ(hipFree(m_rand_ptr));
+		 HIPRAND_CALL(hiprandDestroyGenerator(m_gen));
+		hipFree(m_cells_energy) ;
+		hipFree(m_cell_e) ;
+		hipFree(m_ct) ;
+		hipFree(m_hitparams) ;
+		hipFree(m_simbins) ;
 		};
 		
      //float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
@@ -46,8 +46,8 @@ class Rand4Hits {
      void set_c_hits( int nhits) { m_current_hits=nhits ; };
      unsigned int  get_c_hits( ) { return  m_current_hits ; };
      unsigned int  get_t_a_hits( ) { return  m_total_a_hits ; };
-     void set_gen( curandGenerator_t  gen) { m_gen=gen ; };
-     curandGenerator_t gen() {return m_gen ; } ; 
+     void set_gen( hiprandGenerator_t  gen) { m_gen=gen ; };
+     hiprandGenerator_t gen() {return m_gen ; } ; 
      void allocate_hist( long long maxhits, unsigned short maxbins,unsigned short maxhitct, int n_hist, int n_match , bool hitspy);
 
      void allocate_simulation(  int  maxbins, int maxhitcts,  unsigned long n_cells);
@@ -76,7 +76,7 @@ class Rand4Hits {
      double * get_hist_stat_h() {return m_hist_stat_h ; }; 
 
      
-     void    rd_regen() {CURAND_CALL(curandGenerateUniform(m_gen, m_rand_ptr, 3*m_total_a_hits) ); }  ;
+     void    rd_regen() {HIPRAND_CALL(hiprandGenerateUniform(m_gen, m_rand_ptr, 3*m_total_a_hits) ); }  ;
      void    add_a_hits(int nhits) { if(over_alloc(nhits)) m_current_hits= nhits ; else m_current_hits += nhits ; } ;
      bool   over_alloc(int nhits){ return m_current_hits+nhits >m_total_a_hits ;} ; //return true if hits over spill, need regenerat rand..
      
@@ -86,9 +86,9 @@ class Rand4Hits {
       float * m_rand_ptr  ;
       unsigned int  m_total_a_hits ;
       unsigned int  m_current_hits ;
-      curandGenerator_t m_gen;
+      hiprandGenerator_t m_gen;
       
-//patch in some GPU pointers for cudaMalloc
+//patch in some GPU pointers for hipMalloc
       float * m_cells_energy ;
       Cell_E * m_cell_e ;
       int * m_ct ;

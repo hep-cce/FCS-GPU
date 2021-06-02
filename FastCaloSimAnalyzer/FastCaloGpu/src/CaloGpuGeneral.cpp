@@ -1,6 +1,8 @@
+#include "hip/hip_runtime.h"
 #include "CaloGpuGeneral.h"
-#include "GeoRegion.cu"
+#include "GeoRegion.cpp"
 #include "Hit.h"
+#include "Rand4Hits.h"
 
 #include "gpuQ.h"
 #include "Args.h"
@@ -200,19 +202,19 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
    auto t0 = std::chrono::system_clock::now();
       Rand4Hits * rd4h = new Rand4Hits ;
 	float * f  ;
-	curandGenerator_t gen ;
+	hiprandGenerator_t gen ;
    auto t1 = std::chrono::system_clock::now();
         
-        CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
-        CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
+        HIPRAND_CALL(hiprandCreateGenerator(&gen, HIPRAND_RNG_PSEUDO_DEFAULT));
+        HIPRAND_CALL(hiprandSetPseudoRandomGeneratorSeed(gen, seed)) ;
    auto t2 = std::chrono::system_clock::now();
-       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
+       gpuQ(hipMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
    auto t3 = std::chrono::system_clock::now();
          rd4h->set_rand_ptr(f) ;
 	 rd4h->set_gen(gen) ;
 	 rd4h->set_t_a_hits(maxhits);
 	 rd4h->set_c_hits(0) ;
-	CURAND_CALL(curandGenerateUniform(gen, f, 3*maxhits));
+	HIPRAND_CALL(hiprandGenerateUniform(gen, f, 3*maxhits));
    auto t4 = std::chrono::system_clock::now();
 
 	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
@@ -244,7 +246,7 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
 __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
 
  size_t free, total ;
- gpuQ(cudaMemGetInfo(&free, &total)) ;
+ gpuQ(hipMemGetInfo(&free, &total)) ;
  std::cout << "GPU memory used(MB): "<< (total-free)/1000000 <<"  bm table allocate size(MB), used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " << CU_BigMem::bm_ptr->used()/1000000<< std::endl ;
  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
@@ -261,8 +263,8 @@ __host__ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, lon
     HitParams * hp_g = ((Rand4Hits *) rd4h )->get_hitparams() ;
     long * simbins_g =  ((Rand4Hits *) rd4h) ->get_simbins() ;
 	
-   gpuQ(cudaMemcpy(hp_g, hp, bins*sizeof(HitParams), cudaMemcpyHostToDevice));
-   gpuQ(cudaMemcpy(simbins_g, simbins, bins*sizeof(long), cudaMemcpyHostToDevice));
+   gpuQ(hipMemcpy(hp_g, hp, bins*sizeof(HitParams), hipMemcpyHostToDevice));
+   gpuQ(hipMemcpy(simbins_g, simbins, bins*sizeof(long), hipMemcpyHostToDevice));
 
 }
 
@@ -475,7 +477,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 
 //
 
- 	cudaError_t err = cudaGetLastError();
+ 	hipError_t err = hipGetLastError();
 
 // clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
 // and workspace hitcells_energy[ncells*MAX_SIM]
@@ -483,26 +485,26 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
         int blocksize=BLOCK_SIZE ;
         int threads_tot= args.ncells*args.nsims  ;
         int nblocks= (threads_tot + blocksize-1 )/blocksize ;
-        simulate_clean <<< nblocks, blocksize >>>( args) ;
+        hipLaunchKernelGGL(simulate_clean, dim3(nblocks), dim3(blocksize ), 0, 0,  args) ;
 
 // Now main hit simulation find cell and populate hitcells_energy[] :
         blocksize=BLOCK_SIZE ;
         threads_tot= args.nhits  ;
         nblocks= (threads_tot + blocksize-1 )/blocksize ;
-	simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
+	hipLaunchKernelGGL(simulate_hits_de, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ;
 
 // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
 
         nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
-        simulate_hits_ct <<<nblocks, blocksize >>>(args ) ; 
+        hipLaunchKernelGGL(simulate_hits_ct, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ; 
 
 // cpy result back 
 
-   gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
+   gpuQ(hipMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), hipMemcpyDeviceToHost));
 
-   gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+   gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), hipMemcpyDeviceToHost));
 //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
-  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+  //     gpuQ(hipMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), hipMemcpyDeviceToHost));
    
 } 
 

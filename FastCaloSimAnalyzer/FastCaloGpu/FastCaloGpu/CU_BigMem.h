@@ -12,7 +12,7 @@ public :
 	CU_BigMem( size_t s ) {  //initialize to one seg with size s
 	  void* p ;  
 	  m_seg_size = s ;
-	  gpuQ(cudaMalloc(&p , m_seg_size )) ;
+	  gpuQ(hipMalloc(&p , m_seg_size )) ;
 	  m_ptrs.push_back(p) ; 
 	//  bm_ptr = self ;
 	  m_seg =0 ;
@@ -20,7 +20,7 @@ public :
 //std::cout<<"zzz: " <<m_seg_size<<",p= " << p<<"," <<m_ptrs[0] << std::endl ;
 	 } ; 
 	~CU_BigMem() {
-		for(int i=0 ; i<m_ptrs.size() ; i++) gpuQ(cudaFree( m_ptrs[i]) ) ; 
+		for(int i=0 ; i<m_ptrs.size() ; i++) gpuQ(hipFree( m_ptrs[i]) ) ; 
 	}  ;
 
 
@@ -44,7 +44,7 @@ public :
 private : 
 	void add_seg() { 
 		void * p ; 
-		gpuQ(cudaMalloc((void**)&p , m_seg_size )) ;
+		gpuQ(hipMalloc((void**)&p , m_seg_size )) ;
 		m_ptrs.push_back(p) ;
 		m_seg++;
 		m_used.push_back(0)  ;

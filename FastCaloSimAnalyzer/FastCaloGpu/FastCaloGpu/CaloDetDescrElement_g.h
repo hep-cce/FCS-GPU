@@ -14,7 +14,7 @@
 class CaloDetDescrElement
 {
  public:
-CUDA_HOSTDEV  CaloDetDescrElement() {
+HIP_HOSTDEV  CaloDetDescrElement() {
     m_identify = 0;
     m_hash_id = 0;
     m_calosample = 0;
@@ -40,71 +40,71 @@ CUDA_HOSTDEV  CaloDetDescrElement() {
 
   /** @brief virtual destructor
    */
-CUDA_HOSTDEV    virtual ~CaloDetDescrElement() {};
+HIP_HOSTDEV    virtual ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */
-CUDA_HOSTDEV    float eta() const;
+HIP_HOSTDEV    float eta() const;
   /** @brief cell phi
    */
-CUDA_HOSTDEV    float phi() const;
+HIP_HOSTDEV    float phi() const;
   /** @brief cell r
    */
-CUDA_HOSTDEV    float r() const;
+HIP_HOSTDEV    float r() const;
   /** @brief cell eta_raw
    */
-CUDA_HOSTDEV    float eta_raw() const;
+HIP_HOSTDEV    float eta_raw() const;
   /** @brief cell phi_raw
    */
-CUDA_HOSTDEV    float phi_raw() const;
+HIP_HOSTDEV    float phi_raw() const;
   /** @brief cell r_raw
    */
-CUDA_HOSTDEV    float r_raw() const;
+HIP_HOSTDEV    float r_raw() const;
   /** @brief cell dphi
    */
-CUDA_HOSTDEV    float dphi() const;
+HIP_HOSTDEV    float dphi() const;
   /** @brief cell deta
    */
-CUDA_HOSTDEV    float deta() const;
+HIP_HOSTDEV    float deta() const;
   /** @brief cell dr
    */
-CUDA_HOSTDEV    float dr() const;
+HIP_HOSTDEV    float dr() const;
 
   /** @brief cell x
    */
-CUDA_HOSTDEV    float x() const;
+HIP_HOSTDEV    float x() const;
   /** @brief cell y
    */
-CUDA_HOSTDEV    float y() const;
+HIP_HOSTDEV    float y() const;
   /** @brief cell z
    */
-CUDA_HOSTDEV    float z() const;
+HIP_HOSTDEV    float z() const;
   /** @brief cell x_raw
    */
-CUDA_HOSTDEV    float x_raw() const;
+HIP_HOSTDEV    float x_raw() const;
   /** @brief cell y_raw
    */
-CUDA_HOSTDEV    float y_raw() const;
+HIP_HOSTDEV    float y_raw() const;
   /** @brief cell z_raw
    */
-CUDA_HOSTDEV    float z_raw() const;
+HIP_HOSTDEV    float z_raw() const;
   /** @brief cell dx
    */
-CUDA_HOSTDEV    float dx() const;
+HIP_HOSTDEV    float dx() const;
   /** @brief cell dy
    */
-CUDA_HOSTDEV    float dy() const;
+HIP_HOSTDEV    float dy() const;
   /** @brief cell dz
    */
-CUDA_HOSTDEV    float dz() const;
+HIP_HOSTDEV    float dz() const;
 
   /** @brief cell identifier
    */
-CUDA_HOSTDEV    Identifier identify() const;
+HIP_HOSTDEV    Identifier identify() const;
 
-CUDA_HOSTDEV    unsigned long long calo_hash() const;
+HIP_HOSTDEV    unsigned long long calo_hash() const;
 
-CUDA_HOSTDEV    int getSampling() const ;
+HIP_HOSTDEV    int getSampling() const ;
 
  //ACH protected:
  //
@@ -193,55 +193,55 @@ CUDA_HOSTDEV    int getSampling() const ;
 
 };
 
-CUDA_HOSTDEV  inline Identifier CaloDetDescrElement::identify() const
+HIP_HOSTDEV  inline Identifier CaloDetDescrElement::identify() const
 {
 	Identifier id((unsigned long long) m_identify);
 	return id;
 }
 
-CUDA_HOSTDEV  inline unsigned long long CaloDetDescrElement::calo_hash() const
+HIP_HOSTDEV  inline unsigned long long CaloDetDescrElement::calo_hash() const
 {
 	return m_hash_id;
 }
 
-CUDA_HOSTDEV  inline int CaloDetDescrElement::getSampling() const
+HIP_HOSTDEV  inline int CaloDetDescrElement::getSampling() const
 { return m_calosample;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::eta() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::eta() const
 { return m_eta;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::phi() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::phi() const
 { return m_phi;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::r() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::r() const
 { return m_r;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::eta_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::eta_raw() const
 { return m_eta_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::phi_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::phi_raw() const
 { return m_phi_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::r_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::r_raw() const
 { return m_r_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::deta() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::deta() const
 { return m_deta;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::dphi() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::dphi() const
 { return m_dphi;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::dr() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::dr() const
 { return m_dr;}
 
-CUDA_HOSTDEV  inline float CaloDetDescrElement::x() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::x() const
 { return m_x;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::y() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::y() const
 { return m_y;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::z() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::z() const
 { return m_z;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::x_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::x_raw() const
 { return m_x_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::y_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::y_raw() const
 { return m_y_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::z_raw() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::z_raw() const
 { return m_z_raw;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::dx() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::dx() const
 { return m_dx;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::dy() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::dy() const
 { return m_dy;}
-CUDA_HOSTDEV  inline float CaloDetDescrElement::dz() const
+HIP_HOSTDEV  inline float CaloDetDescrElement::dz() const
 { return m_dz;}
 
 #endif
