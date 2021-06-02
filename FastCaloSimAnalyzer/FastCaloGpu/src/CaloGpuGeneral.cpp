@@ -10,6 +10,8 @@
 
 #include <chrono>
 
+static CaloGpuGeneral::KernelTime timing;
+
 #define BLOCK_SIZE 256 
 #define NLOOPS 1
 
@@ -250,6 +252,12 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
  std::cout << "GPU memory used(MB): "<< (total-free)/1000000 <<"  bm table allocate size(MB), used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " << CU_BigMem::bm_ptr->used()/1000000<< std::endl ;
  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
+
+  std::cout << "time kernel sim_clean: " << timing.t_sim_clean.count() << std::endl;
+  std::cout << "time kernel sim_A:     " << timing.t_sim_A.count() << std::endl;
+  std::cout << "time kernel sim_ct:    " << timing.t_sim_ct.count() << std::endl;
+  std::cout << "time kernel sim_cp:    " << timing.t_sim_cp.count() << std::endl;
+ 
 }
 
 
@@ -458,54 +466,65 @@ __global__  void simulate_hits_ct( const Sim_Args args) {
 __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 
 // get Randowm numbers ptr , generate if need
-	long nhits =args.nhits ;
-        Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
-        float * r= rd4h->rand_ptr(nhits)  ;
-	rd4h->add_a_hits(nhits) ;
-	args.rand =r;
+  long nhits =args.nhits ;
+  Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
+  float * r= rd4h->rand_ptr(nhits)  ;
+  rd4h->add_a_hits(nhits) ;
+  args.rand =r;
+  
+  args.cells_energy =  rd4h->get_cells_energy() ;
+  args.hitcells_E = rd4h->get_cell_e() ;
+  args.hitcells_E_h = rd4h->get_cell_e_h() ;
+  args.ct = rd4h->get_ct() ;
+  args.ct_h = rd4h->get_ct_h() ;
+  
+  args.simbins=rd4h->get_simbins();
+  args.hitparams = rd4h->get_hitparams() ;
+  
+  
+  
+  //
+  
+  hipError_t err = hipGetLastError();
+  
+  // clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
+  // and workspace hitcells_energy[ncells*MAX_SIM]
+  
+  int blocksize=BLOCK_SIZE ;
+  int threads_tot= args.ncells*args.nsims  ;
+  int nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  auto t0 = std::chrono::system_clock::now();
+  hipLaunchKernelGGL(simulate_clean, dim3(nblocks), dim3(blocksize ), 0, 0,  args) ;
+  hipDeviceSynchronize() ;
+  
+  // Now main hit simulation find cell and populate hitcells_energy[] :
+  blocksize=BLOCK_SIZE ;
+  threads_tot= args.nhits  ;
+  nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  auto t1 = std::chrono::system_clock::now();
+  hipLaunchKernelGGL(simulate_hits_de, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ;
+  hipDeviceSynchronize() ;
+  
+  // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
+  
+  nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
+  auto t2 = std::chrono::system_clock::now();
+  hipLaunchKernelGGL(simulate_hits_ct, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ; 
+  hipDeviceSynchronize() ;
+  
+  // cpy result back 
+  auto t3 = std::chrono::system_clock::now();
+  gpuQ(hipMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), hipMemcpyDeviceToHost));
+  
+  gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), hipMemcpyDeviceToHost));
+  auto t4 = std::chrono::system_clock::now();
 
-        args.cells_energy =  rd4h->get_cells_energy() ;
-        args.hitcells_E = rd4h->get_cell_e() ;
-        args.hitcells_E_h = rd4h->get_cell_e_h() ;
-        args.ct = rd4h->get_ct() ;
-	args.ct_h = rd4h->get_ct_h() ;
+  CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
+  timing += kt;
 
-	args.simbins=rd4h->get_simbins();
-	args.hitparams = rd4h->get_hitparams() ;
-
-	
-
-//
-
- 	hipError_t err = hipGetLastError();
-
-// clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
-// and workspace hitcells_energy[ncells*MAX_SIM]
-
-        int blocksize=BLOCK_SIZE ;
-        int threads_tot= args.ncells*args.nsims  ;
-        int nblocks= (threads_tot + blocksize-1 )/blocksize ;
-        hipLaunchKernelGGL(simulate_clean, dim3(nblocks), dim3(blocksize ), 0, 0,  args) ;
-
-// Now main hit simulation find cell and populate hitcells_energy[] :
-        blocksize=BLOCK_SIZE ;
-        threads_tot= args.nhits  ;
-        nblocks= (threads_tot + blocksize-1 )/blocksize ;
-	hipLaunchKernelGGL(simulate_hits_de, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ;
-
-// Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
-
-        nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
-        hipLaunchKernelGGL(simulate_hits_ct, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ; 
-
-// cpy result back 
-
-   gpuQ(hipMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), hipMemcpyDeviceToHost));
-
-   gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), hipMemcpyDeviceToHost));
-//   for( int isim=0 ; isim<args.nsims ; isim++ ) 
+  //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
   //     gpuQ(hipMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), hipMemcpyDeviceToHost));
-   
+  
 } 
 
 
