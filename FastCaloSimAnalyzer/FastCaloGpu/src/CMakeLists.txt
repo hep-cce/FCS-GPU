@@ -21,14 +21,18 @@ if(USE_KOKKOS)
 
   set(FastCaloGpu_Srcs GeoLoadGpu.cpp )
 else()
-  find_package(CUDA REQUIRED)
-  enable_language( CUDA )
-  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
+  find_package(HIP REQUIRED)
+#  enable_language( HIP )
+  set(FastCaloGpu_Srcs GeoLoadGpu.cpp )
 endif()
 
 
 # # Global include is needed for dictionary generation to work
 #include_directories(../../)
+
+## for HIP
+include_directories( /opt/rocm/hip/include )
+add_compile_definitions(__HIP_PLATFORM_AMD__ HIP_PLATFORM_AMD __HIP_PLATFORM_HCC__ HIP_PLATFORM_HCC)
 
 # Add dictionary dependencies
 #fcs_dictionary_dependency(${FastCaloGpu_LIB})
