@@ -8,14 +8,19 @@
 #include <iostream>
 #include "Args.h"
 
-#define MIN_GPU_HITS 256
 
-namespace CaloGpuGeneral {
+namespace CaloGpuGeneral 
+{
 
-  void* Rand4Hits_init( long long, unsigned short, unsigned long long, bool );
-  void  Rand4Hits_finish( void* );
 
-  void simulate_hits( float, int, Chain0_Args& );
 
-} // namespace CaloGpuGeneral
+void *   Rand4Hits_init(long long ,int,  unsigned long long ,bool );
+void    Rand4Hits_finish(void *);
+
+void  load_hitsim_params( void *, HitParams *, long * , int ) ;
+
+
+void  simulate_hits_gr( Sim_Args&  ) ;
+
+}
 #endif

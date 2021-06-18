@@ -8,14 +8,11 @@ find_package(CUDA REQUIRED)
 enable_language( CUDA )
 
 #Need to do other way.
-# set(CMAKE_CUDA_FLAGS "-arch=sm_75")
+#set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
 # Sources
-
-if(USE_KOKKOS)
-  set(FastCaloGpu_Srcs KokkosWrapper.cxx)
-else()
-  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
-endif()
+set(FastCaloGpu_Srcs
+  GeoLoadGpu.cu
+)
 
 # # Global include is needed for dictionary generation to work
 #include_directories(../../)
@@ -32,24 +29,15 @@ endif()
 #)
 
 #This seems to be a hack to avoid a cmake error 
-set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
+set(CUDA_LIBRARIES PUBLIC ${CUDA_LIBRARIES})
 
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
 add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 
-target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
 
-target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
-if(USE_KOKKOS)
-  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
-  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
-endif()
-
-if(RNDGEN_CPU)
-  message(STATUS "Will generate random numbers on CPU")
-  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DRNDGEN_CPU )
-endif()
+target_link_libraries(${FastCaloGpu_LIB} PUBLIC ${CUDA_curand_LIBRARY})
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}

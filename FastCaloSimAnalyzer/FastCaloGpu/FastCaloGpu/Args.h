@@ -5,66 +5,54 @@
 #ifndef GPUARGS_H
 #define GPUARGS_H
 
+#include "GpuParams.h"
 #include "FH_structs.h"
+#include "GeoGpu_structs.h"
+#include "Hit.h"
+#include <chrono>
+
 #include "GpuGeneral_structs.h"
 
-#define MAXHITS 200000
-#define MAXBINS 1024
-#define MAXHITCT 2000
+namespace CaloGpuGeneral {
+    struct KernelTime {
+      std::chrono::duration<double> t_sim_clean {0};
+      std::chrono::duration<double> t_sim_A {0};
+      std::chrono::duration<double> t_sim_ct {0};
+      std::chrono::duration<double> t_sim_cp {0};
+      KernelTime() = default;
+      KernelTime( std::chrono::duration<double> t1, std::chrono::duration<double> t2,
+                  std::chrono::duration<double> t3, std::chrono::duration<double> t4 ):
+        t_sim_clean(t1),t_sim_A(t2),t_sim_ct(t3),t_sim_cp(t4) {}
+      KernelTime& operator+=(const KernelTime& rhs) {
+        t_sim_clean += rhs.t_sim_clean;
+        t_sim_A += rhs.t_sim_A;
+        t_sim_ct += rhs.t_sim_ct;
+        t_sim_cp += rhs.t_sim_cp;
+        return *this;
+      }
+  };
+}
 
-class GeoGpu;
 
-typedef struct Chain0_Args {
+typedef struct Sim_Args {
 
-  bool debug;
+int debug ;
+void * rd4h ;
+GeoGpu * geo ;
+float * cells_energy ; // big, all cells, ~ 200K array
+Cell_E *  hitcells_E ; // array with only hit cells (Mem maxhitct )
+Cell_E *  hitcells_E_h ; // array with only hit cells (Mem maxhitct )
 
-  double extrapol_eta_ent;
-  double extrapol_phi_ent;
-  double extrapol_r_ent;
-  double extrapol_z_ent;
-  double extrapol_eta_ext;
-  double extrapol_phi_ext;
-  double extrapol_r_ext;
-  double extrapol_z_ext;
+int * ct ;
+int * ct_h ;
+HitParams * hitparams ;
+long * simbins ; 
+int nbins ;
+int nsims ;
+long nhits ;
+long long ncells ;
+float * rand ;
 
-  float extrapWeight;
-  float E;
-
-  int    pdgId;
-  double charge;
-  int    cs;
-  bool   is_phi_symmetric;
-  float* rand;
-  int    nhits;
-  void*  rd4h;
-
-  FH2D* fh2d;
-  FHs*  fhs;
-  FH2D  fh2d_h; // host struct so we have info
-  FHs   fhs_h;  // host struct
-
-  GeoGpu* geo;
-
-  bool is_first; // first event
-  bool is_last;  // last event
-
-  // bool * hitcells_b ;  // GPU array of whether a cell got hit
-  // unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
-  // unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes
-  int*          hitcells_ct; // GPU pointer for number of uniq hit cells
-  unsigned long ncells;
-  unsigned int  maxhitct;
-
-  float*  cells_energy; // big, all cells, ~ 200K array
-  Cell_E* hitcells_E;   // array with only hit cells (Mem maxhitct )
-  Cell_E* hitcells_E_h; // host array
-
-  unsigned int* hitcounts_b; // GPU pointer for interm blockwise result of hit counts
-
-  // unsigned long * hitcells_h ; //Host array of hit cell index
-  // int * hitcells_ct_h ; // host array of corresponding hit cell counts
-  unsigned int ct; // cells got hit for the event
-
-} Chain0_Args;
+} Sim_Args ;
 
 #endif
