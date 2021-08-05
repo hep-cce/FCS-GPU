@@ -5,11 +5,11 @@
 #include "../../ISF_FastCaloSimEvent/ISF_FastCaloSimEvent/TFCS2DFunctionHistogram.h"
 #include "TRandom.h"
 
-void test_TFCS2DFunctionHistogram() {
+void test_TFCS2DFunctionHistogram() 
+{
   // DEBUG Shape_id211_E65536_eta_20_25_Ebin1_cs2
 
-  TFile* file = TFile::Open( "/eos/atlas/atlascerngroupdisk/proj-simul/InputSamplesLocalProd2017/rel_21_0_62/shapePara/"
-                             "mc16_13TeV.pion.E65536.eta020_025.merged_default_z0.shapepara.root" );
+  TFile* file=TFile::Open("/eos/atlas/atlascerngroupdisk/proj-simul/InputSamplesLocalProd2017/rel_21_0_62/shapePara/mc16_13TeV.pion.E65536.eta020_025.merged_default_z0.shapepara.root");
 
   file->ls();
 
@@ -24,8 +24,7 @@ void test_TFCS2DFunctionHistogram() {
     rnd2 = gRandom->Rndm();
     m_hist.rnd_to_fct( alpha, r, rnd1, rnd2 );
     if ( TMath::IsNaN( alpha ) || TMath::IsNaN( r ) ) {
-      cout << "  Histo: " << m_hist.get_HistoBordersx().size() - 1 << "*" << m_hist.get_HistoBordersy().size() - 1
-           << " bins: alpha=" << alpha << " r=" << r << " rnd1=" << rnd1 << " rnd2=" << rnd2 << endl;
+      cout<<"  Histo: "<<m_hist.get_HistoBordersx().size()-1<<"*"<<m_hist.get_HistoBordersy().size()-1<<" bins: alpha="<<alpha<<" r="<<r<<" rnd1="<<rnd1<<" rnd2="<<rnd2<<endl;
     }
   }
 }

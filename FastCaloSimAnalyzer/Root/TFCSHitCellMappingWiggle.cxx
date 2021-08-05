@@ -22,12 +22,10 @@
 //======= TFCSHitCellMappingWiggle =========
 //=============================================
 
-TFCSHitCellMappingWiggle::TFCSHitCellMappingWiggle(const char* name, const char* title, ICaloGeometry* geo) : TFCSHitCellMapping(name,title,geo)
-{
-}
+TFCSHitCellMappingWiggle::TFCSHitCellMappingWiggle( const char* name, const char* title, ICaloGeometry* geo )
+    : TFCSHitCellMapping( name, title, geo ) {}
 
-TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle()
-{
+TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle() {
   for(auto function : m_functions) delete function;
 #ifdef USE_GPU
   delete m_LdFH ;
@@ -35,10 +33,10 @@ TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle()
 #endif
 }
 
-void TFCSHitCellMappingWiggle::initialize(TFCS1DFunction* func)
-{
+void TFCSHitCellMappingWiggle::initialize( TFCS1DFunction* func ) {
   if(!func) return;
-  for(auto function : m_functions) if(function) delete function;
+  for ( auto function : m_functions )
+    if ( function ) delete function;
 
   m_functions.resize(1);
   m_functions[0]=func;
@@ -48,19 +46,20 @@ void TFCSHitCellMappingWiggle::initialize(TFCS1DFunction* func)
   m_bin_low_edge[1] = init_eta_max;
 }
 
-void TFCSHitCellMappingWiggle::initialize(const std::vector< const TFCS1DFunction* >& functions, const std::vector< float >& bin_low_edges)
-{
+void TFCSHitCellMappingWiggle::initialize( const std::vector<const TFCS1DFunction*>& functions,
+                                           const std::vector<float>&                 bin_low_edges ) {
   if(functions.size()+1!=bin_low_edges.size()) {
-    ATH_MSG_ERROR("Using "<<functions.size()<<" functions needs "<<functions.size()+1<<" bins, but got "<<bin_low_edges.size()<<"bins");
+    ATH_MSG_ERROR( "Using " << functions.size() << " functions needs " << functions.size() + 1 << " bins, but got "
+                            << bin_low_edges.size() << "bins" );
     return;
   }
-  for(auto function : m_functions) if(function) delete function;
+  for ( auto function : m_functions )
+    if ( function ) delete function;
   m_functions=functions;
   m_bin_low_edge=bin_low_edges;
 }
 
-void TFCSHitCellMappingWiggle::initialize(TH1* histogram,float xscale)
-{
+void TFCSHitCellMappingWiggle::initialize( TH1* histogram, float xscale ) {
   if(!histogram) return;
   TFCS1DFunctionInt32Histogram* func=new TFCS1DFunctionInt32Histogram(histogram);
   if(xscale!=1) {
@@ -69,10 +68,11 @@ void TFCSHitCellMappingWiggle::initialize(TH1* histogram,float xscale)
   initialize(func);
 }
 
-void TFCSHitCellMappingWiggle::initialize(const std::vector< const TH1* > histograms, std::vector< float > bin_low_edges, float xscale)
-{
+void TFCSHitCellMappingWiggle::initialize( const std::vector<const TH1*> histograms, std::vector<float> bin_low_edges,
+                                           float xscale ) {
   if(histograms.size()+1!=bin_low_edges.size()) {
-    ATH_MSG_ERROR("Using "<<histograms.size()<<" histograms needs "<<histograms.size()+1<<" bins, but got "<<bin_low_edges.size()<<"bins");
+    ATH_MSG_ERROR( "Using " << histograms.size() << " histograms needs " << histograms.size() + 1 << " bins, but got "
+                            << bin_low_edges.size() << "bins" );
     return;
   }
   std::vector< const TFCS1DFunction* > functions(histograms.size());
@@ -91,11 +91,10 @@ void TFCSHitCellMappingWiggle::initialize(const std::vector< const TH1* > histog
   initialize(functions,bin_low_edges);
 }
 
-FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit(Hit& hit,TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
-{
-  if (!simulstate.randomEngine()) {
-    return FCSFatal;
-  }
+FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit( Hit& hit, TFCSSimulationState& simulstate,
+                                                      const TFCSTruthState*         truth,
+                                                      const TFCSExtrapolationState* extrapol ) {
+  if ( !simulstate.randomEngine() ) { return FCSFatal; }
 
   float eta=fabs(hit.eta());
   if(eta<m_bin_low_edge[0] || eta>=m_bin_low_edge[get_number_of_bins()]) {
@@ -111,7 +110,9 @@ FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit(Hit& hit,TFCSSimulationStat
 
     double wiggle=func->rnd_to_fct(rnd);
 
-    ATH_MSG_DEBUG("HIT: E="<<hit.E()<<" cs="<<calosample()<<" eta="<<hit.eta()<<" phi="<<hit.phi()<<" wiggle="<<wiggle<<" bin="<<bin<<" ["<<get_bin_low_edge(bin)<<","<<get_bin_up_edge(bin)<<"] func="<<func);
+    ATH_MSG_DEBUG( "HIT: E=" << hit.E() << " cs=" << calosample() << " eta=" << hit.eta() << " phi=" << hit.phi()
+                             << " wiggle=" << wiggle << " bin=" << bin << " [" << get_bin_low_edge( bin ) << ","
+                             << get_bin_up_edge( bin ) << "] func=" << func );
 
     double hit_phi_shifted=hit.phi()+wiggle;
     hit.phi()=TVector2::Phi_mpi_pi(hit_phi_shifted);
@@ -120,13 +121,13 @@ FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit(Hit& hit,TFCSSimulationStat
   return TFCSHitCellMapping::simulate_hit(hit,simulstate,truth,extrapol);
 }
 
-void TFCSHitCellMappingWiggle::Print(Option_t *option) const
-{
+void TFCSHitCellMappingWiggle::Print( Option_t* option ) const {
   TFCSHitCellMapping::Print(option);
   TString opt(option);
   bool shortprint=opt.Index("short")>=0;
   bool longprint=msgLvl(MSG::DEBUG) || (msgLvl(MSG::INFO) && !shortprint);
-  TString optprint=opt;optprint.ReplaceAll("short","");
+  TString optprint   = opt;
+  optprint.ReplaceAll( "short", "" );
   
   if(longprint) {
     ATH_MSG(INFO) << optprint <<"  "<<get_number_of_bins()<<" functions in [";
@@ -135,8 +136,8 @@ void TFCSHitCellMappingWiggle::Print(Option_t *option) const
   }  
 }
 
-void TFCSHitCellMappingWiggle::unit_test(TFCSSimulationState* simulstate,TFCSTruthState* truth, TFCSExtrapolationState* extrapol)
-{
+void TFCSHitCellMappingWiggle::unit_test( TFCSSimulationState* simulstate, TFCSTruthState* truth,
+                                          TFCSExtrapolationState* extrapol ) {
   if(!simulstate) simulstate=new TFCSSimulationState();
   if(!truth) truth=new TFCSTruthState();
   if(!extrapol) extrapol=new TFCSExtrapolationState();
@@ -199,7 +200,7 @@ void TFCSHitCellMappingWiggle::LoadHistFuncs() {
   fhs.h_szs = (unsigned int * )malloc(fhs.nhist * sizeof(unsigned int)) ;
   fhs.h_contents= (uint32_t **)malloc(fhs.nhist * sizeof(uint32_t*) ) ;  
   fhs.h_borders = ( float ** )malloc(fhs.nhist * sizeof(float *) ) ;
-  for (int i =0 ; i< fhs.nhist ; ++i ){ 
+  for ( unsigned int i = 0; i < fhs.nhist; ++i ) {
     fhs.h_szs[i]=((TFCS1DFunctionInt32Histogram *)  (m_functions[i]))->get_HistoContents().size() ;
     fhs.h_contents[i] = &(((TFCS1DFunctionInt32Histogram *) (m_functions[i]))->get_HistoContents()[0]);
     fhs.h_borders[i] = &(((TFCS1DFunctionInt32Histogram *) (m_functions[i]))-> get_HistoBordersx()[0]) ;

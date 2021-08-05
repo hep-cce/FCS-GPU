@@ -5,8 +5,9 @@
 #include "run_epara.cxx"
 #include "runTFCS2DParametrizationHistogram.cxx"
 
-void runTFCSEnergyShapeParametrizationChain( int pdgid = 22, int Emin = 64, int Emax = 4194304, double etamin = 0,
-                                             double etamax = 5. ) {
+
+void runTFCSEnergyShapeParametrizationChain(int pdgid = 22, int Emin = 64, int Emax = 4194304, double etamin = 0, double etamax = 5.)
+{
 
   std::string sampleData = "../python/inputSampleList.txt";
   std::string topDir     = "/eos/atlas/user/a/ahasib/public/Simul-FastCalo/ParametrizationProductionVer04/";
@@ -30,20 +31,22 @@ void runTFCSEnergyShapeParametrizationChain( int pdgid = 22, int Emin = 64, int 
 
   std::vector<int> v_Energy;
 
-  for ( int i = Emin; i <= Emax; i *= 2 ) { v_Energy.push_back( i ); }
+    for (int i = Emin; i <= Emax; i *= 2) {
+        v_Energy.push_back(i);
+    }
 
-  for ( int ieta = int_etamin; ieta < int_etamax; ieta += 5 ) {
+    for (int ieta = int_etamin; ieta < int_etamax; ieta += 5)
+    {
     for ( int ienergy = 0; ienergy < v_Energy.size(); ienergy++ ) {
       int int_Emin = v_Energy.at( ienergy );
 
-      std::string dsid =
-          FCS_dsid::find_dsid( std::to_string( pdgid ), std::to_string( int_Emin ), std::to_string( ieta ), "0" );
+            std::string dsid = FCS_dsid::find_dsid(std::to_string(pdgid), std::to_string(int_Emin), std::to_string(ieta), "0");
       int int_dsid = std::stoi( dsid );
 
       run_epara( int_dsid, sampleData, topDir, npca1, npca2, run_validation, version, topPlotDir );
 
-      runTFCS2DParametrizationHistogram( int_dsid, dsid_zv0, sampleData, topDir, version, energy_cutoff, topPlotDir,
-                                         do2DParam, isPhisymmetry, doMeanRz, useMeanRz, doZVertexStudies );
+            runTFCS2DParametrizationHistogram(int_dsid, dsid_zv0, sampleData, topDir, version, energy_cutoff, topPlotDir, do2DParam, isPhisymmetry, doMeanRz, useMeanRz, doZVertexStudies);
+
     }
   }
 }

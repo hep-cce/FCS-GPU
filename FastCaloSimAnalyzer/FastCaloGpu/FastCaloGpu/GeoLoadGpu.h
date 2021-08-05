@@ -13,13 +13,17 @@
 
 typedef std::map< Identifier , const CaloDetDescrElement* > t_cellmap;
 
-class GeoLoadGpu 
-{
+class GeoLoadGpu {
 public :
     GeoLoadGpu(){
-	m_cells=0 ;  m_cells_g=0 ;
-	m_ncells=0; m_nregions=0; m_regions=0 ; 
-	m_regions_g=0; Geo_g=0 ; } ;
+    m_cells     = 0;
+    m_cells_g   = 0;
+    m_ncells    = 0;
+    m_nregions  = 0;
+    m_regions   = 0;
+    m_regions_g = 0;
+    Geo_g       = 0;
+  };
 
     ~GeoLoadGpu() { delete m_cellid_array ; } ;
 

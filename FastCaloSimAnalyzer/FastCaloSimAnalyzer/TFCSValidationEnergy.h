@@ -26,8 +26,7 @@ public:
   std::vector<int>&       get_layers() { return m_RelevantLayers; };
   const std::vector<int>& get_layers() const { return m_RelevantLayers; };
 
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   void Print( Option_t* option = "" ) const override;
 

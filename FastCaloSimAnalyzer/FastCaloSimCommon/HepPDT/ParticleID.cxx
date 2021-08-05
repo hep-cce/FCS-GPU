@@ -8,9 +8,11 @@
 #include <iostream>
 #include <limits>
 
-namespace HepPDT {
+namespace HepPDT
+{
 
-  ParticleID::ParticleID( const int pdgID ) {
+ParticleID::ParticleID(const int pdgID)
+{
     if ( pdgID == 11 || pdgID == 211 || pdgID == 2212 )
       m_charge = 1.;
     else if ( pdgID == -11 || pdgID == -211 || pdgID == -2212 )

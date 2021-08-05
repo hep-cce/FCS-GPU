@@ -10,7 +10,8 @@
 class TH1F;
 class TH2F;
 
-class TFCS2DParametrization : public TFCSAnalyzerBase {
+class TFCS2DParametrization: public TFCSAnalyzerBase
+{
 
 public:
   TFCS2DParametrization();

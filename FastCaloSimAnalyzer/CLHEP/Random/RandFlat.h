@@ -13,7 +13,7 @@ namespace CLHEP {
     double shoot( HepRandomEngine* engine );
     double shoot( HepRandomEngine* engine, double a, double b );
     double shoot( HepRandomEngine* engine, double width );
-  } // namespace RandFlat
+}
 
 } // namespace CLHEP
 

@@ -6,15 +6,18 @@
 #define TFCSMakeFirstPCA_h
 
 #include "TChain.h"
-#include "TH1D.h"
 #include "TreeReader.h"
+#include "TH1D.h"
 
-namespace CLHEP {
+namespace CLHEP
+{
   class HepRandomEngine;
 }
 
-class TFCSMakeFirstPCA {
+class TFCSMakeFirstPCA
+{
 public:
+  	
   TFCSMakeFirstPCA( TChain*, std::string );
   TFCSMakeFirstPCA();
   virtual ~TFCSMakeFirstPCA(){};

@@ -12,10 +12,6 @@
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
 
-#ifdef USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#endif
-
 using namespace std;
 
 float       init_eta;
@@ -52,8 +48,8 @@ Options:
   --png                        Save all the histograms in .png images.
 )";
 
-void Draw_1Dhist( TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "",
-                  TString title = "", TCanvas* c = 0, bool png = false ) {
+void Draw_1Dhist(TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "", TString title = "",TCanvas* c=0, bool png=false)
+{
   if ( name == "" ) {
     name  = hist1->GetName();
     title = hist1->GetTitle();
@@ -102,32 +98,36 @@ void Draw_1Dhist( TH1* hist1, double ymin = 0, double ymax = 0, bool logy = fals
 
   pt->Draw();
   c->SetLogy( logy );
-  if ( png ) { c->SaveAs( ".png" ); }
+  if(png){
+    c->SaveAs(".png");
+  }
   return;
 }
 
-void FillEnergyHistos( TH1** hist_E, TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimulationRun& val1 ) {
-  hist_E[24] =
-      analyze->InitTH1( prefixEbin + "E_over_Ekintrue_" + val1.GetName(), "1D", 840, 0, 2.0, "E/Ekin(true)", "#" );
+void FillEnergyHistos(TH1** hist_E, TFCSShapeValidation *analyze, int analyze_pcabin, TFCSSimulationRun& val1)
+{
+  hist_E[24] = analyze->InitTH1(prefixEbin + "E_over_Ekintrue_" + val1.GetName(), "1D", 840, 0, 2.0, "E/Ekin(true)", "#");
   hist_E[24]->SetTitle( val1.GetTitle() );
   for ( int i = 0; i < 24; ++i ) {
-    hist_E[i] = analyze->InitTH1( prefixEbin + Form( "E%02d_over_E_", i ) + val1.GetName(), "1D", 840, 0, 1.0,
-                                  Form( "E%d/E", i ), "#" );
+    hist_E[i] = analyze->InitTH1(prefixEbin + Form("E%02d_over_E_", i) + val1.GetName(), "1D", 840, 0, 1.0, Form("E%d/E", i), "#");
     hist_E[i]->SetTitle( val1.GetTitle() );
   }
   for ( size_t ievent = 0; ievent < val1.simul().size(); ++ievent ) {
     const TFCSSimulationState& simul_val1 = val1.simul()[ievent];
     if ( simul_val1.Ebin() != analyze_pcabin && analyze_pcabin >= 0 ) continue;
-    for ( int i = 0; i < 24; ++i ) { TFCSAnalyzerBase::Fill( hist_E[i], simul_val1.E( i ) / simul_val1.E(), 1 ); }
+    for (int i = 0; i < 24; ++i) {
+      TFCSAnalyzerBase::Fill(hist_E[i], simul_val1.E(i) / simul_val1.E(), 1);
+    }
     TFCSAnalyzerBase::Fill( hist_E[24], simul_val1.E() / analyze->get_truthTLV( ievent ).Ekin(), 1 );
   }
 }
 
-void Energy_histograms( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimulationRun& val2,
-                        TString basename = "", bool png = false ) {
+void Energy_histograms(TFCSShapeValidation *analyze, int analyze_pcabin, TFCSSimulationRun& val2, TString basename = "", bool png=false)
+{
   TH1* hist_E_val2[25];
   FillEnergyHistos( hist_E_val2, analyze, analyze_pcabin, val2 );
-  for ( int i = 0; i < 25; ++i ) {
+  for (int i = 0; i < 25; ++i)
+  {
     if ( hist_E_val2[i]->GetMean() > 0 ) {
       TString name  = basename + "_" + Form( "cs%02d_", i ) + prefixEbin;
       TString title = basename + ": " + Form( "sample=%d, ", i ) + prefixEbin_title;
@@ -140,7 +140,8 @@ void Energy_histograms( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSi
   }
 }
 
-void set_prefix( int analyze_layer, int analyze_pcabin ) {
+void set_prefix(int analyze_layer, int analyze_pcabin)
+{
   prefixlayer       = prefix_E_eta + Form( "cs%02d_", analyze_layer );
   prefixlayer_title = prefix_E_eta_title + Form( ", sample=%d", analyze_layer );
   if ( analyze_pcabin >= 0 ) {
@@ -156,9 +157,18 @@ void set_prefix( int analyze_layer, int analyze_pcabin ) {
   }
 }
 
-int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, int analyze_layer = 2,
-                       const std::string& plotfilename = "Simulation.root", long seed = 42, int nEvents = -1,
-                       int firstEvent = 0, int selectPCAbin = -1, int debug = 0, bool png = false ) {
+int runTFCSSimulation(int pdgid = 22,
+         int int_E = 65536,
+         double etamin = 0.2,
+         int analyze_layer = 2,
+         const std::string &plotfilename = "Simulation.root",
+         long seed = 42,
+         int nEvents = -1,
+         int firstEvent = 0,
+         int selectPCAbin = -1,
+         int debug = 0,
+         bool png = false)
+{
   auto t0 = std::chrono::system_clock::now();
 
   TFCSParametrizationBase* fullchain     = nullptr;
@@ -219,15 +229,12 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   }
   int nentries = inputChain->GetEntries();
   if ( nEvents <= 0 ) {
-    if ( firstEvent >= 0 )
-      nEvents = nentries;
-    else
-      nEvents = nentries;
-  } else {
-    if ( firstEvent >= 0 )
-      nEvents = std::max( 0, std::min( nentries, nEvents + firstEvent ) );
-    else
-      nEvents = std::max( 0, std::min( nentries, nEvents ) );
+    if ( firstEvent >=0 ) nEvents=nentries;
+    else nEvents=nentries;
+  }
+  else{
+    if ( firstEvent >=0 ) nEvents=std::max( 0,std::min(nentries,nEvents+firstEvent) );
+    else nEvents = std::max( 0,std::min(nentries,nEvents) );
   }
 
   std::cout << " * Prepare to run on: " << inputSample << " with entries = " << nentries << std::endl;
@@ -323,9 +330,10 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   return 0;
 }
 
-int main( int argc, char** argv ) {
-
-  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
+int main(int argc, char **argv)
+{
+  std::map<std::string, docopt::value> args
+    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
 
   int         pdgId        = args["--pdgId"].asLong();
   int         energy       = args["--energy"].asLong();
@@ -338,14 +346,8 @@ int main( int argc, char** argv ) {
   int         selectPCAbin = args["--pcabin"].asLong();
   int         debug        = args["--debug"].asLong();
   bool        png          = args["--png"].asBool();
-#ifdef USE_KOKKOS
-  Kokkos::initialize( argc, argv );
-#endif
-  int ret =
-      runTFCSSimulation( pdgId, energy, etamin, layer, output, seed, nEvents, firstEvent, selectPCAbin, debug, png );
 
-#ifdef USE_KOKKOS
-  Kokkos::finalize();
-#endif
+  int ret=runTFCSSimulation(pdgId, energy, etamin, layer, output, seed,nEvents,firstEvent,selectPCAbin,debug,png);
+  
   return ret;
 }

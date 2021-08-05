@@ -6,7 +6,8 @@
 #include "TH1.h"
 #include "TCanvas.h"
 
-void runTFCSFunctionTest() {
+void runTFCSFunctionTest()
+{
   int       binscale = 4;
   const int ntest    = 3;
   TH1*      inputhist[ntest];
@@ -21,10 +22,8 @@ void runTFCSFunctionTest() {
   for ( int i = 1; i <= histfine->GetNbinsX(); ++i ) {
     double y;
     y = histfine->GetNbinsX() - i + 4;
-    if ( i <= histfine->GetNbinsX() / 2 )
-      y = i + 4;
-    else
-      y = histfine->GetNbinsX() + 1 - i + 4;
+    if(i<=histfine->GetNbinsX()/2) y=i+4;
+     else y=histfine->GetNbinsX()+1-i+4;
     if ( y < 0 ) y = 0;
     histfine->SetBinContent( i, y );
     histfine->SetBinError( i, 0.001 );
@@ -50,8 +49,7 @@ void runTFCSFunctionTest() {
         if ( i != 1 + histfine->GetNbinsX() / 2 + 3 * binscale ) ++ibin;
       }
       xbins[ibin] = histfine->GetXaxis()->GetXmax();
-      hist = new TH1D( TString( histfine->GetName() ) + "_coarse", TString( histfine->GetTitle() ) + " coarse", ibin,
-                       xbins.data() );
+      hist=new TH1D(TString(histfine->GetName())+"_coarse",TString(histfine->GetTitle())+" coarse",ibin,xbins.data());
       for ( int i = 1; i <= histfine->GetNbinsX(); ++i ) {
         hist->Fill( histfine->GetBinCenter( i ), histfine->GetBinContent( i ) / binscale );
       }
@@ -104,8 +102,7 @@ void runTFCSFunctionTest() {
       cout << "nbin=" << wiggle_test->get_number_of_bins() << endl;
       for ( int i = 0; i < wiggle_test->get_number_of_bins(); ++i ) {
         const TFCS1DFunction* func = wiggle_test->get_function( i );
-        cout << wiggle_test->get_bin_low_edge( i ) << " <= eta < " << wiggle_test->get_bin_up_edge( i )
-             << " func=" << func << endl;
+        cout<<wiggle_test->get_bin_low_edge(i)<<" <= eta < "<<wiggle_test->get_bin_up_edge(i)<<" func="<<func<<endl;
         TH1* histfine = new TH1D( Form( "Test%d", i ), Form( "Test %d", i ), 128, 0, 1 );
         for ( int irnd = 0; irnd < 10000000; ++irnd ) {
           double rnd = gRandom->Rndm();

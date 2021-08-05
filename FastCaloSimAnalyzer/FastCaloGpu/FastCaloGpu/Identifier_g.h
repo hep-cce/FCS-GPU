@@ -14,13 +14,11 @@
 #define CUDA_HOSTDEV
 #endif
 
-class Identifier
-{
+class Identifier {
   public:
   typedef long long value_type;
   
-  typedef enum bit_defs_enum
-  {
+  typedef enum bit_defs_enum {
     NBITS = sizeof(value_type) * 8, // bits per byte
     MAX_BIT = (static_cast<value_type>(1) << (NBITS - 1)),
     ALL_BITS = ~(static_cast<value_type>(0))
@@ -37,8 +35,14 @@ CUDA_HOSTDEV  Identifier(value_type value):m_id(value) {};
   
 CUDA_HOSTDEV  operator value_type() const { return m_id; }
   
-CUDA_HOSTDEV  Identifier& operator = (const Identifier& old) {m_id=old;return (*this);};
-CUDA_HOSTDEV  Identifier& operator = (value_type value) {m_id=value;return (*this);};
+  CUDA_HOSTDEV Identifier& operator=( const Identifier& old ) {
+    m_id = old;
+    return ( *this );
+  };
+  CUDA_HOSTDEV Identifier& operator=( value_type value ) {
+    m_id = value;
+    return ( *this );
+  };
 CUDA_HOSTDEV  bool operator == (const Identifier& other) const {return (m_id == other.m_id);}
 CUDA_HOSTDEV  bool operator != (const Identifier& other) const {return (m_id != other.m_id);}
 CUDA_HOSTDEV  bool operator < (const Identifier& other) const {return (m_id < other.m_id);}

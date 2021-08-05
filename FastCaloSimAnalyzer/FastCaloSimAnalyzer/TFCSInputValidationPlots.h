@@ -9,10 +9,12 @@
 
 #include <map>
 
-class TFCSInputValidationPlots : public TFCSAnalyzerBase {
+class TFCSInputValidationPlots: public TFCSAnalyzerBase
+{
 
 public:
-  struct binStruct {
+   struct binStruct
+   {
     int    nbins;
     double min;
     double max;
@@ -29,9 +31,11 @@ public:
   void PlotTH1PCA( std::string var, std::string xlabel );
   void PlotTH1PCA( std::string var, int layer, int nbins, double xmin, double xmax, std::string xlabel );
 
+
   void PlotTH2( std::string var, std::string xlabel, std::string ylabel );
-  void PlotTH2( std::string var, int layer, int pca, int nbinsx, double xmin, double xmax, int nbinsy, double ymin,
-                double ymax, std::string xlabel, std::string ylabel );
+   void PlotTH2(std::string var, int layer, int pca, int nbinsx, double xmin, double xmax, int nbinsy, double ymin, double ymax, std::string xlabel, std::string ylabel);
+
+
 
   void                CreateBinning( double cutoff );
   std::vector<double> GetEnergyRmax( int layer, int pca );

@@ -11,8 +11,8 @@
 #ifndef __ATLASUTILS_H
 #define __ATLASUTILS_H
 
-#include "TGraphAsymmErrors.h"
 #include "TGraphErrors.h"
+#include "TGraphAsymmErrors.h"
 
 void ATLAS_LABEL( Double_t x, Double_t y, Color_t color = 1 );
 

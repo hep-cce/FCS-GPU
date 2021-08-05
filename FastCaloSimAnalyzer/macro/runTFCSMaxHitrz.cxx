@@ -20,7 +20,11 @@ string prefixlayer;
 string prefixEbin;
 string prefixall;
 
-TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
+
+
+
+TH2* Create2DHistogram(TH2* h, float energy_cutoff)
+{
 
   TH1F* h1 = (TH1F*)h->ProjectionY();
 
@@ -37,20 +41,25 @@ TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
 
   TH2* h2 = new TH2F( title.c_str(), title.c_str(), nbinsx, xmin, xmax, nbinsy, ymin, ymax );
 
+
   for ( auto j = 0; j <= h2->GetNbinsY(); ++j ) {
-    for ( auto i = 0; i <= h2->GetNbinsX(); ++i ) { h2->SetBinContent( i, j, h->GetBinContent( i, j ) ); }
+        for (auto i = 0; i <= h2->GetNbinsX(); ++i) {
+            h2->SetBinContent(i, j, h->GetBinContent(i, j));
+        }
   }
 
   float avg = h2->Integral( 1, nbinsx, 1, 1 ) / nbinsx;
 
-  for ( int i = 1; i < nbinsx + 1; i++ ) h2->SetBinContent( i, 1, avg );
+    for (int i = 1; i < nbinsx + 1; i++)
+        h2->SetBinContent(i, 1, avg);
 
   h2->Scale( 1 / h2->Integral() );
 
   return h2;
 }
 
-void CreatePolarPlot( TH2F* h, std::string outDir ) {
+void CreatePolarPlot(TH2F* h, std::string outDir)
+{
 
   gROOT->SetBatch( 1 );
 
@@ -70,9 +79,8 @@ void CreatePolarPlot( TH2F* h, std::string outDir ) {
   delete c;
 }
 
-void runTFCSMaxHitrz( int dsid = 431004, std::string sampleData = "../python/inputSampleList.txt",
-                      std::string topDir = "output/", std::string version = "ver01", float energy_cutoff = 0.9995,
-                      bool isPhisymmetry = true, std::string topPlotDir = "output_plot/" ) {
+void runTFCSMaxHitrz(int dsid = 431004,  std::string sampleData = "../python/inputSampleList.txt", std::string topDir = "output/", std::string version = "ver01", float energy_cutoff = 0.9995, bool isPhisymmetry = true, std::string topPlotDir = "output_plot/")
+{
 
   system( ( "mkdir -p " + topDir ).c_str() );
 
@@ -170,7 +178,8 @@ void runTFCSMaxHitrz( int dsid = 431004, std::string sampleData = "../python/inp
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
   int   npca           = relevantLayers->GetNbinsX();
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+    {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 
@@ -207,8 +216,9 @@ void runTFCSMaxHitrz( int dsid = 431004, std::string sampleData = "../python/inp
 
       TFCSParametrizationChain RunInputHits( "input_EnergyAndHits", "original energy and hits from input file" );
 
-      TFCSValidationEnergyAndHits input_EnergyAndHits( "input_EnergyAndHits",
-                                                       "original energy and hits from input file", &analyze );
+
+            TFCSValidationEnergyAndHits input_EnergyAndHits("input_EnergyAndHits", "original energy and hits from input file", &analyze);
+
 
       input_EnergyAndHits.set_pdgid( pdgid );
       input_EnergyAndHits.set_calosample( analyze_layer );
@@ -222,21 +232,21 @@ void runTFCSMaxHitrz( int dsid = 431004, std::string sampleData = "../python/inp
       hitspy_orig.set_calosample( analyze_layer );
 
       int binwidth = 5;
-      if ( analyze_layer == 1 or analyze_layer == 5 ) binwidth = 1;
+            if (analyze_layer == 1 or analyze_layer == 5)
+                binwidth = 1;
       float ymin   = 0;
       float ymax   = 10000;
       int   nbinsy = (int)( ( ymax - ymin ) / binwidth );
 
       TH2* h_orig_hitEnergy_alpha_r = new TH2F();
 
+
       if ( isPhisymmetry ) {
-        h_orig_hitEnergy_alpha_r =
-            analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "2D", 8, 0, TMath::Pi(), nbinsy, ymin, ymax );
+                h_orig_hitEnergy_alpha_r = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "2D", 8, 0, TMath::Pi(), nbinsy, ymin, ymax);
         hitspy_orig.hist_hitenergy_alpha_absPhi_radius() = h_orig_hitEnergy_alpha_r;
 
       } else {
-        h_orig_hitEnergy_alpha_r = analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "2D", 8, 0,
-                                                    2 * TMath::Pi(), nbinsy, ymin, ymax );
+                h_orig_hitEnergy_alpha_r = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "2D", 8, 0, 2 * TMath::Pi(), nbinsy, ymin, ymax);
         hitspy_orig.hist_hitenergy_alpha_radius() = h_orig_hitEnergy_alpha_r;
       }
 

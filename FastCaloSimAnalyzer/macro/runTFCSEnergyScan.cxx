@@ -3,26 +3,27 @@
 */
 #include "CLHEP/Random/TRandomEngine.h"
 
-#include "TCanvas.h"
 #include "TFile.h"
-#include "TH2.h"
-#include "TRandom.h"
 #include "TString.h"
+#include "TRandom.h"
+#include "TH2.h"
+#include "TCanvas.h"
 #include "TVector3.h"
 
 #include <iostream>
-#include <stdlib.h>
 #include <string>
+#include <stdlib.h>
 
 #include "CaloGeometryFromFile.h"
-#include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 #include "ISF_FastCaloSimEvent/TFCSParametrizationBase.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
+#include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 
 //#include "runTFCSCreateParametrization.cxx"
 
-void runTFCSEnergyScan( int pdgid = 22, long seed = 42 ) {
+void runTFCSEnergyScan(int pdgid = 22, long seed = 42)
+{
   // init_hit_to_cell_mapping();
   // init_umbers_of_hits();
 
@@ -38,12 +39,9 @@ void runTFCSEnergyScan( int pdgid = 22, long seed = 42 ) {
   double etamax = 0.25;
 
   CaloGeometryFromFile* geo = new CaloGeometryFromFile();
-  geo->LoadGeometryFromFile( "/afs/cern.ch/atlas/groups/Simulation/FastCaloSimV2/Geometry-ATLAS-R2-2016-01-00-01.root",
-                             "ATLAS-R2-2016-01-00-01", "cellId_vs_cellHashId_map.txt" );
+  geo->LoadGeometryFromFile("/afs/cern.ch/atlas/groups/Simulation/FastCaloSimV2/Geometry-ATLAS-R2-2016-01-00-01.root", "ATLAS-R2-2016-01-00-01","cellId_vs_cellHashId_map.txt");
   TString path_to_fcal_geo_files = "./";
-  geo->LoadFCalGeometryFromFiles( path_to_fcal_geo_files + "FCal1-electrodes.sorted.HV.09Nov2007.dat",
-                                  path_to_fcal_geo_files + "FCal2-electrodes.sorted.HV.April2011.dat",
-                                  path_to_fcal_geo_files + "FCal3-electrodes.sorted.HV.09Nov2007.dat" );
+  geo->LoadFCalGeometryFromFiles(path_to_fcal_geo_files + "FCal1-electrodes.sorted.HV.09Nov2007.dat", path_to_fcal_geo_files + "FCal2-electrodes.sorted.HV.April2011.dat", path_to_fcal_geo_files + "FCal3-electrodes.sorted.HV.09Nov2007.dat");
   fullchain->set_geometry( geo );
 
   // fullchain->Print();

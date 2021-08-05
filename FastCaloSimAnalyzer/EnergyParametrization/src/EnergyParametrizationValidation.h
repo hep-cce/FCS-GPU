@@ -7,7 +7,8 @@
 
 #include <TH1D.h>
 
-class EnergyParametrizationValidation {
+class EnergyParametrizationValidation
+{
 public:
   EnergyParametrizationValidation(){};
   virtual ~EnergyParametrizationValidation() = default;

@@ -12,19 +12,20 @@
 #include "gpuQ.h"
 #include "GpuGeneral_structs.h"
 
-
-
-#define CURAND_CALL(x)  if((x)!=CURAND_STATUS_SUCCESS) { \
+#define CURAND_CALL( x )                                                                                               \
+  if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
     printf("Error at %s:%d\n",__FILE__,__LINE__);\
-    exit(EXIT_FAILURE) ; }
-
+    exit( EXIT_FAILURE );                                                                                              \
+  }
 
 class Rand4Hits {
   public:
-     Rand4Hits(){ m_rand_ptr =0 ;
+  Rand4Hits() {
+    m_rand_ptr     = 0;
 		m_total_a_hits=0 ;
 	  }; 
-     ~Rand4Hits() {gpuQ(cudaFree(m_rand_ptr));
+  ~Rand4Hits() {
+    gpuQ( cudaFree( m_rand_ptr ) );
 		 CURAND_CALL(curandDestroyGenerator(m_gen));
 		cudaFree(m_cells_energy) ;
 		cudaFree(m_cell_e) ;
@@ -52,7 +53,8 @@ class Rand4Hits {
      unsigned int  get_t_a_hits( ) { return  m_total_a_hits ; };
      void set_gen( curandGenerator_t  gen) { m_gen=gen ; };
      curandGenerator_t gen() {return m_gen ; } ; 
-     void allocate_hist( long long maxhits, unsigned short maxbins,unsigned short maxhitct, int n_hist, int n_match , bool hitspy);
+  void allocate_hist( long long maxhits, unsigned short maxbins, unsigned short maxhitct, int n_hist, int n_match,
+                      bool hitspy );
 
      void allocate_simulation(  int  maxbins, int maxhitcts,  unsigned long n_cells);
 
@@ -79,12 +81,16 @@ class Rand4Hits {
      double ** get_sumw2_array_h_ptrs() { return m_sumw2_array_h_ptrs ; } ;
      double * get_hist_stat_h() {return m_hist_stat_h ; }; 
 
-     
      void    rd_regen() {CURAND_CALL(curandGenerateUniform(m_gen, m_rand_ptr, 3*m_total_a_hits) ); }  ;
-     void    add_a_hits(int nhits) { if(over_alloc(nhits)) m_current_hits= nhits ; else m_current_hits += nhits ; } ;
-     bool   over_alloc(int nhits){ return m_current_hits+nhits >m_total_a_hits ;} ; //return true if hits over spill, need regenerat rand..
-     
-
+  void add_a_hits( int nhits ) {
+    if ( over_alloc( nhits ) )
+      m_current_hits = nhits;
+    else
+      m_current_hits += nhits;
+  };
+  bool over_alloc( int nhits ) {
+    return m_current_hits + nhits > m_total_a_hits;
+  }; // return true if hits over spill, need regenerat rand..
 
   private:
       float * m_rand_ptr  ;

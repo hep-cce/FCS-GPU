@@ -21,12 +21,18 @@ class TProfile;
 class TProfile2D;
 class TTree;
 
-class TFCSAnalyzerBase {
+
+class TFCSAnalyzerBase
+{
 public:
+
+
   TFCSAnalyzerBase();
   virtual ~TFCSAnalyzerBase();
 
-  struct CaloCell {
+
+   struct CaloCell
+   {
     float r;
     float z;
     float eta;
@@ -34,15 +40,12 @@ public:
     float dphi;
   };
 
-  TH1F* InitTH1( std::string histname, std::string histtype, int nbins, float low, float high, std::string xtitle = "",
-                 std::string ytitle = "" );
-  TH2F* InitTH2( std::string histname, std::string histtype, int nbinsx, float lowx, float highx, int nbinsy,
-                 float lowy, float highy, std::string xtitle = "", std::string ytitle = "" );
-  TProfile*   InitTProfile1D( std::string histname, std::string histtype, int nbinsx, float lowx, float highx,
-                              std::string xtitle = "", std::string ytitle = "", std::string profiletype = "S" );
-  TProfile2D* InitTProfile2D( std::string histname, std::string histtype, int nbinsx, float lowx, float highx,
-                              int nbinsy, float lowy, float highy, std::string xtitle = "", std::string ytitle = "",
-                              std::string profiletype = "S" );
+
+
+   TH1F* InitTH1(std::string histname, std::string histtype, int nbins, float low, float high, std::string xtitle = "", std::string ytitle = "");
+   TH2F* InitTH2(std::string histname, std::string histtype, int nbinsx, float lowx, float highx, int nbinsy, float lowy, float highy, std::string xtitle = "", std::string ytitle = "");
+   TProfile* InitTProfile1D(std::string histname, std::string histtype, int nbinsx, float lowx, float highx, std::string xtitle = "", std::string ytitle = "", std::string profiletype = "S");
+   TProfile2D* InitTProfile2D(std::string histname, std::string histtype, int nbinsx, float lowx, float highx, int nbinsy, float lowy, float highy, std::string xtitle = "", std::string ytitle = "", std::string profiletype = "S");
   static void Fill( TH1* h, float value, float weight );
   static void Fill( TH2* h, float valuex, float valuey, float weight );
   static void Fill( TProfile* h, float valuex, float valuey, float weight );
@@ -51,15 +54,13 @@ public:
   static void  autozoom( TH1* h1, double& min, double& max, double& rmin, double& rmax );
   static TH1D* refill( TH1* h_in, double min, double max, double rmin, double rmax );
 
-  static void GetTH1TTreeDraw( TH1F*& histo, TTree* tree, std::string var, std::string* cut, int nbins, double xmin,
-                               double xmax );
-  void        GetTH2TTreeDraw( TH2F*& hist, TTree* tree, std::string var, std::string* cut, int nbinsx, double xmin,
-                               double xmax, int nbinsy, double ymin, double ymax );
+   static void GetTH1TTreeDraw(TH1F*& histo, TTree* tree, std::string var, std::string* cut, int nbins, double xmin, double xmax);
+   void GetTH2TTreeDraw(TH2F*& hist, TTree* tree, std::string var, std::string* cut, int nbinsx, double xmin, double xmax, int nbinsy, double ymin, double ymax);
 
-  static TCanvas* PlotTH1Ratio( TH1F* h1, TH1F* h2, std::string label, std::string xlabel, std::string leg1,
-                                std::string leg2, std::string ylabel1, std::string ylabel2 );
-  static TCanvas* PlotPolar( TH2F* h, std::string label, std::string xlabel, std::string ylabel, std::string zlabel,
-                             int zoom_level = 1 );
+
+   static TCanvas* PlotTH1Ratio(TH1F* h1, TH1F* h2, std::string label, std::string xlabel, std::string leg1, std::string leg2, std::string ylabel1, std::string ylabel2 );
+   static TCanvas* PlotPolar(TH2F* h, std::string label, std::string xlabel, std::string ylabel, std::string zlabel, int zoom_level = 1);
+
 
   std::tuple<float, float>        GetUnitsmm( float eta_hits, float deta, float dphi, CaloCell* cell );
   static std::tuple<float, float> GetUnitsmm( float eta_hits, float deta, float dphi, float cell_r, float cell_z );
@@ -91,10 +92,7 @@ public:
   void set_merge( std::string merge_ ) { m_merge = merge_; }
   void set_particle( std::string particle_ ) { m_particle = particle_; }
   void set_energy( float energy_ ) { m_energy = energy_; }
-  void set_eta( float etamin_, float etamax_ ) {
-    m_etamin = etamin_;
-    m_etamax = etamax_;
-  }
+   void set_eta(float etamin_, float etamax_) { m_etamin = etamin_; m_etamax = etamax_; }
 
   int                        pca() const { return m_pca; };
   const double&              total_energy() const { return m_total_energy; };
@@ -123,10 +121,16 @@ protected:
 
   // * reading input TTree
   template <typename T>
-  void setBranch( TChain* chain, std::vector<TBranch*>& branches, const std::string& name, T var ) {
+   void setBranch(TChain *chain,
+                  std::vector<TBranch *> &branches,
+                  const std::string &name,
+                  T var)
+   {
     unsigned int found{};
     chain->SetBranchStatus( name.c_str(), true, &found );
-    if ( found == 0 ) { throw std::runtime_error( "branch missing " + name ); }
+      if (found == 0) {
+         throw std::runtime_error("branch missing " + name);
+      }
 
     chain->SetBranchAddress( name.c_str(), var );
 

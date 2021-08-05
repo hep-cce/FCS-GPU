@@ -16,54 +16,68 @@
 
 using namespace std;
 
-void EnergyParametrizationValidation::autozoom( TH1D* h1, double& min, double& max, double& rmin, double& rmax ) {
+void EnergyParametrizationValidation::autozoom(TH1D* h1, double &min, double &max, double &rmin, double &rmax)
+{
 
-  double min1, max1;
-  min1 = h1->GetXaxis()->GetXmin();
-  max1 = h1->GetXaxis()->GetXmax();
-
-  for ( int b = 1; b <= h1->GetNbinsX(); b++ ) {
-    if ( h1->GetBinContent( b ) > 0 ) {
+ double min1,min2,max1,max2;
+ min1=min2=h1->GetXaxis()->GetXmin();
+ max1=max2=h1->GetXaxis()->GetXmax();
+ 
+ for(int b=1;b<=h1->GetNbinsX();b++)
+ {
+  if(h1->GetBinContent(b)>0)
+  {
       min1 = h1->GetBinCenter( b );
       break;
     }
   }
-  for ( int b = h1->GetNbinsX(); b >= 1; b-- ) {
-    if ( h1->GetBinContent( b ) > 0 ) {
+ for(int b=h1->GetNbinsX();b>=1;b--)
+ {
+  if(h1->GetBinContent(b)>0)
+  {
       max1 = h1->GetBinCenter( b );
       break;
     }
   }
 
-  min = min1;
-  max = max1;
+ min=min1;max=max1;
+
 
   rmin = min - 0.5 * h1->GetBinWidth( 1 );
   rmax = max + 0.5 * h1->GetBinWidth( 1 );
 }
 
-TH1D* EnergyParametrizationValidation::refill( TH1D* h_in, double min, double max, double rmin, double rmax ) {
+TH1D* EnergyParametrizationValidation::refill(TH1D* h_in,double min, double max, double rmin, double rmax)
+{
 
   // int debug=0;
 
   int Nbins;
   int bins = 0;
-  for ( int b = h_in->FindBin( min ); b <= h_in->FindBin( max ); b++ ) bins++;
+ for(int b=h_in->FindBin(min);b<=h_in->FindBin(max);b++)
+  bins++;
 
-  if ( bins <= 120 ) {
+ if(bins<=120)
+ {
     // no rebinning
     Nbins = bins;
-  } else {
+ }
+ else
+ {
     int tries = 0;
     int rebin = 2;
 
-    while ( tries < 1000 ) {
-      if ( ( 10000 % rebin ) == 0 ) {
+ 	while(tries<1000)
+ 	{
+ 	 if((10000%rebin)==0)
+ 	 {
         TH1D* h_clone = (TH1D*)h_in->Clone( "h_clone" );
         h_clone->Rebin( rebin );
         Nbins = 0;
-        for ( int b = h_clone->FindBin( min ); b <= h_clone->FindBin( max ); b++ ) Nbins++;
-        if ( Nbins < 120 && Nbins > 50 ) {
+ 	  for(int b=h_clone->FindBin(min);b<=h_clone->FindBin(max);b++)
+     Nbins++;
+    if(Nbins<120 && Nbins>50)
+    {
           h_in->Rebin( rebin );
           cout << "*decide for rebin=" << rebin << "*" << endl;
           break;
@@ -73,11 +87,13 @@ TH1D* EnergyParametrizationValidation::refill( TH1D* h_in, double min, double ma
       rebin++;
       tries++;
     }
-    if ( tries >= 1000 ) {
+  if(tries>=1000)
+  {
       cout << " ********** GIVE UP ********** " << endl;
       h_in->Rebin( (double)bins / 100.0 );
       Nbins = 0;
-      for ( int b = h_in->FindBin( min ); b <= h_in->FindBin( max ); b++ ) Nbins++;
+ 	 for(int b=h_in->FindBin(min);b<=h_in->FindBin(max);b++)
+    Nbins++;
     }
   }
 
@@ -88,7 +104,8 @@ TH1D* EnergyParametrizationValidation::refill( TH1D* h_in, double min, double ma
   // if(debug) cout<<"AFTER rebin ->underflow "<<h_in->GetBinContent(0)<<" startbin "<<start<<" minimum "<<min<<endl;
 
   TH1D* h_out = new TH1D( "h_out", "h_out", Nbins, rmin, rmax );
-  for ( int b = 1; b <= h_out->GetNbinsX(); b++ ) {
+ for(int b=1;b<=h_out->GetNbinsX();b++)
+ {
     h_out->SetBinContent( b, h_in->GetBinContent( start + b ) );
     h_out->SetBinError( b, h_in->GetBinError( start + b ) );
   }

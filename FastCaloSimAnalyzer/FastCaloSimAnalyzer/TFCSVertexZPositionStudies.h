@@ -43,8 +43,7 @@ public:
 
   void findBinning( bool useMMbinning = false, double factor = 1. / 3, double quantile = 0.003 );
   void rebinHistos();
-  void plotHistograms( string outputDir, bool ratio_plots = false, bool drawErrorBars = false,
-                       bool useLogScale = false );
+   void plotHistograms(string outputDir,bool ratio_plots=false,bool drawErrorBars=false,bool useLogScale=false);
   void plotHistograms( vector<TH1F*>& histos, string outputDir, bool drawErrorBars = false, bool useLogScale = false );
   void printMeanValues();
 

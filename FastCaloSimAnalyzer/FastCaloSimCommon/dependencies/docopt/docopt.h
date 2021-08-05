@@ -43,24 +43,16 @@
 namespace docopt {
 
   // Usage string could not be parsed (ie, the developer did something wrong)
-  struct DocoptLanguageError : std::runtime_error {
-    using runtime_error::runtime_error;
-  };
+	struct DocoptLanguageError : std::runtime_error { using runtime_error::runtime_error; };
 
   // Arguments passed by user were incorrect (ie, developer was good, user is wrong)
-  struct DocoptArgumentError : std::runtime_error {
-    using runtime_error::runtime_error;
-  };
+	struct DocoptArgumentError : std::runtime_error { using runtime_error::runtime_error; };
 
   // Arguments contained '--help' and parsing was aborted early
-  struct DocoptExitHelp : std::runtime_error {
-    DocoptExitHelp() : std::runtime_error( "Docopt --help argument encountered" ) {}
-  };
+	struct DocoptExitHelp : std::runtime_error { DocoptExitHelp() : std::runtime_error("Docopt --help argument encountered"){} };
 
   // Arguments contained '--version' and parsing was aborted early
-  struct DocoptExitVersion : std::runtime_error {
-    DocoptExitVersion() : std::runtime_error( "Docopt --version argument encountered" ) {}
-  };
+	struct DocoptExitVersion : std::runtime_error { DocoptExitVersion() : std::runtime_error("Docopt --version argument encountered") {} };
 
   /// Parse user options from the given option string.
   ///
@@ -75,8 +67,10 @@ namespace docopt {
   /// @throws DocoptExitHelp if 'help' is true and the user has passed the '--help' argument
   /// @throws DocoptExitVersion if 'version' is true and the user has passed the '--version' argument
   /// @throws DocoptArgumentError if the user's argv did not match the usage patterns
-  std::map<std::string, value> DOCOPT_API docopt_parse( std::string const& doc, std::vector<std::string> const& argv,
-                                                        bool help = true, bool version = true,
+	std::map<std::string, value> DOCOPT_API docopt_parse(std::string const& doc,
+					    std::vector<std::string> const& argv,
+					    bool help = true,
+					    bool version = true,
                                                         bool options_first = false );
 
   /// Parse user options from the given string, and exit appropriately
@@ -86,13 +80,15 @@ namespace docopt {
   ///  * DocoptExitHelp - print usage string and terminate (with exit code 0)
   ///  * DocoptExitVersion - print version and terminate (with exit code 0)
   ///  * DocoptArgumentError - print error and usage string and terminate (with exit code -1)
-  std::map<std::string, value> DOCOPT_API docopt( std::string const& doc, std::vector<std::string> const& argv,
-                                                  bool help = true, std::string const& version = {},
+	std::map<std::string, value> DOCOPT_API docopt(std::string const& doc,
+					    std::vector<std::string> const& argv,
+					    bool help = true,
+					    std::string const& version = {},
                                                   bool options_first = false ) noexcept;
-} // namespace docopt
+}
 
 #ifdef DOCOPT_HEADER_ONLY
-#  include "docopt.cxx"
+    #include "docopt.cpp"
 #endif
 
 #endif /* defined(docopt__docopt_h_) */

@@ -63,7 +63,7 @@ FCSReturnCode TFCSParametrizationBinnedChain::simulate(TFCSSimulationState& simu
 {
     ATH_MSG_DEBUG("In BinnedChain, sub Chain size "<< chain().size()   ) ;
     for (auto ichain : chain() ) ATH_MSG_DEBUG ( "Chain["<<ichain<<"] name:"<< typeid(*(ichain)).name()<< " Title="<< ichain->GetName()  ) ;
-    for (size_t ii=0 ; ii<m_bin_start.size() ; ii++ )  ATH_MSG_DEBUG ( "bin_start["<<ii<<"]="<< m_bin_start[ii]  ) ;
+    for (long unsigned int ii=0 ; ii<m_bin_start.size() ; ii++ )  ATH_MSG_DEBUG ( "bin_start["<<ii<<"]="<< m_bin_start[ii]  ) ;
   
   for(unsigned int ichain=0;ichain<m_bin_start[0];++ichain) {
     ATH_MSG_DEBUG("now run for all bins: "<<chain()[ichain]->GetName());
@@ -73,6 +73,7 @@ FCSReturnCode TFCSParametrizationBinnedChain::simulate(TFCSSimulationState& simu
   }
   if(get_number_of_bins()>0) {
     int bin=get_bin(simulstate,truth,extrapol);
+ATH_MSG_DEBUG("Number of bins:  "<<get_number_of_bins()<<" bin "<< bin );
     if(bin>=0 && bin<(int)get_number_of_bins()) {
       for(unsigned int ichain=m_bin_start[bin];ichain<m_bin_start[bin+1];++ichain) {
         ATH_MSG_DEBUG("for "<<get_variable_text(simulstate,truth,extrapol)<<" run "<<get_bin_text(bin)<<": "<<chain()[ichain]->GetName());

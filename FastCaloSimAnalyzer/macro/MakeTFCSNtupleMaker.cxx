@@ -18,8 +18,11 @@
 
 void MakeTFCSNtupleMaker();
 
+
 // int main(int argc, char const *argv[])
-void MakeTFCSNtupleMaker() {
+void MakeTFCSNtupleMaker()
+{
+
 
   std::string particle = "photon";
   std::string energy   = "E50000";
@@ -72,7 +75,8 @@ void MakeTFCSNtupleMaker() {
   // v_layer.push_back(2);
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+    {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 

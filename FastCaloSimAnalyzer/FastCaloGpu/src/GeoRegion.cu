@@ -14,9 +14,7 @@ __host__ __device__ double Phi_mpi_pi( double x ) {
 	return x ;
 }
 
-
-__host__  __device__ bool GeoRegion::index_range_adjust(int& ieta,int& iphi)
-{
+__host__ __device__ bool GeoRegion::index_range_adjust( int& ieta, int& iphi ) {
   while(iphi<0) {iphi+=m_cell_grid_phi;};
   while(iphi>=m_cell_grid_phi) {iphi-=m_cell_grid_phi;};
   if(ieta<0) {
@@ -30,10 +28,8 @@ __host__  __device__ bool GeoRegion::index_range_adjust(int& ieta,int& iphi)
   return true;
 }
 
-
-
-__host__ __device__ float GeoRegion::calculate_distance_eta_phi(const long long DDE,float eta,float phi,float& dist_eta0,float& dist_phi0)
-{
+__host__ __device__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, float eta, float phi,
+                                                                 float& dist_eta0, float& dist_phi0 ) {
   dist_eta0=(eta - m_all_cells[DDE].eta())/m_deta_double;
   dist_phi0=(Phi_mpi_pi(phi - m_all_cells[DDE].phi()))/m_dphi_double;
   float abs_dist_eta0=abs(dist_eta0);

@@ -5,8 +5,8 @@
 #include "FastCaloSimAnalyzer/TFCSValidationEnergyAndCells.h"
 #include "FastCaloSimAnalyzer/TFCSAnalyzerBase.h"
 
-#include "ISF_FastCaloSimEvent/ICaloGeometry.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
+#include "ISF_FastCaloSimEvent/ICaloGeometry.h"
 
 #include <iostream>
 

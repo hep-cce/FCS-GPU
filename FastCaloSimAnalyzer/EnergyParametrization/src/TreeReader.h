@@ -13,10 +13,10 @@
 // Class for Tree reading through TFomula
 //////////////////////////////////////////////////
 
-#include "TString.h"
 #include "TTree.h"
 #include "TTreeFormula.h"
 #include "TTreeFormulaManager.h"
+#include "TString.h"
 #include <map>
 #include <vector>
 /*

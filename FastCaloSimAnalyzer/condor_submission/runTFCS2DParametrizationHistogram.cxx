@@ -27,7 +27,8 @@ string prefixlayer;
 string prefixEbin;
 string prefixall;
 
-TH1F* zoomHisto( TH1* h_in ) {
+TH1F *zoomHisto(TH1 *h_in)
+{
 
   double min = -999.;
   double max = 999.;
@@ -39,7 +40,8 @@ TH1F* zoomHisto( TH1* h_in ) {
 
   int Nbins;
   int bins = 0;
-  for ( int b = h_in->FindBin( min ); b <= h_in->FindBin( max ); b++ ) bins++;
+    for (int b = h_in->FindBin(min); b <= h_in->FindBin(max); b++)
+        bins++;
   Nbins = bins;
 
   int start = h_in->FindBin( min ) - 1;
@@ -47,7 +49,8 @@ TH1F* zoomHisto( TH1* h_in ) {
   TH1F* h_out = new TH1F( h_in->GetName() + TString( "_zoom" ), h_in->GetTitle(), Nbins, rmin, rmax );
   h_out->SetXTitle( h_in->GetXaxis()->GetTitle() );
   h_out->SetYTitle( h_in->GetYaxis()->GetTitle() );
-  for ( int b = 1; b <= h_out->GetNbinsX(); b++ ) {
+    for (int b = 1; b <= h_out->GetNbinsX(); b++)
+    {
     h_out->SetBinContent( b, h_in->GetBinContent( start + b ) );
     h_out->SetBinError( b, h_in->GetBinError( start + b ) );
   }
@@ -55,7 +58,8 @@ TH1F* zoomHisto( TH1* h_in ) {
   return h_out;
 }
 
-TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
+TH2 *Create2DHistogram(TH2 *h, float energy_cutoff)
+{
 
   TH1F* h1 = (TH1F*)h->ProjectionY();
 
@@ -68,24 +72,30 @@ TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
   float xmax   = h->GetXaxis()->GetXmax();
   int   nbinsx = h->GetXaxis()->GetNbins();
 
-  TH2* h2 = new TH2F( h->GetName() + TString( "2D" ), h->GetTitle() + TString( "2D" ), nbinsx, xmin, xmax, nbinsy, ymin,
-                      ymax );
+    TH2 *h2 = new TH2F(h->GetName() + TString("2D"), h->GetTitle() + TString("2D"), nbinsx, xmin, xmax, nbinsy, ymin, ymax);
 
-  for ( auto j = 0; j <= h2->GetNbinsY(); ++j ) {
-    for ( auto i = 0; i <= h2->GetNbinsX(); ++i ) { h2->SetBinContent( i, j, h->GetBinContent( i, j ) ); }
+    for (auto j = 0; j <= h2->GetNbinsY(); ++j)
+    {
+        for (auto i = 0; i <= h2->GetNbinsX(); ++i)
+        {
+            h2->SetBinContent(i, j, h->GetBinContent(i, j));
+        }
   }
 
   float avg = h2->Integral( 1, nbinsx, 1, 1 ) / nbinsx;
 
-  for ( int i = 1; i < nbinsx + 1; i++ ) h2->SetBinContent( i, 1, avg );
+    for (int i = 1; i < nbinsx + 1; i++)
+        h2->SetBinContent(i, 1, avg);
 
   float integral = h2->Integral();
-  if ( integral > 0 ) h2->Scale( 1 / integral );
+    if (integral > 0)
+        h2->Scale(1 / integral);
 
   return h2;
 }
 
-void CreatePolarPlot( TH2F* h, std::string outDir ) {
+void CreatePolarPlot(TH2F *h, std::string outDir)
+{
 
   gROOT->SetBatch( 1 );
 
@@ -105,12 +115,18 @@ void CreatePolarPlot( TH2F* h, std::string outDir ) {
   delete c;
 }
 
-void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
+void runTFCS2DParametrizationHistogram(int dsid = 431004,
+                                       int dsid_zv0 = -999,
                                         std::string sampleData = "../python/inputSampleList.txt",
                                         std::string topDir = "./output/", std::string version = "ver01",
-                                        float energy_cutoff = 0.9995, std::string topPlotDir = "output_plot/",
-                                        bool do2DParam = true, bool isPhisymmetry = true, bool doMeanRz = false,
-                                        bool useMeanRz = true, bool doZVertexStudies = false, long seed = 42 )
+                                       float energy_cutoff = 0.9995,
+                                       std::string topPlotDir = "output_plot/",
+                                       bool do2DParam = true,
+                                       bool isPhisymmetry = true,
+                                       bool doMeanRz = false,
+                                       bool useMeanRz = true,
+                                       bool doZVertexStudies = false,
+                                       long seed = 42)
 
 {
 
@@ -125,7 +141,8 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
   // based on DSID
   //////////////////////////
 
-  if ( dsid_zv0 < 0 ) dsid_zv0 = dsid;
+    if (dsid_zv0 < 0)
+        dsid_zv0 = dsid;
 
   TFCSAnalyzerBase::SampleInfo sample;
   sample = TFCSAnalyzerBase::GetInfo( sampleData.c_str(), dsid );
@@ -140,7 +157,8 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
 
   TFCSAnalyzerBase::SampleInfo sample_zv0 = TFCSAnalyzerBase::GetInfo( sampleData.c_str(), dsid_zv0 );
 
-  if ( pdgid == 211 ) energy_cutoff = 0.995; /// consider only 99.95% for pions
+    if (pdgid == 211)
+        energy_cutoff = 0.995; /// consider only 99.95% for pions
 
   std::cout << " *************************** " << std::endl;
   std::cout << " DSID : " << dsid << std::endl;
@@ -217,12 +235,15 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
   int   npca           = relevantLayers->GetNbinsX();
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
-    if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++)
+    {
+        if (relevantLayers->GetBinContent(1, ibiny) == 1)
+            v_layer.push_back(ibiny - 1);
   }
 
   std::cout << " relevantLayers = ";
-  for ( auto i : v_layer ) std::cout << i << " ";
+    for (auto i : v_layer)
+        std::cout << i << " ";
   std::cout << "\n";
 
   //////////////////////////////////////////////////////////
@@ -238,12 +259,15 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
   TFile*           fzvertex       = nullptr;
   TMatrixT<float>* tm_mean_weight = nullptr;
 
-  if ( do2DParam ) fshape = new TFile( shapeSample, "recreate" );
-  if ( doMeanRz ) {
+    if (do2DParam)
+        fshape = new TFile(shapeSample, "recreate");
+    if (doMeanRz)
+    {
     fextrapol      = new TFile( extrapolSample, "recreate" );
     tm_mean_weight = new TMatrixT<float>( 24, 6 );
   }
-  if ( useMeanRz ) {
+    if (useMeanRz)
+    {
     TFCSAnalyzerBase::SampleInfo sample = TFCSAnalyzerBase::GetInfo( sampleData.c_str(), dsid_zv0 );
     TString name = Form( "%s%s.extrapol.%s.root", topDir.c_str(), sample.label.c_str(), version.c_str() );
 
@@ -252,9 +276,13 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
     cout << tm_mean_weight->GetName() << endl;
   }
 
-  if ( doZVertexStudies ) { fzvertex = new TFile( zvertexSample, "recreate" ); }
+    if (doZVertexStudies)
+    {
+        fzvertex = new TFile(zvertexSample, "recreate");
+    }
 
-  for ( int ilayer = 0; ilayer < v_layer.size(); ilayer++ ) {
+    for (int ilayer = 0; ilayer < v_layer.size(); ilayer++)
+    {
 
     std::vector<TH2*>  h_orig_hitEnergy_alpha_r( npca );
     std::vector<TH1F*> h_deltaEtaAveragedPerEvent( npca );
@@ -278,8 +306,7 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
 
     std::vector<TFCSParametrizationChain*>      RunInputHits( npca );
     std::vector<TFCSValidationEnergyAndHits*>   input_EnergyAndHits( npca );
-    std::vector<TFCSCenterPositionCalculation*> centerPosCalc( npca ); // Will decorate hits with center extrap
-                                                                       // positions
+        std::vector<TFCSCenterPositionCalculation *> centerPosCalc(npca); // Will decorate hits with center extrap positions
     std::vector<TFCSValidationHitSpy*> hitspy_orig( npca );
 
     int                 analyze_layer = v_layer.at( ilayer );
@@ -289,7 +316,8 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
     // analyze.set_Nentries(100);
     analyze.set_Debug( 0 );
 
-    for ( int ipca = 1; ipca <= npca; ipca++ ) {
+        for (int ipca = 1; ipca <= npca; ipca++)
+        {
 
       int i              = ipca - 1;
       int analyze_pcabin = ipca;
@@ -304,11 +332,9 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
       ///// Chain to read 2D alpha_radius in mm from the input file
       //////////////////////////////////////////////////////////
 
-      RunInputHits[i] =
-          new TFCSParametrizationChain( "input_EnergyAndHits", "original energy and hits from input file" );
+            RunInputHits[i] = new TFCSParametrizationChain("input_EnergyAndHits", "original energy and hits from input file");
 
-      input_EnergyAndHits[i] = new TFCSValidationEnergyAndHits( "input_EnergyAndHits",
-                                                                "original energy and hits from input file", &analyze );
+            input_EnergyAndHits[i] = new TFCSValidationEnergyAndHits("input_EnergyAndHits", "original energy and hits from input file", &analyze);
 
       input_EnergyAndHits[i]->set_pdgid( pdgid );
       input_EnergyAndHits[i]->set_calosample( analyze_layer );
@@ -329,10 +355,12 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
 
       hitspy_orig[i]->set_calosample( analyze_layer );
 
-      if ( doMeanRz ) RunInputHits[i]->push_back( hitspy_orig[i] ); // to call the simulate() method in HitSpy
+            if (doMeanRz)
+                RunInputHits[i]->push_back(hitspy_orig[i]); // to call the simulate() method in HitSpy
 
       int binwidth = 5;
-      if ( analyze_layer == 1 or analyze_layer == 5 ) binwidth = 1;
+            if (analyze_layer == 1 or analyze_layer == 5)
+                binwidth = 1;
       float ymin   = 0;
       float ymax   = 10000;
       int   nbinsy = (int)( ( ymax - ymin ) / binwidth );
@@ -345,19 +373,22 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
       float zmax   = -zmin;
       int   nbinsz = (int)( ( zmax - zmin ) / binwidth );
 
-      if ( do2DParam ) {
-        if ( isPhisymmetry ) {
-          h_orig_hitEnergy_alpha_r[i] =
-              analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, TMath::Pi(), nbinsy, ymin, ymax );
+            if (do2DParam)
+            {
+                if (isPhisymmetry)
+                {
+                    h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, TMath::Pi(), nbinsy, ymin, ymax);
           hitspy_orig[i]->hist_hitenergy_alpha_absPhi_radius() = h_orig_hitEnergy_alpha_r[i];
-        } else {
-          h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "", 8, 0,
-                                                         2 * TMath::Pi(), nbinsy, ymin, ymax );
+                }
+                else
+                {
+                    h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, 2 * TMath::Pi(), nbinsy, ymin, ymax);
           hitspy_orig[i]->hist_hitenergy_alpha_radius() = h_orig_hitEnergy_alpha_r[i];
         }
       }
 
-      if ( doMeanRz ) {
+            if (doMeanRz)
+            {
 
         h_hitenergy_r[i] = analyze.InitTH1( prefixall + "hist_hitenergy_R", "1D", nbinsr, rmin, rmax );
         hitspy_orig[i]->hist_hitenergy_r() = h_hitenergy_r[i];
@@ -366,8 +397,7 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
 
         h_hitenergy_weight[i] = analyze.InitTH1( prefixall + "hist_hitenergy_weight", "1D", 2000, -2., 3. );
         hitspy_orig[i]->hist_hitenergy_weight() = h_hitenergy_weight[i];
-        h_orig_mean_hitenergy_weight[i] =
-            analyze.InitTH1( prefixall + "hist_mean_hitenergy_weight", "1D", 2000, 0., 1. );
+                h_orig_mean_hitenergy_weight[i] = analyze.InitTH1(prefixall + "hist_mean_hitenergy_weight", "1D", 2000, 0., 1.);
         hitspy_orig[i]->hist_hitenergy_mean_weight() = h_orig_mean_hitenergy_weight[i];
 
         h_hitenergy_z[i] = analyze.InitTH1( prefixall + "hist_hitenergy_z", "1D", nbinsz, zmin, zmax );
@@ -376,15 +406,14 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
         hitspy_orig[i]->hist_hitenergy_mean_z() = h_orig_mean_hitenergy_z[i];
 
         h_Rz[i] = analyze.InitTH2( prefixall + "hist_Rz", "2D", 1000, 0, 5000, 1000, -10000, 10000 );
-        h_Rz_outOfRange[i] =
-            analyze.InitTH2( prefixall + "hist_Rz_outOfRange", "2D", 1000, 0, 5000, 1000, -10000, 10000 );
+                h_Rz_outOfRange[i] = analyze.InitTH2(prefixall + "hist_Rz_outOfRange", "2D", 1000, 0, 5000, 1000, -10000, 10000);
         hitspy_orig[i]->hist_Rz()            = h_Rz[i];
         hitspy_orig[i]->hist_Rz_outOfRange() = h_Rz_outOfRange[i];
       }
 
-      if ( doZVertexStudies ) {
-        h_deltaEtaAveragedPerEvent[i] =
-            new TH1F( ( prefixall + "deltaEtaAveragedPerEvent" ).c_str(), "", 4000, -400, 400 );
+            if (doZVertexStudies)
+            {
+                h_deltaEtaAveragedPerEvent[i] = new TH1F((prefixall + "deltaEtaAveragedPerEvent").c_str(), "", 4000, -400, 400);
         h_deltaEta[i]       = new TH1F( ( prefixall + "deltaEtaHit" ).c_str(), "", 4000, -400, 400 );
         h_deltaPhi[i]       = new TH1F( ( prefixall + "deltaPhiHit" ).c_str(), "", 4000, -400, 400 );
         h_deltaRt[i]        = new TH1F( ( prefixall + "deltaRtHit" ).c_str(), "", 4000, -400, 400 );
@@ -414,12 +443,14 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
     //////////////////////////////////////////////////////////
     analyze.LoopEvents( -1 );
 
-    for ( int ipca = 1; ipca <= npca; ipca++ ) {
+        for (int ipca = 1; ipca <= npca; ipca++)
+        {
       int i = ipca - 1;
 
       std::pair<double, double> energyMeanSigma = input_EnergyAndHits[i]->getMeanEnergyWithError();
 
-      if ( doZVertexStudies ) {
+            if (doZVertexStudies)
+            {
 
         h_MeanEnergy[i]->SetBinContent( 1, energyMeanSigma.first );
         h_MeanEnergy[i]->SetBinError( 1, energyMeanSigma.second );
@@ -429,24 +460,28 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
       TH1F* h_zoom_mean_r = new TH1F();
       TH1F* h_zoom_mean_z = new TH1F();
 
-      if ( do2DParam ) {
+            if (do2DParam)
+            {
         h_alpha_r = (TH2F*)Create2DHistogram( h_orig_hitEnergy_alpha_r[i], energy_cutoff );
         CreatePolarPlot( h_alpha_r, plotDir.Data() ); // save polar plots
       }
 
-      if ( doMeanRz ) {
+            if (doMeanRz)
+            {
         h_zoom_mean_r = zoomHisto( h_orig_mean_hitenergy_r[i] );
         h_zoom_mean_z = zoomHisto( h_orig_mean_hitenergy_z[i] );
 
         ( *tm_mean_weight )[analyze_layer][ipca] = h_orig_mean_hitenergy_weight[i]->GetMean();
       }
 
-      if ( do2DParam ) {
+            if (do2DParam)
+            {
         fshape->cd();
         h_alpha_r->Write();
       }
 
-      if ( doMeanRz ) {
+            if (doMeanRz)
+            {
         fextrapol->cd();
         h_zoom_mean_r->Write();
         h_zoom_mean_z->Write();
@@ -455,7 +490,8 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
         h_Rz_outOfRange[i]->Write();
       }
 
-      if ( doZVertexStudies ) {
+            if (doZVertexStudies)
+            {
         fzvertex->cd();
         h_deltaEtaAveragedPerEvent[i]->Write();
         h_deltaEta[i]->Write();
@@ -466,31 +502,47 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
         h_MeanEnergy[i]->Write();
       }
 
-      if ( h_orig_hitEnergy_alpha_r[i] ) delete h_orig_hitEnergy_alpha_r[i];
-      if ( h_alpha_r ) delete h_alpha_r;
+            if (h_orig_hitEnergy_alpha_r[i])
+                delete h_orig_hitEnergy_alpha_r[i];
+            if (h_alpha_r)
+                delete h_alpha_r;
 
-      if ( h_deltaEtaAveragedPerEvent[i] ) delete h_deltaEtaAveragedPerEvent[i];
-      if ( h_deltaEta[i] ) delete h_deltaEta[i];
-      if ( h_deltaPhi[i] ) delete h_deltaPhi[i];
-      if ( h_deltaRt[i] ) delete h_deltaRt[i];
-      if ( h_deltaZ[i] ) delete h_deltaZ[i];
-      if ( h_energyPerLayer[i] ) delete h_energyPerLayer[i];
-      if ( h_MeanEnergy[i] ) delete h_MeanEnergy[i];
+            if (h_deltaEtaAveragedPerEvent[i])
+                delete h_deltaEtaAveragedPerEvent[i];
+            if (h_deltaEta[i])
+                delete h_deltaEta[i];
+            if (h_deltaPhi[i])
+                delete h_deltaPhi[i];
+            if (h_deltaRt[i])
+                delete h_deltaRt[i];
+            if (h_deltaZ[i])
+                delete h_deltaZ[i];
+            if (h_energyPerLayer[i])
+                delete h_energyPerLayer[i];
+            if (h_MeanEnergy[i])
+                delete h_MeanEnergy[i];
 
-      if ( h_zoom_mean_r ) delete h_zoom_mean_r;
-      if ( h_zoom_mean_z ) delete h_zoom_mean_z;
-      if ( h_orig_mean_hitenergy_r[i] ) delete h_orig_mean_hitenergy_r[i];
-      if ( h_orig_mean_hitenergy_z[i] ) delete h_orig_mean_hitenergy_z[i];
-      if ( h_hitenergy_weight[i] ) delete h_hitenergy_weight[i];
-      if ( h_orig_mean_hitenergy_weight[i] ) delete h_orig_mean_hitenergy_weight[i];
-      if ( h_Rz[i] ) delete h_Rz[i];
-      if ( h_Rz_outOfRange[i] ) delete h_Rz_outOfRange[i];
+            if (h_zoom_mean_r)
+                delete h_zoom_mean_r;
+            if (h_zoom_mean_z)
+                delete h_zoom_mean_z;
+            if (h_orig_mean_hitenergy_r[i])
+                delete h_orig_mean_hitenergy_r[i];
+            if (h_orig_mean_hitenergy_z[i])
+                delete h_orig_mean_hitenergy_z[i];
+            if (h_hitenergy_weight[i])
+                delete h_hitenergy_weight[i];
+            if (h_orig_mean_hitenergy_weight[i])
+                delete h_orig_mean_hitenergy_weight[i];
+            if (h_Rz[i])
+                delete h_Rz[i];
+            if (h_Rz_outOfRange[i])
+                delete h_Rz_outOfRange[i];
 
-      if ( doZVertexStudies ) {
-        std::cout << "\nDelta eta averaged in pca bin " << ipca
-                  << " over all events: " << input_EnergyAndHits[i]->getDeltaEtaAveraged() << std::endl;
-        std::cout << "\n Energy in layer " << analyze_layer << " and pca " << ipca << " : " << energyMeanSigma.first
-                  << " +- " << energyMeanSigma.second << std::endl;
+            if (doZVertexStudies)
+            {
+                std::cout << "\nDelta eta averaged in pca bin " << ipca << " over all events: " << input_EnergyAndHits[i]->getDeltaEtaAveraged() << std::endl;
+                std::cout << "\n Energy in layer " << analyze_layer << " and pca " << ipca << " : " << energyMeanSigma.first << " +- " << energyMeanSigma.second << std::endl;
       }
 
       delete RunInputHits[i];
@@ -500,20 +552,29 @@ void runTFCS2DParametrizationHistogram( int dsid = 431004, int dsid_zv0 = -999,
     }
   }
 
-  if ( doMeanRz ) {
+    if (doMeanRz)
+    {
     fextrapol->cd();
     tm_mean_weight->Write( "tm_mean_weight" );
   }
 
-  if ( doMeanRz || useMeanRz ) {
+    if (doMeanRz || useMeanRz)
+    {
 
-    for ( int ilayer = 0; ilayer < v_layer.size(); ilayer++ ) {
-      for ( int ipca = 1; ipca <= npca; ipca++ ) { cout << ( *tm_mean_weight )[v_layer[ilayer]][ipca] << ","; }
+        for (int ilayer = 0; ilayer < v_layer.size(); ilayer++)
+        {
+            for (int ipca = 1; ipca <= npca; ipca++)
+            {
+                cout << (*tm_mean_weight)[v_layer[ilayer]][ipca] << ",";
+            }
       cout << endl;
     }
     delete tm_mean_weight;
   }
-  if ( fshape ) fshape->Close();
-  if ( fextrapol ) fextrapol->Close();
-  if ( fzvertex ) fzvertex->Close();
+    if (fshape)
+        fshape->Close();
+    if (fextrapol)
+        fextrapol->Close();
+    if (fzvertex)
+        fzvertex->Close();
 }

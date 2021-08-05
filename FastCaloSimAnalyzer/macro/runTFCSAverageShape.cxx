@@ -38,12 +38,11 @@ Options:
     --etamax <float>         Maximum eta [default: 0.25].
 )";
 
-int runTFCSAverageShape( int pdgid = 22, int int_E = 65536, double etamin = 0.2, double etamax = 0.25, long seed = 42,
-                         bool production = false ) {
-  FCS::LateralShapeParametrizationArray hit_to_cell_mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  FCS::LateralShapeParametrizationArray numbers_of_hits     = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+int runTFCSAverageShape(int pdgid = 22,int int_E = 65536,double etamin = 0.2,double etamax = 0.25, long seed = 42, bool production = false)
+{
+  FCS::LateralShapeParametrizationArray hit_to_cell_mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  FCS::LateralShapeParametrizationArray numbers_of_hits = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   FCS::init_hit_to_cell_mapping( hit_to_cell_mapping );
   FCS::init_numbers_of_hits( numbers_of_hits );
@@ -99,7 +98,8 @@ int runTFCSAverageShape( int pdgid = 22, int int_E = 65536, double etamin = 0.2,
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
   int   npcabins       = relevantLayers->GetNbinsX();
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+  for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+  {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 
@@ -122,52 +122,37 @@ int runTFCSAverageShape( int pdgid = 22, int int_E = 65536, double etamin = 0.2,
   //////////////////////////////////////////////////////////
   ///// Chain to read in the energies from the input file, then simulate the average shape from a histogram
   //////////////////////////////////////////////////////////
-  TFCSParametrizationChain* runOriginalEnergyAvgShapeSim = new TFCSParametrizationChain(
-      "original_Energy_sim_avgshape_histo", "original energy from input file, avg shape sim from histo" );
+  TFCSParametrizationChain* runOriginalEnergyAvgShapeSim = new TFCSParametrizationChain("original_Energy_sim_avgshape_histo", "original energy from input file, avg shape sim from histo");
 
-  TFCSValidationEnergy* original_Energy =
-      new TFCSValidationEnergy( "original_Energy", "original energy from input file", analyze );
+  TFCSValidationEnergy* original_Energy = new TFCSValidationEnergy("original_Energy", "original energy from input file", analyze);
   original_Energy->set_n_bins( npcabins );
   original_Energy->set_pdgid( pdgid );
   for ( unsigned int i = 0; i < v_layer.size(); ++i ) original_Energy->get_layers().push_back( v_layer[i] );
   runOriginalEnergyAvgShapeSim->push_back( original_Energy );
 
-  TFCSParametrizationEbinChain* EbinChainAvgShape = FCS::NewShapeEbinCaloSampleChain(
-      original_Energy, hit_to_cell_mapping, numbers_of_hits, shapefile, pdgid, int_E, etamin, etamax );
+  TFCSParametrizationEbinChain* EbinChainAvgShape = FCS::NewShapeEbinCaloSampleChain(original_Energy, hit_to_cell_mapping, numbers_of_hits, shapefile, pdgid, int_E, etamin, etamax);
   runOriginalEnergyAvgShapeSim->push_back( EbinChainAvgShape );
 
   std::vector<TFCSValidationHitSpy*> hitspy_sim1( CaloCell_ID_FCS::MaxSample, nullptr );
   std::vector<TFCSValidationHitSpy*> hitspy_sim2( CaloCell_ID_FCS::MaxSample, nullptr );
   for ( unsigned int i = 0; i < v_layer.size(); ++i ) {
     int layer          = v_layer[i];
-    hitspy_sim1[layer] = new TFCSValidationHitSpy(
-        Form( "hitspy1_sample%d", layer ),
-        Form( "hitspy Nr.1 for sampling %d, original energy from input file, shape sim from histo", layer ) );
+    hitspy_sim1[layer] = new TFCSValidationHitSpy(Form("hitspy1_sample%d",layer), Form("hitspy Nr.1 for sampling %d, original energy from input file, shape sim from histo",layer));
     hitspy_sim1[layer]->set_calosample( layer );
-    hitspy_sim1[layer]->hist_hitgeo_dphi() =
-        analyze->InitTH1( prefixall + Form( "hist_hitspy1_sample%d_geodphi", layer ), "1D", 256, -TMath::Pi() / 64,
-                          TMath::Pi() / 64, "dphi", "#hits" );
-    hitspy_sim1[layer]->hist_hitgeo_matchprevious_dphi() =
-        analyze->InitTH1( prefixall + Form( "hist_hitspy1_sample%d_geomatchprevious_dphi", layer ), "1D", 256,
-                          -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits" );
+    hitspy_sim1[layer]->hist_hitgeo_dphi() = analyze->InitTH1(prefixall + Form("hist_hitspy1_sample%d_geodphi",layer), "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+    hitspy_sim1[layer]->hist_hitgeo_matchprevious_dphi() = analyze->InitTH1(prefixall + Form("hist_hitspy1_sample%d_geomatchprevious_dphi",layer), "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
 
-    hitspy_sim2[layer] = new TFCSValidationHitSpy(
-        Form( "hitspy2_sample%d", layer ),
-        Form( "hitspy Nr.2 for sampling %d, original energy from input file, shape sim from histo", layer ) );
+    hitspy_sim2[layer] = new TFCSValidationHitSpy(Form("hitspy2_sample%d",layer), Form("hitspy Nr.2 for sampling %d, original energy from input file, shape sim from histo",layer));
     hitspy_sim2[layer]->set_calosample( layer );
     hitspy_sim2[layer]->set_previous( hitspy_sim1[layer] );
-    hitspy_sim2[layer]->hist_hitgeo_dphi() =
-        analyze->InitTH1( prefixall + Form( "hist_hitspy2_sample%d_geodphi", layer ), "1D", 256, -TMath::Pi() / 64,
-                          TMath::Pi() / 64, "dphi", "#hits" );
-    hitspy_sim2[layer]->hist_hitgeo_matchprevious_dphi() =
-        analyze->InitTH1( prefixall + Form( "hist_hitspy2_sample%d_geomatchprevious_dphi", layer ), "1D", 256,
-                          -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits" );
+    hitspy_sim2[layer]->hist_hitgeo_dphi() = analyze->InitTH1(prefixall + Form("hist_hitspy2_sample%d_geodphi",layer), "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+    hitspy_sim2[layer]->hist_hitgeo_matchprevious_dphi() = analyze->InitTH1(prefixall + Form("hist_hitspy2_sample%d_geomatchprevious_dphi",layer), "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+
   }
 
   for ( size_t i = 0; i < EbinChainAvgShape->size(); ++i ) {
     if ( ( *EbinChainAvgShape )[i]->InheritsFrom( TFCSLateralShapeParametrizationHitChain::Class() ) ) {
-      TFCSLateralShapeParametrizationHitChain* hitchain =
-          (TFCSLateralShapeParametrizationHitChain*)( *EbinChainAvgShape )[i];
+      TFCSLateralShapeParametrizationHitChain* hitchain = (TFCSLateralShapeParametrizationHitChain*)(*EbinChainAvgShape)[i];
       int cs = hitchain->calosample();
       if ( hitchain->size() > 0 ) {
         auto it = hitchain->chain().begin() + 1;
@@ -187,9 +172,7 @@ int runTFCSAverageShape( int pdgid = 22, int int_E = 65536, double etamin = 0.2,
   TTree* tree_avgshape = nullptr;
   if ( file_avgshape ) {
     tree_avgshape                                 = new TTree( Form( "AvgShape" ), Form( "AvgShape" ) );
-    TFCSWriteCellsToTree* tree_writer_AvgShapeSim = new TFCSWriteCellsToTree(
-        "tree_writer_AvgShapeSim", "Tree writer for original energy from input file, shape sim from histo",
-        tree_avgshape );
+    TFCSWriteCellsToTree* tree_writer_AvgShapeSim=new TFCSWriteCellsToTree("tree_writer_AvgShapeSim","Tree writer for original energy from input file, shape sim from histo",tree_avgshape);
     runOriginalEnergyAvgShapeSim->push_back( tree_writer_AvgShapeSim );
     for ( unsigned int i = 0; i < CaloCell_ID_FCS::MaxSample; ++i ) {
       if ( hitspy_sim1[i] ) {
@@ -233,8 +216,10 @@ int runTFCSAverageShape( int pdgid = 22, int int_E = 65536, double etamin = 0.2,
   return 0;
 }
 
-int main( int argc, char** argv ) {
-  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
+int main(int argc, char **argv)
+{
+  std::map<std::string, docopt::value> args
+    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
 
   int   pdgId      = args["<pdgId>"].isLong() ? args["<pdgId>"].asLong() : 22;
   bool  production = args["--production"].asBool();

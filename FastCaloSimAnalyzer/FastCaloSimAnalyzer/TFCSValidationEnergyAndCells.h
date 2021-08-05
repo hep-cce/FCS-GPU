@@ -16,8 +16,7 @@ public:
 
   /// Status bit for FCS needs
   enum FCSStatusBits {
-    kUseAvgShape =
-        BIT( 15 ) ///< Set this bit in the TObject bit field if the cell energies for the avg shape should be used
+     kUseAvgShape = BIT(15) ///< Set this bit in the TObject bit field if the cell energies for the avg shape should be used
   };
 
   virtual bool is_UseAvgShape() const { return TestBit( kUseAvgShape ); };
@@ -32,8 +31,7 @@ public:
 
   int n_bins() { return -1; }; // TO BE FIXED, SHOULD BE SOMEHOW READ FROM PCA FILE
 
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   void Print( Option_t* option = "" ) const override;
 

@@ -75,10 +75,8 @@ void LoadGpuFuncHist::LD2D() {
   m_d_hf2d = (FH2D *) (p->cu_bm_alloc(sizeof(FH2D))) ; 
   gpuQ(cudaMemcpy( m_d_hf2d, m_hf2d_d,   sizeof(FH2D), cudaMemcpyHostToDevice)) ;
 
-
-
-//std::cout << "LD2D: bdx,y: "<<hf.nbinsx<<"," <<  hf.nbinsy << " memeory: " <<(hf.nbinsx+hf.nbinsy+2+ hf.nbinsy*hf.nbinsx)*sizeof(float) << " M of FH2D str: "<< sizeof(FH2D)  <<std::endl ;
-
+  // std::cout << "LD2D: bdx,y: "<<hf.nbinsx<<"," <<  hf.nbinsy << " memeory: " <<(hf.nbinsx+hf.nbinsy+2+
+  // hf.nbinsy*hf.nbinsx)*sizeof(float) << " M of FH2D str: "<< sizeof(FH2D)  <<std::endl ;
 }
 
 
@@ -103,14 +101,12 @@ void LoadGpuFuncHist::LD() {
   
  // gpuQ(cudaMalloc((void**)&hf.low_edge , (hf.nhist+1)*sizeof(float))) ;
    hf.low_edge = (float *) (p->cu_bm_alloc((hf.nhist+1)*sizeof(float) )) ;
-  gpuQ(cudaMemcpy( hf.low_edge, (*m_hf).low_edge,  (hf.nhist+1)*sizeof(float), 
-	cudaMemcpyHostToDevice)) ;
+  gpuQ( cudaMemcpy( hf.low_edge, ( *m_hf ).low_edge, ( hf.nhist + 1 ) * sizeof( float ), cudaMemcpyHostToDevice ) );
 //s += (hf.nhist+1)*sizeof(float) ;
 
 //  gpuQ(cudaMalloc((void**)&hf.h_szs , hf.nhist*sizeof(unsigned int))) ;
    hf.h_szs = (unsigned int *) (p->cu_bm_alloc(hf.nhist*sizeof(float) )) ;
-  gpuQ(cudaMemcpy( hf.h_szs, (*m_hf).h_szs,  hf.nhist*sizeof(unsigned int), 
-	cudaMemcpyHostToDevice)) ;
+  gpuQ( cudaMemcpy( hf.h_szs, ( *m_hf ).h_szs, hf.nhist * sizeof( unsigned int ), cudaMemcpyHostToDevice ) );
 //s += hf.nhist*sizeof(unsigned int) ;
 
  // gpuQ(cudaMalloc((void**)&hf.h_contents , hf.nhist*sizeof(uint32_t * ))) ;
@@ -131,8 +127,8 @@ void LoadGpuFuncHist::LD() {
      contents_ptr[i] = (uint32_t *)  (p->cu_bm_alloc(h_szs[i]*sizeof(uint32_t ) )) ; 
      borders_ptr[i] =  (float * ) (p->cu_bm_alloc((h_szs[i]+1)*sizeof(float ) )) ; 
 
-     gpuQ(cudaMemcpy( contents_ptr[i], (*m_hf).h_contents[i],  h_szs[i]*sizeof(uint32_t),
-	cudaMemcpyHostToDevice)) ;
+    gpuQ(
+        cudaMemcpy( contents_ptr[i], ( *m_hf ).h_contents[i], h_szs[i] * sizeof( uint32_t ), cudaMemcpyHostToDevice ) );
       gpuQ(cudaMemcpy( borders_ptr[i], (*m_hf).h_borders[i],  (h_szs[i]+1) *sizeof(float),
 	cudaMemcpyHostToDevice)) ;
   //std::cout << ".....Loading  WiggleFunctionHistss, Size of Hists[" << i << "]=" << h_szs[i]<< std::endl ;  

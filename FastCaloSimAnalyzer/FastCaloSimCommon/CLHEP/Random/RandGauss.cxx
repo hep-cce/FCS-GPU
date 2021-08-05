@@ -6,7 +6,8 @@
 
 namespace CLHEP {
 
-  double RandGauss::shoot( HepRandomEngine* engine, double mean, double stdDev ) {
+double RandGauss::shoot(HepRandomEngine *engine, double mean, double stdDev)
+{
     return engine->gauss( mean, stdDev );
   }
 

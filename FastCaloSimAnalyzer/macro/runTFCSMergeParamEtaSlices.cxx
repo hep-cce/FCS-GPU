@@ -29,9 +29,9 @@ Options:
   -o <dir>, --output <dir>     Output directory [default: TFCSParam].
 )";
 
-TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices( int pdgid, int int_Emin, int int_Emax, double etamin,
-                                                          double etamax, std::string outDir,
-                                                          TString /*bigParamFileName*/ ) {
+
+TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices(int pdgid, int int_Emin, int int_Emax, double etamin, double etamax, std::string outDir,TString /*bigParamFileName*/)
+{
   double Emin = int_Emin;
   double Emax = int_Emax;
 
@@ -39,10 +39,8 @@ TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices( int pdgid, int int_Emi
   int int_etamax = TMath::Nint( 100 * etamax );
 
   TString etapara_name = Form( "SelEta_id%d_Mom%d_%d_eta_%d_%d", pdgid, int_Emin, int_Emax, int_etamin, int_etamax );
-  TString etapara_title =
-      Form( "Select eta for id=%d %3.1f<=Mom<%3.1f %4.2f<=|eta|<%4.2f", pdgid, Emin, Emax, etamin, etamax );
-  TFCSParametrizationAbsEtaSelectChain* EtaSelectChain =
-      new TFCSParametrizationAbsEtaSelectChain( etapara_name, etapara_title );
+  TString etapara_title = Form("Select eta for id=%d %3.1f<=Mom<%3.1f %4.2f<=|eta|<%4.2f", pdgid, Emin, Emax, etamin, etamax);
+  TFCSParametrizationAbsEtaSelectChain* EtaSelectChain = new TFCSParametrizationAbsEtaSelectChain(etapara_name, etapara_title);
   EtaSelectChain->set_SplitChainObjects();
 
   for ( ; int_etamin < int_etamax; int_etamin += 5 ) {
@@ -51,8 +49,7 @@ TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices( int pdgid, int int_Emi
 
     int etamax_int = TMath::Nint( 100 * etamax );
 
-    TString Ekinpara_name =
-        Form( "SelEkin_id%d_Mom%d_%d_eta_%d_%d", pdgid, int_Emin, int_Emax, int_etamin, etamax_int );
+    TString Ekinpara_name = Form("SelEkin_id%d_Mom%d_%d_eta_%d_%d", pdgid, int_Emin, int_Emax, int_etamin, etamax_int);
 
     std::cout << " Ekinpara_name = " << Ekinpara_name.Data() << std::endl;
 
@@ -71,14 +68,14 @@ TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices( int pdgid, int int_Emi
       EtaSelectChain->push_back_in_bin( para );
       file->Close();
       std::cout << "=========== EtaSelectChain ==========" << std::endl
-                << "pdgid=" << pdgid << " " << int_Emin << "<=Mom<" << int_Emax << " " << etamin << "<=eta<" << etamax
-                << std::endl;
+                << "pdgid=" << pdgid << " " << int_Emin
+                << "<=Mom<" << int_Emax << " " << etamin << "<=eta<" << etamax << std::endl;
       // para->Print("short");
       std::cout << "=====================================" << std::endl;
     } else {
       std::cout << "============= ERROR =================" << std::endl
-                << "ERROR: pdgid=" << pdgid << " " << int_Emin << "<=Mom<" << int_Emax << " " << etamin << "<=eta<"
-                << etamax << std::endl
+                << "ERROR: pdgid=" << pdgid << " " << int_Emin
+                << "<=Mom<" << int_Emax << " " << etamin << "<=eta<" << etamax << std::endl
                 << "=====================================" << std::endl;
     }
   }
@@ -86,22 +83,18 @@ TFCSParametrizationBase* runTFCSMergeParamPDGIDEtaSlices( int pdgid, int int_Emi
   return (TFCSParametrizationBase*)EtaSelectChain;
 }
 
-int runTFCSMergeParamEtaSlices( int int_Emin, int int_Emax, double etamin, double etamax, std::string outDir,
-                                std::string bigParamFileName ) {
-  TFCSParametrizationBase* para_photon =
-      runTFCSMergeParamPDGIDEtaSlices( 22, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName );
-  TFCSParametrizationBase* para_electron =
-      runTFCSMergeParamPDGIDEtaSlices( 11, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName );
-  TFCSParametrizationBase* para_pion =
-      runTFCSMergeParamPDGIDEtaSlices( 211, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName );
+int runTFCSMergeParamEtaSlices(int int_Emin, int int_Emax, double etamin, double etamax, std::string outDir,std::string bigParamFileName)
+{
+  TFCSParametrizationBase* para_photon = runTFCSMergeParamPDGIDEtaSlices(22, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName);
+  TFCSParametrizationBase* para_electron = runTFCSMergeParamPDGIDEtaSlices(11, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName);
+  TFCSParametrizationBase* para_pion = runTFCSMergeParamPDGIDEtaSlices(211, int_Emin, int_Emax, etamin, etamax, outDir, bigParamFileName);
   para_pion->set_match_all_pdgid(); /// match to all pdgid
 
-  TFCSParametrizationPDGIDSelectChain* fullchain =
-      new TFCSParametrizationPDGIDSelectChain( "SelPDGID", "Select PDGID" );
+
+  TFCSParametrizationPDGIDSelectChain* fullchain = new TFCSParametrizationPDGIDSelectChain("SelPDGID", "Select PDGID");
   fullchain->set_SimulateOnlyOnePDGID();
 
-  TFCSInvisibleParametrization* invisible =
-      new TFCSInvisibleParametrization( "RemoveInvisiblesMuons", "Do not simulate invisibles and muons" );
+  TFCSInvisibleParametrization* invisible = new TFCSInvisibleParametrization("RemoveInvisiblesMuons", "Do not simulate invisibles and muons");
   // Muons
   invisible->add_pdgid( 13 );
   invisible->add_pdgid( -13 );
@@ -169,8 +162,10 @@ int runTFCSMergeParamEtaSlices( int int_Emin, int int_Emax, double etamin, doubl
   return 0;
 }
 
-int main( int argc, char** argv ) {
-  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
+int main(int argc, char **argv)
+{
+  std::map<std::string, docopt::value> args
+    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
 
   int         Emin             = args["--emin"].asLong();
   int         Emax             = args["--emax"].asLong();

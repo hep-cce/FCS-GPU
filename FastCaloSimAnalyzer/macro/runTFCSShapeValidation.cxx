@@ -4,26 +4,26 @@
 
 // #include "TROOT.h"
 // #include "TSystem.h"
+#include "TFile.h"
 #include "TCanvas.h"
 #include "TChain.h"
-#include "TEfficiency.h"
-#include "TFile.h"
 #include "TGraphErrors.h"
-#include "TH2.h"
+#include "TMath.h"
+#include "TTree.h"
+#include "TString.h"
+#include "TEfficiency.h"
+#include "TProfile2D.h"
+#include "TPaveText.h"
 #include "TLatex.h"
 #include "TLegend.h"
-#include "TMath.h"
-#include "TPaveText.h"
-#include "TProfile2D.h"
-#include "TString.h"
-#include "TTree.h"
+#include "TH2.h"
 
 #include <docopt/docopt.h>
 
-#include <algorithm>
 #include <iostream>
-#include <stdlib.h>
+#include <algorithm>
 #include <string>
+#include <stdlib.h>
 #include <tuple>
 
 #include "ISF_FastCaloSimEvent/TFCSLateralShapeParametrizationHitNumberFromE.h"
@@ -75,8 +75,10 @@ Options:
   --debug <debug>              Set debug level to print debug messages [default: 0].
 )";
 
+
 // Sum energies of all cells in a layer
-double sumcellE( int analyze_layer, const TFCSSimulationState& simul ) {
+double sumcellE(int analyze_layer, const TFCSSimulationState& simul)
+{
   double sumweight = 0;
   for ( const auto& iter : simul.cells() ) {
     if ( iter.first->getSampling() == analyze_layer ) sumweight += iter.second;
@@ -84,8 +86,8 @@ double sumcellE( int analyze_layer, const TFCSSimulationState& simul ) {
   return sumweight;
 }
 
-void Fill_Evsdxdy_hist( int analyze_layer, const TFCSSimulationState& simul, double sumweight,
-                        const TFCSExtrapolationState& extrapol, TProfile* hist1D, TProfile2D* hist2D ) {
+void Fill_Evsdxdy_hist(int analyze_layer, const TFCSSimulationState& simul, double sumweight, const TFCSExtrapolationState& extrapol, TProfile* hist1D, TProfile2D* hist2D)
+{
   for ( const auto& iter : simul.cells() ) {
     if ( iter.first->getSampling() == analyze_layer ) {
       float cell_eta = iter.first->eta();
@@ -104,9 +106,8 @@ void Fill_Evsdxdy_hist( int analyze_layer, const TFCSSimulationState& simul, dou
   }
 }
 
-void Fill_Evsdxdy_ratio( int analyze_layer, const TFCSSimulationState& simul1, double sumweight1,
-                         const TFCSSimulationState& simul2, double sumweight2, const TFCSExtrapolationState& extrapol,
-                         TProfile* hist1D, TProfile2D* hist2D ) {
+void Fill_Evsdxdy_ratio(int analyze_layer, const TFCSSimulationState& simul1, double sumweight1, const TFCSSimulationState& simul2, double sumweight2, const TFCSExtrapolationState& extrapol, TProfile* hist1D, TProfile2D* hist2D)
+{
   for ( const auto& iter1 : simul1.cells() ) {
     if ( iter1.first->getSampling() == analyze_layer ) {
       float cell_eta = iter1.first->eta();
@@ -122,15 +123,14 @@ void Fill_Evsdxdy_ratio( int analyze_layer, const TFCSSimulationState& simul1, d
       auto iter2 = simul2.cells().find( iter1.first );
       if ( iter2 != simul2.cells().end() ) {
         TFCSAnalyzerBase::Fill( hist1D, cell_dR, ( iter1.second / sumweight1 ) / ( iter2->second / sumweight2 ), 1 );
-        TFCSAnalyzerBase::Fill( hist2D, cell_deta, cell_dphi,
-                                ( iter1.second / sumweight1 ) / ( iter2->second / sumweight2 ), 1 );
+        TFCSAnalyzerBase::Fill(hist2D, cell_deta, cell_dphi, (iter1.second / sumweight1) / (iter2->second / sumweight2), 1);
       }
     }
   }
 }
 
-TCanvas* Draw_2Dhist( TH1* historg, double zmin = 0.00001, double zmax = 1, bool logz = false, TString name = "",
-                      TString title = "" ) {
+TCanvas* Draw_2Dhist(TH1* historg, double zmin = 0.00001, double zmax = 1, bool logz = false, TString name = "", TString title = "")
+{
   if ( name == "" ) {
     name  = historg->GetName();
     title = historg->GetTitle();
@@ -150,12 +150,9 @@ TCanvas* Draw_2Dhist( TH1* historg, double zmin = 0.00001, double zmax = 1, bool
   t1->SetTextFont( 42 );
   t1->SetTextSize( 0.025 );
   t1->SetNDC();
-  TString text = Form( "Mean x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetMean( 1 ), hist->GetMeanError( 1 ),
-                       hist->GetMean( 2 ), hist->GetMeanError( 2 ) );
-  text += Form( " ; RMS x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetRMS( 1 ), hist->GetRMSError( 1 ), hist->GetRMS( 2 ),
-                hist->GetRMSError( 2 ) );
-  text += Form( " ; Skew x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetSkewness( 1 ), hist->GetSkewness( 11 ),
-                hist->GetSkewness( 2 ), hist->GetSkewness( 12 ) );
+  TString text = Form("Mean x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetMean(1), hist->GetMeanError(1), hist->GetMean(2), hist->GetMeanError(2));
+  text += Form(" ; RMS x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetRMS(1), hist->GetRMSError(1), hist->GetRMS(2), hist->GetRMSError(2));
+  text += Form(" ; Skew x=%5.3f#pm%5.3f y=%5.3f#pm%5.3f", hist->GetSkewness(1), hist->GetSkewness(11), hist->GetSkewness(2), hist->GetSkewness(12));
   t1->DrawLatex( 0.05, 0.01, text );
 
   if ( fout ) {
@@ -166,8 +163,8 @@ TCanvas* Draw_2Dhist( TH1* historg, double zmin = 0.00001, double zmax = 1, bool
   return c;
 }
 
-TCanvas* Draw_1Dhist( TH1* hist1, TH1* hist2 = 0, double ymin = 0, double ymax = 0, bool logy = false,
-                      TString name = "", TString title = "" ) {
+TCanvas* Draw_1Dhist(TH1* hist1, TH1* hist2 = 0, double ymin = 0, double ymax = 0, bool logy = false, TString name = "", TString title = "")
+{
   if ( name == "" ) {
     name  = hist1->GetName();
     title = hist1->GetTitle();
@@ -280,27 +277,28 @@ TCanvas* Draw_1Dhist( TH1* hist1, TH1* hist2 = 0, double ymin = 0, double ymax =
 }
 
 // Fill energy histograms
-void FillEnergyHistos( TH1** hist_E, TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimulationRun& val1 ) {
-  hist_E[24] =
-      analyze->InitTH1( prefixEbin + "E_over_Ekintrue_" + val1.GetName(), "1D", 840, 0, 2.0, "E/Ekin(true)", "#" );
+void FillEnergyHistos(TH1** hist_E, TFCSShapeValidation *analyze, int analyze_pcabin, TFCSSimulationRun& val1)
+{
+  hist_E[24] = analyze->InitTH1(prefixEbin + "E_over_Ekintrue_" + val1.GetName(), "1D", 840, 0, 2.0, "E/Ekin(true)", "#");
   hist_E[24]->SetTitle( val1.GetTitle() );
   for ( int i = 0; i < 24; ++i ) {
-    hist_E[i] = analyze->InitTH1( prefixEbin + Form( "E%02d_over_E_", i ) + val1.GetName(), "1D", 840, 0, 1.0,
-                                  Form( "E%d/E", i ), "#" );
+    hist_E[i] = analyze->InitTH1(prefixEbin + Form("E%02d_over_E_", i) + val1.GetName(), "1D", 840, 0, 1.0, Form("E%d/E", i), "#");
     hist_E[i]->SetTitle( val1.GetTitle() );
   }
   for ( size_t ievent = 0; ievent < val1.simul().size(); ++ievent ) {
     const TFCSSimulationState& simul_val1 = val1.simul()[ievent];
     // cout<<val1.GetName()<<" event="<<ievent<<" E="<<simul_val1.E()<<" Ebin="<<simul_val1.Ebin()<<std::endl;
     if ( simul_val1.Ebin() != analyze_pcabin && analyze_pcabin >= 0 ) continue;
-    for ( int i = 0; i < 24; ++i ) { TFCSAnalyzerBase::Fill( hist_E[i], simul_val1.E( i ) / simul_val1.E(), 1 ); }
+    for (int i = 0; i < 24; ++i) {
+      TFCSAnalyzerBase::Fill(hist_E[i], simul_val1.E(i) / simul_val1.E(), 1);
+    }
     TFCSAnalyzerBase::Fill( hist_E[24], simul_val1.E() / analyze->get_truthTLV( ievent ).Ekin(), 1 );
   }
 }
 
 // Compare energy histograms
-void CompareEnergy( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimulationRun& val1, TFCSSimulationRun& val2,
-                    TString basename = "", TVirtualPad* summary = 0 ) {
+void CompareEnergy(TFCSShapeValidation *analyze, int analyze_pcabin, TFCSSimulationRun& val1, TFCSSimulationRun& val2, TString basename = "", TVirtualPad* summary = 0)
+{
   TH1* hist_E_val1[25];
   TH1* hist_E_val2[25];
   FillEnergyHistos( hist_E_val1, analyze, analyze_pcabin, val1 );
@@ -339,15 +337,11 @@ void CompareEnergy( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimula
       }
       c = Draw_1Dhist( hist_E_val1[i], hist_E_val2[i], 0, 0, false, name, title );
       if ( nlayer == 0 ) {
-        min = TMath::Min( hist_E_val1[i]->GetMean() - hist_E_val1[i]->GetRMS(),
-                          hist_E_val2[i]->GetMean() - hist_E_val2[i]->GetRMS() );
-        max = TMath::Max( hist_E_val1[i]->GetMean() + hist_E_val1[i]->GetRMS(),
-                          hist_E_val2[i]->GetMean() + hist_E_val2[i]->GetRMS() );
+        min = TMath::Min(hist_E_val1[i]->GetMean() - hist_E_val1[i]->GetRMS(), hist_E_val2[i]->GetMean() - hist_E_val2[i]->GetRMS());
+        max = TMath::Max(hist_E_val1[i]->GetMean() + hist_E_val1[i]->GetRMS(), hist_E_val2[i]->GetMean() + hist_E_val2[i]->GetRMS());
       } else {
-        min = TMath::Min( min, TMath::Min( hist_E_val1[i]->GetMean() - hist_E_val1[i]->GetRMS(),
-                                           hist_E_val2[i]->GetMean() - hist_E_val2[i]->GetRMS() ) );
-        max = TMath::Max( max, TMath::Max( hist_E_val1[i]->GetMean() + hist_E_val1[i]->GetRMS(),
-                                           hist_E_val2[i]->GetMean() + hist_E_val2[i]->GetRMS() ) );
+        min = TMath::Min(min, TMath::Min(hist_E_val1[i]->GetMean() - hist_E_val1[i]->GetRMS(), hist_E_val2[i]->GetMean() - hist_E_val2[i]->GetRMS()));
+        max = TMath::Max(max, TMath::Max(hist_E_val1[i]->GetMean() + hist_E_val1[i]->GetRMS(), hist_E_val2[i]->GetMean() + hist_E_val2[i]->GetRMS()));
       }
       x1[nlayer]    = hist_E_val1[i]->GetMean();
       y1[nlayer]    = nlayer + 0.15;
@@ -374,7 +368,9 @@ void CompareEnergy( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimula
     TString title = basename + ": Summary " + prefixEbin_title;
     double  delta = 0.05 * ( max - min );
     TH2F*   dummy = new TH2F( name + "dummy", title, 100, min - delta, max + delta, nlayer, -0.5, nlayer - 0.5 );
-    for ( int i = 0; i < nlayer; ++i ) { dummy->GetYaxis()->SetBinLabel( i + 1, label[i] ); }
+    for (int i = 0; i < nlayer; ++i) {
+      dummy->GetYaxis()->SetBinLabel(i + 1, label[i]);
+    }
     dummy->GetYaxis()->SetTicks( "-" );
     dummy->GetYaxis()->SetLabelSize( 0.07 );
     // dummy->GetXaxis()->SetTitle("E/Eref");
@@ -399,15 +395,11 @@ void CompareEnergy( TFCSShapeValidation* analyze, int analyze_pcabin, TFCSSimula
 }
 
 // Compare validation chain nrval1 with chain nrval2, taking the average of all events instead of event-by-event
-void CompareDirectShape2D( TFCSShapeValidation* analyze, int analyze_layer, int analyze_pcabin, TFCSSimulationRun& val1,
-                           TFCSSimulationRun& val2 ) {
-  TProfile* hist_cellEvsdR_val1 =
-      analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_" ) + val1.GetName(), "1D", 96, 0, 0.3, "dR", "E" );
-  TProfile* hist_cellEvsdR_val2 =
-      analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_" ) + val2.GetName(), "1D", 96, 0, 0.3, "dR", "E" );
-  TProfile* hist_cellEvsdR_directratio = analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_directratio_" ) +
-                                                                      val1.GetName() + "_" + val2.GetName(),
-                                                                  "1D", 96, 0, 0.3, "dR", "ratio" );
+void CompareDirectShape2D(TFCSShapeValidation *analyze, int analyze_layer, int analyze_pcabin, TFCSSimulationRun& val1, TFCSSimulationRun& val2)
+{
+  TProfile* hist_cellEvsdR_val1 = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_") + val1.GetName(), "1D", 96, 0, 0.3, "dR", "E");
+  TProfile* hist_cellEvsdR_val2 = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_") + val2.GetName(), "1D", 96, 0, 0.3, "dR", "E");
+  TProfile* hist_cellEvsdR_directratio = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_directratio_") + val1.GetName() + "_" + val2.GetName(), "1D", 96, 0, 0.3, "dR", "ratio");
 
   int    nbins_eta = 80;
   double range_eta = 0.25;
@@ -418,15 +410,9 @@ void CompareDirectShape2D( TFCSShapeValidation* analyze, int analyze_layer, int 
     nbins_phi = 20;
   }
 
-  TProfile2D* hist_cellEvsdxdy_val1 =
-      analyze->InitTProfile2D( prefixall + std::string( "cellEvsdxdy_" ) + val1.GetName(), "2D", nbins_eta, -range_eta,
-                               range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi" );
-  TProfile2D* hist_cellEvsdxdy_val2 =
-      analyze->InitTProfile2D( prefixall + std::string( "cellEvsdxdy_" ) + val2.GetName(), "2D", nbins_eta, -range_eta,
-                               range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi" );
-  TProfile2D* hist_cellEvsdxdy_directratio = analyze->InitTProfile2D(
-      prefixall + std::string( "cellEvsdxdy_directratio_" ) + val1.GetName() + "_" + val2.GetName(), "2D", nbins_eta,
-      -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi" );
+  TProfile2D* hist_cellEvsdxdy_val1 = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_") + val1.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi");
+  TProfile2D* hist_cellEvsdxdy_val2 = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_") + val2.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi");
+  TProfile2D* hist_cellEvsdxdy_directratio = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_directratio_") + val1.GetName() + "_" + val2.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "deta", "dphi");
 
   std::cout << "=============================" << std::endl;
   std::cout << "CompareShape2D: compare '" << val1.GetTitle() << "' with '" << val2.GetTitle() << "'" << std::endl;
@@ -437,8 +423,7 @@ void CompareDirectShape2D( TFCSShapeValidation* analyze, int analyze_layer, int 
     double sumweight_val1 = sumcellE( analyze_layer, simul_val1 );
     std::cout << "Event=" << ievent << ": sumweight_val1=" << sumweight_val1 << std::endl;
 
-    Fill_Evsdxdy_hist( analyze_layer, simul_val1, sumweight_val1, analyze->get_extrapol( ievent ), hist_cellEvsdR_val1,
-                       hist_cellEvsdxdy_val1 );
+    Fill_Evsdxdy_hist(analyze_layer, simul_val1, sumweight_val1, analyze->get_extrapol(ievent), hist_cellEvsdR_val1, hist_cellEvsdxdy_val1);
   }
   for ( size_t ievent = 0; ievent < val2.simul().size(); ++ievent ) {
     const TFCSSimulationState& simul_val2 = val2.simul()[ievent];
@@ -447,8 +432,7 @@ void CompareDirectShape2D( TFCSShapeValidation* analyze, int analyze_layer, int 
     double sumweight_val2 = sumcellE( analyze_layer, simul_val2 );
     std::cout << "Event=" << ievent << ": sumweight_val2=" << sumweight_val2 << std::endl;
 
-    Fill_Evsdxdy_hist( analyze_layer, simul_val2, sumweight_val2, analyze->get_extrapol( ievent ), hist_cellEvsdR_val2,
-                       hist_cellEvsdxdy_val2 );
+    Fill_Evsdxdy_hist(analyze_layer, simul_val2, sumweight_val2, analyze->get_extrapol(ievent), hist_cellEvsdR_val2, hist_cellEvsdxdy_val2);
   }
 
   hist_cellEvsdR_directratio->Divide( hist_cellEvsdR_val1, hist_cellEvsdR_val2 );
@@ -462,17 +446,13 @@ void CompareDirectShape2D( TFCSShapeValidation* analyze, int analyze_layer, int 
 }
 
 // Compare event-by-event validation chain val1 with chain val2
-void CompareShape2D( TFCSShapeValidation* analyze, int analyze_layer, int analyze_pcabin, TFCSSimulationRun& val1,
-                     TFCSSimulationRun& val2, TString basename = "" ) {
-  TProfile* hist_cellEvsdR_val1 =
-      analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_" ) + val1.GetName(), "1D", 96, 0, 0.3, "dR", "E" );
+void CompareShape2D(TFCSShapeValidation *analyze, int analyze_layer, int analyze_pcabin, TFCSSimulationRun& val1, TFCSSimulationRun& val2, TString basename = "")
+{
+  TProfile* hist_cellEvsdR_val1 = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_") + val1.GetName(), "1D", 96, 0, 0.3, "dR", "E");
   hist_cellEvsdR_val1->SetTitle( val1.GetTitle() );
-  TProfile* hist_cellEvsdR_val2 =
-      analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_" ) + val2.GetName(), "1D", 96, 0, 0.3, "dR", "E" );
+  TProfile* hist_cellEvsdR_val2 = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_") + val2.GetName(), "1D", 96, 0, 0.3, "dR", "E");
   hist_cellEvsdR_val2->SetTitle( val2.GetTitle() );
-  TProfile* hist_cellEvsdR_ratio =
-      analyze->InitTProfile1D( prefixall + std::string( "cellEvsdR_ratio_" ) + val1.GetName() + "_" + val2.GetName(),
-                               "1D", 96, 0, 0.3, "dR", "ratio" );
+  TProfile* hist_cellEvsdR_ratio = analyze->InitTProfile1D(prefixall + std::string("cellEvsdR_ratio_") + val1.GetName() + "_" + val2.GetName(), "1D", 96, 0, 0.3, "dR", "ratio");
   hist_cellEvsdR_ratio->SetTitle( TString( val1.GetTitle() ) + " / " + val2.GetTitle() );
 
   int    nbins_eta = 80;
@@ -484,15 +464,9 @@ void CompareShape2D( TFCSShapeValidation* analyze, int analyze_layer, int analyz
     nbins_phi = 20;
   }
 
-  TProfile2D* hist_cellEvsdxdy_val1 =
-      analyze->InitTProfile2D( prefixall + std::string( "cellEvsdxdy_" ) + val1.GetName(), "2D", nbins_eta, -range_eta,
-                               range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi" );
-  TProfile2D* hist_cellEvsdxdy_val2 =
-      analyze->InitTProfile2D( prefixall + std::string( "cellEvsdxdy_" ) + val2.GetName(), "2D", nbins_eta, -range_eta,
-                               range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi" );
-  TProfile2D* hist_cellEvsdxdy_ratio = analyze->InitTProfile2D(
-      prefixall + std::string( "cellEvsdxdy_ratio_" ) + val1.GetName() + "_" + val2.GetName(), "2D", nbins_eta,
-      -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi" );
+  TProfile2D* hist_cellEvsdxdy_val1 = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_") + val1.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi");
+  TProfile2D* hist_cellEvsdxdy_val2 = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_") + val2.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi");
+  TProfile2D* hist_cellEvsdxdy_ratio = analyze->InitTProfile2D(prefixall + std::string("cellEvsdxdy_ratio_") + val1.GetName() + "_" + val2.GetName(), "2D", nbins_eta, -range_eta, range_eta, nbins_phi, -range_phi, range_phi, "d#eta", "d#phi");
 
   std::cout << "=============================" << std::endl;
   std::cout << "CompareShape2D: compare '" << val1.GetTitle() << "' with '" << val2.GetTitle() << "'" << std::endl;
@@ -504,15 +478,11 @@ void CompareShape2D( TFCSShapeValidation* analyze, int analyze_layer, int analyz
 
     double sumweight_val1 = sumcellE( analyze_layer, simul_val1 );
     double sumweight_val2 = sumcellE( analyze_layer, simul_val2 );
-    // std::cout<<"Event="<<ievent<<": sumweight_val1="<<sumweight_val1<<" ,
-    // sumweight_val2="<<sumweight_val2<<std::endl;
+    //std::cout<<"Event="<<ievent<<": sumweight_val1="<<sumweight_val1<<" , sumweight_val2="<<sumweight_val2<<std::endl;
 
-    Fill_Evsdxdy_hist( analyze_layer, simul_val1, sumweight_val1, analyze->get_extrapol( ievent ), hist_cellEvsdR_val1,
-                       hist_cellEvsdxdy_val1 );
-    Fill_Evsdxdy_hist( analyze_layer, simul_val2, sumweight_val2, analyze->get_extrapol( ievent ), hist_cellEvsdR_val2,
-                       hist_cellEvsdxdy_val2 );
-    Fill_Evsdxdy_ratio( analyze_layer, simul_val1, sumweight_val1, simul_val2, sumweight_val2,
-                        analyze->get_extrapol( ievent ), hist_cellEvsdR_ratio, hist_cellEvsdxdy_ratio );
+    Fill_Evsdxdy_hist(analyze_layer, simul_val1, sumweight_val1, analyze->get_extrapol(ievent), hist_cellEvsdR_val1, hist_cellEvsdxdy_val1);
+    Fill_Evsdxdy_hist(analyze_layer, simul_val2, sumweight_val2, analyze->get_extrapol(ievent), hist_cellEvsdR_val2, hist_cellEvsdxdy_val2);
+    Fill_Evsdxdy_ratio(analyze_layer, simul_val1, sumweight_val1, simul_val2, sumweight_val2, analyze->get_extrapol(ievent), hist_cellEvsdR_ratio, hist_cellEvsdxdy_ratio);
   }
 
   TCanvas* c;
@@ -545,7 +515,8 @@ void CompareShape2D( TFCSShapeValidation* analyze, int analyze_layer, int analyz
   // c=Draw_1Dhist(hist_cellEvsdR_ratio,0,0.5,1.5,false,name,title);
 }
 
-void BinLog( TAxis* axis ) {
+void BinLog(TAxis *axis)
+{
   // TAxis *axis = h->GetXaxis();
   int bins = axis->GetNbins();
 
@@ -554,12 +525,15 @@ void BinLog( TAxis* axis ) {
   Axis_t  width    = ( to - from ) / bins;
   Axis_t* new_bins = new Axis_t[bins + 1];
 
-  for ( int i = 0; i <= bins; i++ ) { new_bins[i] = TMath::Exp( from + i * width ); }
+  for (int i = 0; i <= bins; i++) {
+    new_bins[i] = TMath::Exp(from + i * width);
+  }
   axis->Set( bins, new_bins );
   delete[] new_bins;
 }
 
-void set_prefix( int analyze_layer, int analyze_pcabin ) {
+void set_prefix(int analyze_layer, int analyze_pcabin)
+{
   prefixlayer       = prefix_E_eta + Form( "cs%02d_", analyze_layer );
   prefixlayer_title = prefix_E_eta_title + Form( ", sample=%d", analyze_layer );
   if ( analyze_pcabin >= 0 ) {
@@ -575,25 +549,29 @@ void set_prefix( int analyze_layer, int analyze_pcabin ) {
   }
 }
 
-int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, int analyze_layer = 2,
-                            const std::string& plotfilename = "ShapeValidation.root", long seed = 42, int nEvents = -1,
-                            int firstEvent = 0, int debug = 0 ) {
+int runTFCSShapeValidation(int pdgid = 22,
+			   int int_E = 65536,
+			   double etamin = 0.2,
+                           int analyze_layer = 2,
+                           const std::string &plotfilename = "ShapeValidation.root",
+                           long seed = 42,
+			   int nEvents = -1,
+			   int firstEvent = 0,
+			   int debug = 0)
+{
 
   auto start = std::chrono::system_clock::now();
 
-  FCS::LateralShapeParametrizationArray mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                   0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  FCS::LateralShapeParametrizationArray mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   FCS::init_hit_to_cell_mapping( mapping );
 
-  FCS::LateralShapeParametrizationArray numbersOfHits = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  FCS::LateralShapeParametrizationArray numbersOfHits = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   FCS::init_numbers_of_hits( numbersOfHits, 1 );
 
   /*
   if (pdgid == 22 && analyze_layer == 2) {
-    TFCSHitCellMappingWiggle* wigglefunc = new TFCSHitCellMappingWiggle("hit_to_cell_mapping_new", "hit to cell
-  mapping_new"); TFile* wigglefile =
-  TFile::Open("/eos/atlas/user/a/ahasib/public/Simul-FastCalo/ParametrizationProductionVer02/Wiggle/eta_020_025/wiggle_input_deriv_Sampling_2.ver02.root");
+    TFCSHitCellMappingWiggle* wigglefunc = new TFCSHitCellMappingWiggle("hit_to_cell_mapping_new", "hit to cell mapping_new");
+    TFile* wigglefile = TFile::Open("/eos/atlas/user/a/ahasib/public/Simul-FastCalo/ParametrizationProductionVer02/Wiggle/eta_020_025/wiggle_input_deriv_Sampling_2.ver02.root");
     TH1* wigglehist = (TH1*)wigglefile->Get("pos_deriv_wiggles_Sampling_2");
     float cell_dphi = 0.0245437;
     wigglefunc->initialize(wigglehist, cell_dphi / 2);
@@ -671,16 +649,15 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   int nentries = inputChain->GetEntries();
 
   if ( nEvents <= 0 ) {
-    if ( firstEvent >= 0 )
-      nEvents = nentries;
-    else
-      nEvents = nentries;
-  } else {
-    if ( firstEvent >= 0 )
-      nEvents = std::max( 0, std::min( nentries, nEvents + firstEvent ) );
-    else
-      nEvents = std::max( 0, std::min( nentries, nEvents ) );
+    if ( firstEvent >=0 ) nEvents=nentries;
+    else nEvents=nentries;
   }
+  else{
+    if ( firstEvent >=0 ) nEvents=std::max( 0,std::min(nentries,nEvents+firstEvent) );
+    else nEvents = std::max( 0,std::min(nentries,nEvents) );
+  }
+  
+  
 
   std::cout << " * Prepare to run on: " << inputSample << " with entries = " << nentries << std::endl;
   std::cout << " * Running over " << nEvents << " events." << std::endl;
@@ -695,8 +672,7 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   // avgChain->Add(avgSample);
   // inputChain->AddFriend("AvgShape");
 
-  // std::cout << " *   1stPCA: entries = " << pcaChain->GetEntries() << " AvgShape: entries = " <<
-  // avgChain->GetEntries() << std::endl;
+  // std::cout << " *   1stPCA: entries = " << pcaChain->GetEntries() << " AvgShape: entries = " << avgChain->GetEntries() << std::endl;
 
   TFile* fpca = TFile::Open( pcaSample );
   if ( !fpca ) {
@@ -708,7 +684,8 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
   int   npcabins       = relevantLayers->GetNbinsX();
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+  for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+  {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 
@@ -733,10 +710,8 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   //////////////////////////////////////////////////////////
   ///// Chain to read in the energies and cells from the input file
   //////////////////////////////////////////////////////////
-  TFCSParametrizationChain* RunOriginal =
-      new TFCSParametrizationChain( "original_EnergyAndCells", "original energy and cells from input file" );
-  TFCSValidationEnergyAndCells* original_EnergyAndCells = new TFCSValidationEnergyAndCells(
-      "original_EnergyAndCells", "original energy and cells from input file", analyze );
+  TFCSParametrizationChain* RunOriginal = new TFCSParametrizationChain("original_EnergyAndCells", "original energy and cells from input file");
+  TFCSValidationEnergyAndCells* original_EnergyAndCells = new TFCSValidationEnergyAndCells("original_EnergyAndCells", "original energy and cells from input file", analyze);
   original_EnergyAndCells->set_pdgid( pdgid );
   original_EnergyAndCells->set_calosample( analyze_layer );
   original_EnergyAndCells->set_Ekin_bin( -1 );
@@ -750,20 +725,16 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   //////////////////////////////////////////////////////////
   ///// Chain to read in the energies from the input file, then simulate the average shape from a histogram
   //////////////////////////////////////////////////////////
-  TFCSParametrizationChain* RunOriginalEnergyAvgShapeSim = new TFCSParametrizationChain(
-      "original_Energy_sim_avgshape_histo", "original energy from input file, avg shape sim from histo" );
+  TFCSParametrizationChain* RunOriginalEnergyAvgShapeSim = new TFCSParametrizationChain("original_Energy_sim_avgshape_histo", "original energy from input file, avg shape sim from histo");
 
-  TFCSValidationHitSpy* hitspy_sim1 = new TFCSValidationHitSpy(
-      "hitspy1_Energy_sim_shape_histo", "hitspy Nr.1 for original energy from input file, shape sim from histo" );
+  TFCSValidationHitSpy* hitspy_sim1 = new TFCSValidationHitSpy("hitspy1_Energy_sim_shape_histo", "hitspy Nr.1 for original energy from input file, shape sim from histo");
   hitspy_sim1->set_calosample( analyze_layer );
 
-  TFCSValidationHitSpy* hitspy_sim2 = new TFCSValidationHitSpy(
-      "hitspy2_Energy_sim_shape_histo", "hitspy Nr.2 for original energy from input file, shape sim from histo" );
+  TFCSValidationHitSpy* hitspy_sim2 = new TFCSValidationHitSpy("hitspy2_Energy_sim_shape_histo", "hitspy Nr.2 for original energy from input file, shape sim from histo");
   hitspy_sim2->set_calosample( analyze_layer );
   hitspy_sim2->set_previous( hitspy_sim1 );
 
-  TFCSValidationEnergy* original_Energy =
-      new TFCSValidationEnergy( "original_Energy", "original energy from input file", analyze );
+  TFCSValidationEnergy* original_Energy = new TFCSValidationEnergy("original_Energy", "original energy from input file", analyze);
   original_Energy->get_layers().push_back( analyze_layer );
   original_Energy->set_n_bins( npcabins );
   original_Energy->set_pdgid( pdgid );
@@ -787,25 +758,17 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
 
     cout << "Get: " << prefix_E_eta + Form( "csall_allpca_hist_hitspy1_sample%d_geodphi_1D", analyze_layer ) << endl;
 
-    hitspy_sim1->hist_hitgeo_dphi() = (TH1*)avgshapefile->Get(
-        ( prefix_E_eta + Form( "csall_allpca_hist_hitspy1_sample%d_geodphi_1D", analyze_layer ) ).c_str() );
+    hitspy_sim1->hist_hitgeo_dphi() = (TH1*)avgshapefile->Get((prefix_E_eta + Form("csall_allpca_hist_hitspy1_sample%d_geodphi_1D",analyze_layer)).c_str());
     hitspy_sim1->hist_hitgeo_dphi()->SetDirectory( 0 );
-    hitspy_sim1->hist_hitgeo_matchprevious_dphi() = (TH1*)avgshapefile->Get(
-        ( prefix_E_eta + Form( "csall_allpca_hist_hitspy1_sample%d_geomatchprevious_dphi_1D", analyze_layer ) )
-            .c_str() );
+    hitspy_sim1->hist_hitgeo_matchprevious_dphi() = (TH1*)avgshapefile->Get((prefix_E_eta + Form("csall_allpca_hist_hitspy1_sample%d_geomatchprevious_dphi_1D",analyze_layer)).c_str());
     hitspy_sim1->hist_hitgeo_matchprevious_dphi()->SetDirectory( 0 );
-    hitspy_sim2->hist_hitgeo_dphi() = (TH1*)avgshapefile->Get(
-        ( prefix_E_eta + Form( "csall_allpca_hist_hitspy2_sample%d_geodphi_1D", analyze_layer ) ).c_str() );
+    hitspy_sim2->hist_hitgeo_dphi() = (TH1*)avgshapefile->Get((prefix_E_eta + Form("csall_allpca_hist_hitspy2_sample%d_geodphi_1D",analyze_layer)).c_str());
     hitspy_sim2->hist_hitgeo_dphi()->SetDirectory( 0 );
-    hitspy_sim2->hist_hitgeo_matchprevious_dphi() = (TH1*)avgshapefile->Get(
-        ( prefix_E_eta + Form( "csall_allpca_hist_hitspy2_sample%d_geomatchprevious_dphi_1D", analyze_layer ) )
-            .c_str() );
+    hitspy_sim2->hist_hitgeo_matchprevious_dphi() = (TH1*)avgshapefile->Get((prefix_E_eta + Form("csall_allpca_hist_hitspy2_sample%d_geomatchprevious_dphi_1D",analyze_layer)).c_str());
     hitspy_sim2->hist_hitgeo_matchprevious_dphi()->SetDirectory( 0 );
     avgshapefile->Close();
 
-    TFCSValidationEnergyAndCells* original_EnergyAndAvgCells = new TFCSValidationEnergyAndCells(
-        "original_EnergyAndAvgCells", "original energy from input file and average cell from stored simulation",
-        analyze );
+    TFCSValidationEnergyAndCells* original_EnergyAndAvgCells = new TFCSValidationEnergyAndCells("original_EnergyAndAvgCells", "original energy from input file and average cell from stored simulation", analyze);
     original_EnergyAndAvgCells->set_pdgid( pdgid );
     original_EnergyAndAvgCells->set_calosample( analyze_layer );
     original_EnergyAndAvgCells->set_Ekin_bin( -1 );
@@ -815,25 +778,17 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
     // Simulate average shape
     RunOriginalEnergyAvgShapeSim->push_back( original_Energy );
 
-    hitspy_sim1->hist_hitgeo_dphi() = analyze->InitTH1( prefixall + "hist_hitspy_sim1_geodphi", "1D", 256,
-                                                        -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits" );
-    hitspy_sim1->hist_hitgeo_matchprevious_dphi() =
-        analyze->InitTH1( prefixall + "hist_hitspy_sim1_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64,
-                          TMath::Pi() / 64, "dphi", "#hits" );
+    hitspy_sim1->hist_hitgeo_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_sim1_geodphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+    hitspy_sim1->hist_hitgeo_matchprevious_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_sim1_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
 
-    hitspy_sim2->hist_hitgeo_dphi() = analyze->InitTH1( prefixall + "hist_hitspy_sim2_geodphi", "1D", 256,
-                                                        -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits" );
-    hitspy_sim2->hist_hitgeo_matchprevious_dphi() =
-        analyze->InitTH1( prefixall + "hist_hitspy_sim2_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64,
-                          TMath::Pi() / 64, "dphi", "#hits" );
+    hitspy_sim2->hist_hitgeo_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_sim2_geodphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+    hitspy_sim2->hist_hitgeo_matchprevious_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_sim2_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
 
-    TFCSParametrizationEbinChain* EbinChainAvgShape = FCS::NewShapeEbinCaloSampleChain(
-        original_Energy, mapping, {}, shapefile.Data(), pdgid, int_E, etamin, etamax );
+    TFCSParametrizationEbinChain* EbinChainAvgShape = FCS::NewShapeEbinCaloSampleChain(original_Energy, mapping, {}, shapefile.Data(), pdgid, int_E, etamin, etamax);
     RunOriginalEnergyAvgShapeSim->push_back( EbinChainAvgShape );
     for ( size_t i = 0; i < EbinChainAvgShape->size(); ++i ) {
       if ( ( *EbinChainAvgShape )[i]->InheritsFrom( TFCSLateralShapeParametrizationHitChain::Class() ) ) {
-        TFCSLateralShapeParametrizationHitChain* hitchain =
-            (TFCSLateralShapeParametrizationHitChain*)( *EbinChainAvgShape )[i];
+        TFCSLateralShapeParametrizationHitChain* hitchain = (TFCSLateralShapeParametrizationHitChain*)(*EbinChainAvgShape)[i];
         if ( hitchain->size() > 0 ) {
           auto it = hitchain->chain().begin() + 1;
           hitchain->chain().insert( it, hitspy_sim1 );
@@ -844,18 +799,14 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
 
     file_avgshape = TFile::Open( "OutputAvgShape.root", "RECREATE" );
     if ( !file_avgshape ) {
-      std::cerr << "Error: Could not create file '"
-                << "OutputAvgShape.root"
-                << "'" << std::endl;
+      std::cerr << "Error: Could not create file '" << "OutputAvgShape.root" << "'" << std::endl;
       return 1;
     }
 
     tree_avgshape = nullptr;
     if ( file_avgshape ) {
       tree_avgshape                                 = new TTree( Form( "AvgShape" ), Form( "AvgShape" ) );
-      TFCSWriteCellsToTree* tree_writer_AvgShapeSim = new TFCSWriteCellsToTree(
-          "tree_writer_AvgShapeSim", "Tree writer for original energy from input file, shape sim from histo",
-          tree_avgshape );
+      TFCSWriteCellsToTree* tree_writer_AvgShapeSim=new TFCSWriteCellsToTree("tree_writer_AvgShapeSim","Tree writer for original energy from input file, shape sim from histo",tree_avgshape);
       RunOriginalEnergyAvgShapeSim->push_back( tree_writer_AvgShapeSim );
       file_avgshape->Add( hitspy_sim1->hist_hitgeo_dphi() );
       file_avgshape->Add( hitspy_sim1->hist_hitgeo_matchprevious_dphi() );
@@ -871,24 +822,20 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
 #endif
 
   int ind_RunOriginalEnergyAvgShapeSim = -1;
-  ind_RunOriginalEnergyAvgShapeSim =
-      analyze->add_validation( "AvgShape", "Average shape sim", RunOriginalEnergyAvgShapeSim );
+  ind_RunOriginalEnergyAvgShapeSim = analyze->add_validation("AvgShape", "Average shape sim", RunOriginalEnergyAvgShapeSim);
   std::cout << "=============================" << std::endl;
   //////////////////////////////////////////////////////////
   ///// Chain to read in the energies from the input file, then simulate the shape from a histogram
   //////////////////////////////////////////////////////////
-  TFCSParametrizationChain* RunOriginalEnergyShapeSim = new TFCSParametrizationChain(
-      "original_Energy_sim_shape_histo", "original energy from input file, shape sim from histo" );
+  TFCSParametrizationChain* RunOriginalEnergyShapeSim = new TFCSParametrizationChain("original_Energy_sim_shape_histo", "original energy from input file, shape sim from histo");
   RunOriginalEnergyShapeSim->push_back( original_Energy );
 
   if ( analyze_layer < 8 ) {
-    numbersOfHits[analyze_layer] = new TFCSLateralShapeParametrizationHitNumberFromE(
-        "numbers_of_hits_EM", "Calc numbers of hits EM", 0.101, 0.002 );
+    numbersOfHits[analyze_layer] = new TFCSLateralShapeParametrizationHitNumberFromE("numbers_of_hits_EM", "Calc numbers of hits EM", 0.101, 0.002);
     numbersOfHits[analyze_layer]->set_calosample( analyze_layer );
   }
 
-  TFCSParametrizationEbinChain* EbinChain = FCS::NewShapeEbinCaloSampleChain(
-      original_Energy, mapping, numbersOfHits, shapefile.Data(), pdgid, int_E, etamin, etamax );
+  TFCSParametrizationEbinChain* EbinChain = FCS::NewShapeEbinCaloSampleChain(original_Energy, mapping, numbersOfHits, shapefile.Data(), pdgid, int_E, etamin, etamax);
   RunOriginalEnergyShapeSim->push_back( EbinChain );
 
 #ifdef FCS_DEBUG
@@ -908,52 +855,39 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   //////////////////////////////////////////////////////////
   ///// Chain to read in the energies and hits from the input file
   //////////////////////////////////////////////////////////
-  TFCSParametrizationChain* RunOriginalHits =
-      new TFCSParametrizationChain( "original_EnergyAndHits", "original energy and hits from input file" );
-  TFCSValidationEnergyAndHits* original_EnergyAndHits =
-      new TFCSValidationEnergyAndHits( "original_EnergyAndHits", "original energy and hits from input file", analyze );
+  TFCSParametrizationChain* RunOriginalHits = new TFCSParametrizationChain("original_EnergyAndHits", "original energy and hits from input file");
+  TFCSValidationEnergyAndHits* original_EnergyAndHits = new TFCSValidationEnergyAndHits("original_EnergyAndHits", "original energy and hits from input file", analyze);
   original_EnergyAndHits->set_pdgid( pdgid );
   original_EnergyAndHits->set_calosample( analyze_layer );
   original_EnergyAndHits->set_Ekin_bin( -1 );
-  TFCSValidationHitSpy* hitspy_org = new TFCSValidationHitSpy( "hitspy_original_EnergyAndHits",
-                                                               "hitspy for original energy and hits from input file" );
+  TFCSValidationHitSpy* hitspy_org = new TFCSValidationHitSpy("hitspy_original_EnergyAndHits", "hitspy for original energy and hits from input file");
   hitspy_org->set_calosample( analyze_layer );
   hitspy_org->set_previous( &original_EnergyAndHits->get_hitspy() );
-  hitspy_org->hist_hitgeo_dphi() = analyze->InitTH1( prefixall + "hist_hitspy_org_geodphi", "1D", 256,
-                                                     -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits" );
-  hitspy_org->hist_hitgeo_matchprevious_dphi() =
-      analyze->InitTH1( prefixall + "hist_hitspy_org_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64,
-                        TMath::Pi() / 64, "dphi", "#hits" );
+  hitspy_org->hist_hitgeo_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_org_geodphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
+  hitspy_org->hist_hitgeo_matchprevious_dphi() = analyze->InitTH1(prefixall + "hist_hitspy_org_geomatchprevious_dphi", "1D", 256, -TMath::Pi() / 64, TMath::Pi() / 64, "dphi", "#hits");
   original_EnergyAndHits->push_back( hitspy_org );
   original_EnergyAndHits->push_back( mapping[analyze_layer] );
 
-  TH1* hist_cellEvsSumHitE = analyze->InitTH2( prefixall + "cellEvsSumHitE", "2D", 101, -20, 2000, 101, -20, 2000,
-                                               "SumHitE/MeV", "CellE/MeV" );
-  TH1* hist_cellEvsSumHitEprofile =
-      analyze->InitTProfile1D( prefixall + "cellEvsSumHitEprofile", "2D", 200, 0, 40, "SumHitE/MeV", "CellE/MeV", "" );
-  TH1* hist_cellEvsSumHitE_largerange = analyze->InitTH2( prefixall + "cellEvsSumHitE_largerange", "2D", 1000, 0, 20000,
-                                                          1000, 0, 20000, "SumHitE/MeV", "CellE/MeV" );
-  TH1* hist_cellEvsSumHitEprofile_largerange = analyze->InitTProfile1D(
-      prefixall + "cellEvsSumHitEprofile_largerange", "2D", 1000, 0, 20000, "SumHitE/MeV", "CellE/MeV", "" );
+  TH1* hist_cellEvsSumHitE = analyze->InitTH2(prefixall + "cellEvsSumHitE", "2D", 101, -20, 2000, 101, -20, 2000, "SumHitE/MeV", "CellE/MeV");
+  TH1* hist_cellEvsSumHitEprofile = analyze->InitTProfile1D(prefixall + "cellEvsSumHitEprofile", "2D", 200, 0, 40, "SumHitE/MeV", "CellE/MeV", "");
+  TH1* hist_cellEvsSumHitE_largerange = analyze->InitTH2(prefixall + "cellEvsSumHitE_largerange", "2D", 1000, 0, 20000, 1000, 0, 20000, "SumHitE/MeV", "CellE/MeV");
+  TH1* hist_cellEvsSumHitEprofile_largerange = analyze->InitTProfile1D(prefixall + "cellEvsSumHitEprofile_largerange", "2D", 1000, 0, 20000, "SumHitE/MeV", "CellE/MeV", "");
   original_EnergyAndHits->add_histo( hist_cellEvsSumHitE );
   original_EnergyAndHits->add_histo( hist_cellEvsSumHitEprofile );
   original_EnergyAndHits->add_histo( hist_cellEvsSumHitE_largerange );
   original_EnergyAndHits->add_histo( hist_cellEvsSumHitEprofile_largerange );
 
-  original_EnergyAndHits->hist_hit_time() =
-      analyze->InitTH1( prefixall + "hist_hit_time", "1D", 150, -100, 200, "time", "energy" );
-  original_EnergyAndHits->hist_problematic_hit_eta_phi() = analyze->InitTH2(
-      prefixall + "problematic_hit_eta_phi", "2D", 240, -3, +3, 256, -TMath::Pi(), TMath::Pi(), "eta", "phi" );
+  original_EnergyAndHits->hist_hit_time() = analyze->InitTH1(prefixall + "hist_hit_time", "1D", 150, -100, 200, "time", "energy");
+  original_EnergyAndHits->hist_problematic_hit_eta_phi() = analyze->InitTH2(prefixall + "problematic_hit_eta_phi", "2D", 240, -3, +3, 256, -TMath::Pi(), TMath::Pi(), "eta", "phi");
+
 
   for ( int tcut = 5; tcut <= 55; tcut += 25 ) {
     original_EnergyAndHits->m_hist_ratioErecoEhit_vs_Ehit_starttime.push_back( -5 );
     original_EnergyAndHits->m_hist_ratioErecoEhit_vs_Ehit_endtime.push_back( tcut );
-    TH2* hist = analyze->InitTH2( prefixall + Form( "cellEratiovsSumHitE_largerange_t%d", tcut ), "2D", 1000, 0.5,
-                                  20000, 160, 0.8, 1.60, "SumHitE/MeV", "CellE/SumHitE" );
+    TH2* hist = analyze->InitTH2(prefixall + Form("cellEratiovsSumHitE_largerange_t%d", tcut), "2D", 1000, 0.5, 20000, 160, 0.8, 1.60, "SumHitE/MeV", "CellE/SumHitE");
     BinLog( hist->GetXaxis() );
     original_EnergyAndHits->m_hist_ratioErecoEhit_vs_Ehit.push_back( hist );
-    hist = analyze->InitTH2( prefixall + Form( "cellEratiovsSumG4HitE_largerange_t%d", tcut ), "2D", 1000, 0.5, 20000,
-                             160, 0.8, 1.60, "SumG4HitE/MeV", "CellE/SumHitE" );
+    hist = analyze->InitTH2(prefixall + Form("cellEratiovsSumG4HitE_largerange_t%d", tcut), "2D", 1000, 0.5, 20000, 160, 0.8, 1.60, "SumG4HitE/MeV", "CellE/SumHitE");
     BinLog( hist->GetXaxis() );
     original_EnergyAndHits->m_hist_ratioErecoEG4hit_vs_EG4hit.push_back( hist );
   }
@@ -1012,8 +946,7 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   TString  nameshape    = "ShapeAvgShape";
   TCanvas* cenergy      = 0;
   if ( ind_fullchain >= 0 ) {
-    cenergy = new TCanvas( nameenergy + "_summary_" + prefix_E_eta, prefix_E_eta + ": " + nameenergy + " Summary", 1600,
-                           1200 );
+    cenergy = new TCanvas(nameenergy + "_summary_" + prefix_E_eta, prefix_E_eta + ": " + nameenergy + " Summary", 1600, 1200);
     cenergy->Divide( nbinx, nbiny );
   }
   // for(int i=-1;i<=0;++i) {
@@ -1032,25 +965,20 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
     if ( ind_RunOriginalEnergyAvgShapeSim >= 0 ) {
       TFCSSimulationRun& val2 = analyze->validations()[ind_RunOriginalEnergyAvgShapeSim];
       CompareShape2D( analyze, analyze_layer, analyze_pcabin, val1, val2, nameavgshape );
-      cout << "key=" << prefixall + std::string( "cellEvsdR_ratio_" ) + val1.GetName() + "_" + val2.GetName() + "_1D"
-           << endl;
-      ratio_input_avgsim = analyze->histMap()[prefixall + std::string( "cellEvsdR_ratio_" ) + val1.GetName() + "_" +
-                                              val2.GetName() + "_1D"];
+      cout << "key=" << prefixall + std::string("cellEvsdR_ratio_") + val1.GetName() + "_" + val2.GetName() + "_1D" << endl;
+      ratio_input_avgsim = analyze->histMap()[prefixall + std::string("cellEvsdR_ratio_") + val1.GetName() + "_" + val2.GetName() + "_1D"];
 
       TH1* ratio_sim_avgsim = 0;
       if ( ind_RunOriginalEnergyShapeSim >= 0 ) {
         TFCSSimulationRun& val1 = analyze->validations()[ind_RunOriginalEnergyShapeSim];
         CompareShape2D( analyze, analyze_layer, analyze_pcabin, val1, val2, nameshape );
-        cout << "key=" << prefixall + std::string( "cellEvsdR_ratio_" ) + val1.GetName() + "_" + val2.GetName() + "_1D"
-             << endl;
-        ratio_sim_avgsim = analyze->histMap()[prefixall + std::string( "cellEvsdR_ratio_" ) + val1.GetName() + "_" +
-                                              val2.GetName() + "_1D"];
+        cout << "key=" << prefixall + std::string("cellEvsdR_ratio_") + val1.GetName() + "_" + val2.GetName() + "_1D" << endl;
+        ratio_sim_avgsim = analyze->histMap()[prefixall + std::string("cellEvsdR_ratio_") + val1.GetName() + "_" + val2.GetName() + "_1D"];
 
         cout << "ratio_input_avgsim=" << ratio_input_avgsim << " ratio_sim_avgsim=" << ratio_sim_avgsim << endl;
         if ( ratio_input_avgsim && ratio_sim_avgsim ) {
           TString name  = TString( "Shape1D_ratio_" ) + prefixall;
-          TString title = TString( "(" ) + ratio_input_avgsim->GetTitle() + ") / (" + ratio_sim_avgsim->GetTitle() +
-                          ") : " + prefixall_title;
+          TString title = TString("(") + ratio_input_avgsim->GetTitle() + ") / (" + ratio_sim_avgsim->GetTitle() + ") : " + prefixall_title;
           c = Draw_1Dhist( ratio_input_avgsim, ratio_sim_avgsim, 0.5, 1.5, false, name, title );
           if ( fout ) {
             fout->cd();
@@ -1070,8 +998,7 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
     cenergy->SaveAs( ".png" );
   }
 
-  // CompareDirectShape2D(analyze, analyze_layer, analyze_pcabin, analyze->validations()[ind_RunOriginal],
-  // analyze->validations()[ind_fullchain]);
+  //CompareDirectShape2D(analyze, analyze_layer, analyze_pcabin, analyze->validations()[ind_RunOriginal], analyze->validations()[ind_fullchain]);
 
   // CompareDirectShape2D(analyze,analyze_layer,analyze_pcabin,analyze->validations()[ind_RunOriginal],analyze->validations()[2]);
 
@@ -1107,14 +1034,11 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
     c = Draw_1Dhist( hitspy_org->hist_hitgeo_dphi(), hitspy_sim2->hist_hitgeo_dphi() );
     c = Draw_1Dhist( hitspy_org->hist_hitgeo_matchprevious_dphi(), hitspy_sim2->hist_hitgeo_matchprevious_dphi() );
 
-    TEfficiency* eff_org =
-        new TEfficiency( *hitspy_org->hist_hitgeo_matchprevious_dphi(), *hitspy_org->hist_hitgeo_dphi() );
-    TEfficiency* eff_sim2 =
-        new TEfficiency( *hitspy_sim2->hist_hitgeo_matchprevious_dphi(), *hitspy_sim2->hist_hitgeo_dphi() );
+    TEfficiency* eff_org = new TEfficiency(*hitspy_org->hist_hitgeo_matchprevious_dphi(), *hitspy_org->hist_hitgeo_dphi());
+    TEfficiency* eff_sim2 = new TEfficiency(*hitspy_sim2->hist_hitgeo_matchprevious_dphi(), *hitspy_sim2->hist_hitgeo_dphi());
     eff_sim2->SetLineColor( 2 );
 
-    c = new TCanvas( TString( "efficiency_" ) + hitspy_org->hist_hitgeo_matchprevious_dphi()->GetName(),
-                     TString( "Efficiency for " ) + hitspy_org->hist_hitgeo_matchprevious_dphi()->GetTitle() );
+    c = new TCanvas(TString("efficiency_") + hitspy_org->hist_hitgeo_matchprevious_dphi()->GetName(), TString("Efficiency for ") + hitspy_org->hist_hitgeo_matchprevious_dphi()->GetTitle());
     eff_org->Draw();
     eff_sim2->Draw( "same" );
     if ( fout ) {
@@ -1153,8 +1077,10 @@ int runTFCSShapeValidation( int pdgid = 22, int int_E = 65536, double etamin = 0
   return 0;
 }
 
-int main( int argc, char** argv ) {
-  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
+int main(int argc, char **argv)
+{
+  std::map<std::string, docopt::value> args
+    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
 
   int         pdgId      = args["--pdgId"].asLong();
   int         energy     = args["--energy"].asLong();

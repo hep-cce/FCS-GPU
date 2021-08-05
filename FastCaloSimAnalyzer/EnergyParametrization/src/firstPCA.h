@@ -9,8 +9,10 @@
 #include "TreeReader.h"
 #include "TH1D.h"
 
-class firstPCA {
+class firstPCA
+{
 public:
+  	
   firstPCA( TChain*, std::string );
   firstPCA();
   virtual ~firstPCA() {}

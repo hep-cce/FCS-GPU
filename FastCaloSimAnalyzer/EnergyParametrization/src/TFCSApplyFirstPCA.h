@@ -5,18 +5,22 @@
 #ifndef TFCSApplyFirstPCA_h
 #define TFCSApplyFirstPCA_h
 
-#include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 #include "TChain.h"
-#include "TFCSMakeFirstPCA.h"
-#include "TH1D.h"
 #include "TreeReader.h"
+#include "TH1D.h"
+#include "TFCSMakeFirstPCA.h"
+#include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
-namespace CLHEP {
+namespace CLHEP
+{
   class HepRandomEngine;
 }
 
-class TFCSApplyFirstPCA : public TFCSMakeFirstPCA {
+
+class TFCSApplyFirstPCA: public TFCSMakeFirstPCA
+{
 public:
+
   TFCSApplyFirstPCA(){};
   TFCSApplyFirstPCA( std::string MakeFirstPCA_rootfilename );
   virtual ~TFCSApplyFirstPCA(){};

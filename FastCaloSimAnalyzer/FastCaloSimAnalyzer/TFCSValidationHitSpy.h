@@ -24,11 +24,9 @@ public:
   // simulated one hit position with weight that should be put into simulstate
   // sometime later all hit weights should be resacled such that their final sum is simulstate->E(sample)
   // someone also needs to map all hits into cells
-  virtual FCSReturnCode simulate_hit( Hit& hit, TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                      const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate_hit(Hit& hit, TFCSSimulationState& simulstate, const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate, const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   void                        set_previous( TFCSValidationHitSpy* previous ) { m_previous = previous; };
   const TFCSValidationHitSpy* previous() const { return m_previous; };

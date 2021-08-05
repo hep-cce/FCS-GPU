@@ -3,11 +3,11 @@
 */
 
 #include "FCS_dsid.h"
-#include <TChain.h>
-#include <TSystem.h>
-#include <fstream>
 #include <iostream>
+#include <fstream>
 #include <sstream>
+#include <TSystem.h>
+#include <TChain.h>
 
 namespace FCS_dsid {
   std::vector<std::string> dsid_db_pdgid;
@@ -16,7 +16,8 @@ namespace FCS_dsid {
   std::vector<std::string> dsid_db_z;
   std::vector<std::string> dsid_db_dsid;
 
-  void init() {
+void init()
+{
     std::cout << "initialising FCS_dsid..." << std::endl;
     // init the db
     std::ifstream file( "db.txt" );
@@ -44,8 +45,7 @@ namespace FCS_dsid {
     if ( !dsid_is_init ) init();
     std::string dsid = "";
     for ( unsigned int i = 0; i < dsid_db_energy.size(); i++ ) {
-      if ( energy == dsid_db_energy[i] && pdgid == dsid_db_pdgid[i] && zvertex == dsid_db_z[i] &&
-           eta == dsid_db_eta[i] ) {
+    if (energy == dsid_db_energy[i] && pdgid == dsid_db_pdgid[i] && zvertex == dsid_db_z[i] && eta == dsid_db_eta[i]) {
         dsid = dsid_db_dsid[i];
         break;
       }
@@ -54,8 +54,7 @@ namespace FCS_dsid {
     return dsid;
   }
 
-  void get_dsid_info( std::string dsid, std::string& pdgid, std::string& energy, std::string& eta,
-                      std::string& zvertex ) {
+void get_dsid_info(std::string dsid, std::string& pdgid, std::string& energy, std::string& eta, std::string& zvertex) {
     if ( !dsid_is_init ) init();
     pdgid   = "";
     energy  = "";
@@ -85,8 +84,7 @@ namespace FCS_dsid {
     int         inteta = std::stoi( eta );
     std::string etaend = std::to_string( inteta + 5 );
 
-    basename = std::string( "mc16_13TeV." ) + dsid + ".ParticleGun_pid" + pdgid + "_E" + energy + "_disj_eta_m" +
-               etaend + "_m" + eta + "_" + eta + "_" + etaend + "_zv_" + zvertex;
+  basename = std::string("mc16_13TeV.") + dsid + ".ParticleGun_pid" + pdgid + "_E" + energy + "_disj_eta_m" + etaend + "_m" + eta + "_" + eta + "_" + etaend + "_zv_" + zvertex;
 
     return basename;
   }
@@ -152,24 +150,20 @@ namespace FCS_dsid {
     return basedir + basename + ".secondPCA." + version + ".root";
   }
 
-  std::string get_wiggle_name( std::string etarange, int sampling, bool isNewWiggle, std::string basedir,
-                               std::string version ) {
+std::string get_wiggle_name(std::string etarange, int sampling, bool isNewWiggle, std::string basedir, std::string version) {
 
     std::string filename = "";
     if ( isNewWiggle ) {
       filename = basedir + "Wiggle/" + etarange + "." + version + ".root";
     } else {
       version  = "ver03";
-      filename = basedir + "Wiggle_old/" + etarange + "/wiggle_input_deriv_Sampling_" + std::to_string( sampling ) +
-                 "." + version + ".root";
+    filename = basedir + "Wiggle_old/" + etarange + "/wiggle_input_deriv_Sampling_" + std::to_string(sampling) + "." + version + ".root";
     }
     return filename;
   }
 
-  std::string get_param_etaslice_name( int pid, std::string etamin, std::string etamax, std::string basedir,
-                                       std::string version ) {
-    std::string wildcard = basedir + "TFCSParamEtaSlices/" + "mc16_13TeV." + "pid" + std::to_string( pid ) + ".E*eta_" +
-                           etamin + "_" + etamax + "_zv0.TFCSParam." + version + ".root";
+std::string get_param_etaslice_name(int pid, std::string etamin, std::string etamax, std::string basedir, std::string version) {
+  std::string wildcard = basedir + "TFCSParamEtaSlices/" + "mc16_13TeV." + "pid" + std::to_string(pid) + ".E*eta_" + etamin + "_" + etamax + "_zv0.TFCSParam." + version + ".root";
 
     gSystem->Exec( ( std::string( "ls " ) + wildcard + " > $TMPDIR/FCS_ls.$PPID.list" ).c_str() );
     TString tmpname = gSystem->Getenv( "TMPDIR" );
@@ -181,11 +175,12 @@ namespace FCS_dsid {
     infile.open( tmpname );
     std::string filename;
     getline( infile, filename );
-    if ( filename != "" ) std::cout << "Adding file: " << filename << std::endl;
+  if (filename != "")
+    std::cout << "Adding file: " << filename << std::endl;
     infile.close();
     gSystem->Exec( "rm $TMPDIR/FCS_ls.$PPID.list" );
 
     return filename;
   }
 
-}; // namespace FCS_dsid
+};

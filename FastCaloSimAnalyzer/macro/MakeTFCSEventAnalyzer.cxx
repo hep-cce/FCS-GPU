@@ -2,27 +2,30 @@
   Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
 */
 
-#include "TFCS2DParametrization.h"
+#include "TFCSfirstPCA.h"
 #include "TFCSFlatNtupleMaker.h"
 #include "TFCSInputValidationPlots.h"
-#include "TFCSfirstPCA.h"
+#include "TFCS2DParametrization.h"
 
-#include "TChain.h"
 #include "TFile.h"
-#include "TH2.h"
-#include "TString.h"
+#include "TChain.h"
 #include "TTree.h"
+#include "TString.h"
+#include "TH2.h"
 
-#include <algorithm>
 #include <iostream>
-#include <stdlib.h>
+#include <algorithm>
 #include <string>
+#include <stdlib.h>
 #include <tuple>
 
 void MakeTFCSEventAnalyzer();
 
+
 // int main(int argc, char const *argv[])
-void MakeTFCSEventAnalyzer() {
+void MakeTFCSEventAnalyzer()
+{
+
 
   std::string particle = "photon";
   // particle = "pionplus";
@@ -111,7 +114,8 @@ void MakeTFCSEventAnalyzer() {
   std::vector<int> v_layer;
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+    {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 

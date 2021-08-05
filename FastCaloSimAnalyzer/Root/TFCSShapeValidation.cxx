@@ -43,10 +43,7 @@
   std::chrono::duration<double> TFCSShapeValidation::time_g2 ;
   std::chrono::duration<double> TFCSShapeValidation::time_h ;
 
-
-
-TFCSShapeValidation::TFCSShapeValidation(long seed)
-{
+TFCSShapeValidation::TFCSShapeValidation( long seed ) {
    m_debug = 0;
    m_geo = 0;
    m_nprint=-1;
@@ -63,9 +60,7 @@ TFCSShapeValidation::TFCSShapeValidation(long seed)
 
 }
 
-
-TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
-{
+TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) {
    m_debug = 0;
    m_chain = chain;
    m_output = "";
@@ -88,24 +83,20 @@ TFCSShapeValidation::TFCSShapeValidation(TChain *chain, int layer, long seed)
 
 }
 
+TFCSShapeValidation::~TFCSShapeValidation() {}
 
-TFCSShapeValidation::~TFCSShapeValidation()
-{
-}
-
-void TFCSShapeValidation::LoadGeo()
-{
+void TFCSShapeValidation::LoadGeo() {
   if(m_geo) return;
 
   m_geo = new CaloGeometryFromFile();
 
   // load geometry files
-  m_geo->LoadGeometryFromFile(TFCSSampleDiscovery::geometryName(), TFCSSampleDiscovery::geometryTree(), TFCSSampleDiscovery::geometryMap());
+  m_geo->LoadGeometryFromFile( TFCSSampleDiscovery::geometryName(), TFCSSampleDiscovery::geometryTree(),
+                               TFCSSampleDiscovery::geometryMap() );
   m_geo->LoadFCalGeometryFromFiles(TFCSSampleDiscovery::geometryNameFCal());
 }
 
-void TFCSShapeValidation::LoopEvents(int pcabin=-1)
-{
+void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
    auto start = std::chrono::system_clock::now();
   LoadGeo();
    auto t_01 = std::chrono::system_clock::now();
@@ -127,8 +118,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
   GeoLg() ;
 
-  if (m_gl->LoadGpu())
-	std::cout <<"GPU Geometry loaded!!!" <<std::endl  ;
+  if ( m_gl->LoadGpu() ) std::cout << "GPU Geometry loaded!!!" << std::endl;
    
   //m_debug=1 ;
    auto t1 = std::chrono::system_clock::now();
@@ -137,9 +127,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
   if(0) {
   std::cout << "Geo size: " << m_geo->get_cells()->size() << std::endl ;
   std::cout << "Geo region size: " ;
-   for(int  isample=0; isample <24; isample++) {
-         std::cout << m_geo->get_n_regions(isample) << " "  ;
-        }
+    for ( int isample = 0; isample < 24; isample++ ) { std::cout << m_geo->get_n_regions( isample ) << " "; }
       std::cout << std::endl ;
 
         unsigned long t_cells=0 ;
@@ -147,10 +135,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
        std::cout << "Sample: " <<isample << std::endl ;
         int sample_tot =0 ;
        int rgs=m_geo->get_n_regions(isample) ;
-        for (int irg=0 ; irg<rgs ; irg++)
-        {
-          std::cout << " region: " << irg << " cells: " << m_geo->get_region_size(isample,irg)
-                << std::endl ;
+      for ( int irg = 0; irg < rgs; irg++ ) {
+        std::cout << " region: " << irg << " cells: " << m_geo->get_region_size( isample, irg ) << std::endl;
             sample_tot += m_geo->get_region_size(isample,irg);
             t_cells += m_geo->get_region_size(isample,irg) ;
             int neta = m_geo->get_region(isample,irg)->cell_grid_eta();
@@ -171,7 +157,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
   int nentries = m_nentries;
   int layer = m_layer;
-  std::cout << "TFCSShapeValidation::LoopEvents(): Running on layer = " << layer << ", pcabin = " << pcabin << std::endl ;
+  std::cout << "TFCSShapeValidation::LoopEvents(): Running on layer = " << layer << ", pcabin = " << pcabin
+            << std::endl;
 
   InitInputTree(m_chain, layer);
    auto t_02 = std::chrono::system_clock::now();
@@ -224,8 +211,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 #endif
    std::chrono::duration<double> t_st= std::chrono::duration<double,std::ratio<1>>::zero();
    auto t2 = std::chrono::system_clock::now();
-  for (int ievent = m_firstevent; ievent < nentries; ievent++)
-  {
+  for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
 #ifdef USE_GPU
 
@@ -240,19 +226,14 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      if (ievent % m_nprint == 0) std::cout << std::endl << "Event: " << ievent << std::endl;
      auto t6 = std::chrono::system_clock::now();
      int64_t localEntry = m_chain->LoadTree(ievent);
-     for (TBranch *branch : m_branches) {
-        branch->GetEntry(localEntry);
-    }
+    for ( TBranch* branch : m_branches ) { branch->GetEntry( localEntry ); }
      auto t7 = std::chrono::system_clock::now();
      t_io += t7-t6 ;
 
-    if (m_debug >= 1) {
-      std::cout << "Number of particles: " <<  m_truthPDGID->size() << std::endl;
-    }
+    if ( m_debug >= 1 ) { std::cout << "Number of particles: " << m_truthPDGID->size() << std::endl; }
 
     size_t particles = m_truthPDGID->size();
-    for (size_t p = 0; p < particles; p++)
-    {
+    for ( size_t p = 0; p < particles; p++ ) {
     
     auto t4 = std::chrono::system_clock::now();
 
@@ -287,8 +268,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 
      float TTC_eta, TTC_phi, TTC_r, TTC_z;
 
-     if (!m_isNewSample)
-     {
+      if ( !m_isNewSample ) {
         TTC_eta = (*m_truthCollection)[0].TTC_entrance_eta[0];
         TTC_phi = (*m_truthCollection)[0].TTC_entrance_phi[0];
         TTC_r = (*m_truthCollection)[0].TTC_entrance_r[0];
@@ -316,10 +296,18 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		      //extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_r->at(p).at(i));
 		      //extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(p).at(i));
 		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, true);
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_eta[i] + (*m_truthCollection)[0].TTC_back_eta[i]));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_phi[i] + (*m_truthCollection)[0].TTC_back_phi[i]));
-		      extrapol.set_r  (i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_r[i] + (*m_truthCollection)[0].TTC_back_r[i]));
-		      extrapol.set_z  (i,TFCSExtrapolationState::SUBPOS_MID, 0.5*((*m_truthCollection)[0].TTC_entrance_z[i] + (*m_truthCollection)[0].TTC_back_z[i]));
+          extrapol.set_eta(
+              i, TFCSExtrapolationState::SUBPOS_MID,
+              0.5 * ( ( *m_truthCollection )[0].TTC_entrance_eta[i] + ( *m_truthCollection )[0].TTC_back_eta[i] ) );
+          extrapol.set_phi(
+              i, TFCSExtrapolationState::SUBPOS_MID,
+              0.5 * ( ( *m_truthCollection )[0].TTC_entrance_phi[i] + ( *m_truthCollection )[0].TTC_back_phi[i] ) );
+          extrapol.set_r(
+              i, TFCSExtrapolationState::SUBPOS_MID,
+              0.5 * ( ( *m_truthCollection )[0].TTC_entrance_r[i] + ( *m_truthCollection )[0].TTC_back_r[i] ) );
+          extrapol.set_z(
+              i, TFCSExtrapolationState::SUBPOS_MID,
+              0.5 * ( ( *m_truthCollection )[0].TTC_entrance_z[i] + ( *m_truthCollection )[0].TTC_back_z[i] ) );
 		    }
      } else {
         if(m_TTC_IDCaloBoundary_eta->size()>0) {
@@ -364,20 +352,27 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, m_TTC_mid_z->at(p).at(i));
 		      */
 		      
-		      extrapol.set_OK(i,TFCSExtrapolationState::SUBPOS_MID, (extrapol.OK(i,TFCSExtrapolationState::SUBPOS_ENT) && extrapol.OK(i,TFCSExtrapolationState::SUBPOS_EXT)));
-		      extrapol.set_eta(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_eta->at(p).at(i)+m_TTC_back_eta->at(p).at(i)));
-		      extrapol.set_phi(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_phi->at(p).at(i)+m_TTC_back_phi->at(p).at(i)));
-		      extrapol.set_r(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_r->at(p).at(i)+m_TTC_back_r->at(p).at(i)));
-		      extrapol.set_z(i,TFCSExtrapolationState::SUBPOS_MID, 0.5*(m_TTC_entrance_z->at(p).at(i)+m_TTC_back_z->at(p).at(i)));
-		      
+          extrapol.set_OK( i, TFCSExtrapolationState::SUBPOS_MID,
+                           ( extrapol.OK( i, TFCSExtrapolationState::SUBPOS_ENT ) &&
+                             extrapol.OK( i, TFCSExtrapolationState::SUBPOS_EXT ) ) );
+          extrapol.set_eta( i, TFCSExtrapolationState::SUBPOS_MID,
+                            0.5 * ( m_TTC_entrance_eta->at( p ).at( i ) + m_TTC_back_eta->at( p ).at( i ) ) );
+          extrapol.set_phi( i, TFCSExtrapolationState::SUBPOS_MID,
+                            0.5 * ( m_TTC_entrance_phi->at( p ).at( i ) + m_TTC_back_phi->at( p ).at( i ) ) );
+          extrapol.set_r( i, TFCSExtrapolationState::SUBPOS_MID,
+                          0.5 * ( m_TTC_entrance_r->at( p ).at( i ) + m_TTC_back_r->at( p ).at( i ) ) );
+          extrapol.set_z( i, TFCSExtrapolationState::SUBPOS_MID,
+                          0.5 * ( m_TTC_entrance_z->at( p ).at( i ) + m_TTC_back_z->at( p ).at( i ) ) );
 		    }
      }
      if (m_debug >= 1) extrapol.Print();
 
      if (m_debug == 2)
-        std::cout << "TTC eta, phi, r, z = " << TTC_eta << " , " << TTC_phi<< " , " << TTC_r<< " , " << TTC_z << std::endl;
+        std::cout << "TTC eta, phi, r, z = " << TTC_eta << " , " << TTC_phi << " , " << TTC_r << " , " << TTC_z
+                  << std::endl;
 
-     if(pcabin>=0) if(pca()!=pcabin) continue;
+      if ( pcabin >= 0 )
+        if ( pca() != pcabin ) continue;
 
      ///////////////////////////////////
      //// run simulation chain
@@ -393,10 +388,14 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		
 	auto ss = std::chrono::system_clock::now();
        if (m_debug >= 1) {
-         std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
-         std::cout << "Simulate : " << "validation:"<<typeid(validation).name() <<", " <<typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
-		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
-		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
+          std::cout << "Simulate : " << validation.basesim()->GetTitle() << " event=" << ievent
+                    << " E=" << total_energy() << " Ebin=" << pca() << std::endl;
+          std::cout << "Simulate : "
+                    << "validation:" << typeid( validation ).name() << ", "
+                    << typeid( *( validation.basesim() ) ).name() << " Title: " << validation.basesim()->GetTitle()
+                    << " event=" << ievent << " E=" << total_energy() << " Ebin=" << pca()
+                    << " validation: " << typeid( validation ).name() << " Pointer: " << &validation
+                    << " Title: " << validation.GetTitle() << std::endl;
 }
 #ifdef USE_GPU
 	int vi =iv ;
@@ -417,8 +416,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 	es.n_simbins = n_simbins ;
 	es.gpu = false ;
         if( p != 0 ) es.is_first= false ;
-        if( p ==  (particles -1) && ievent == (nentries-1) ) es.is_last= true ;
-	else es.is_last = false ;
+        if ( p == ( particles - 1 ) && ievent == ( nentries - 1 ) )
+          es.is_last = true;
+        else
+          es.is_last = false;
 
 	chain_simul.set_gpu_rand(m_rd4h) ;
 	chain_simul.set_geold(m_gl) ;
@@ -427,7 +428,8 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
      validation.basesim()->simulate(chain_simul,&truthTLV,&extrapol); 
        if (m_debug >= 1) {
          chain_simul.Print();
-         std::cout << "End simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<std::endl<<std::endl;
+          std::cout << "End simulate : " << validation.basesim()->GetTitle() << " event=" << ievent << std::endl
+                    << std::endl;
        }  
 #ifdef USE_GPU
 	iv++ ;
@@ -475,8 +477,10 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		TFCSSimulationState& sim=m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]] ;
 //  std::cout << "gpucellCT["<<isim<<"]=" << args.ct_h[isim] <<std::endl ;
 		for( int ii =0 ; ii< args.ct_h[isim] ;  ii++ ) {
- //if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0 ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<", isim="<<isim <<", ii="<<ii << std::endl ;
-  //std::cout << "Id:" << args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
+              // if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0
+              // ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<",
+              // isim="<<isim <<", ii="<<ii << std::endl ; std::cout << "Id:" <<
+              // args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
 		   const CaloDetDescrElement * cellele = m_gl->index2cell(args.hitcells_E_h[ii+isim*MAXHITCT].cellid) ;
  // std::cout << ",Is" << isim <<"Ic"<<ii;
                    sim.deposit(cellele ,args.hitcells_E_h[ii+isim*MAXHITCT].energy) ;	
@@ -503,7 +507,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
     
     } // end loop over particles
   } // end loop over events
-   auto t_04 = std::chrono::system_clock::now();
+  // auto t_04 = std::chrono::system_clock::now();
 #ifdef USE_GPU
  if(m_rd4h) CaloGpuGeneral::Rand4Hits_finish( m_rd4h ) ;
 #endif 
@@ -595,8 +599,7 @@ void TFCSShapeValidation::GeoLg() {
 	si[is].index = i ;	
         int nr = m_geo->get_n_regions( is );
 	si[is].size =nr ;
-        for (int ir=0; ir<nr ; ++ir )
-            region_data_cpy(m_geo->get_region(is,ir), &GR_ptr[i++]) ;
+    for ( int ir = 0; ir < nr; ++ir ) region_data_cpy( m_geo->get_region( is, ir ), &GR_ptr[i++] );
 //    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
     }
 }
@@ -608,7 +611,7 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
     gr->set_xy_grid_adjustment_factor(glkup->xy_grid_adjustment_factor());
     gr->set_index(glkup->index());
 	
-    int neta = glkup->cell_grid_eta() ;
+  size_t neta = glkup->cell_grid_eta();
     int nphi =  glkup->cell_grid_phi() ;
   // std::cout << " copy region " << glkup->index() << "neta= " << neta<< ", nphi= "<<nphi<< std::endl ;
 
@@ -643,10 +646,12 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
     long long * cells = ( long long * ) malloc(sizeof( long long)* neta*nphi) ;
     gr->set_cell_grid( cells) ;
 
-    if(neta != (*(glkup->cell_grid())).size() ) std::cout<<"neta " << neta << ", vector eta size "<<  (*(glkup->cell_grid())).size() << std::endl;
-    for (int ie=0; ie< neta ; ++ie ) {
+  if ( neta != ( *( glkup->cell_grid() ) ).size() )
+    std::cout << "neta " << neta << ", vector eta size " << ( *( glkup->cell_grid() ) ).size() << std::endl;
+  for ( size_t ie = 0; ie < neta; ++ie ) {
 //    	if(nphi != (*(glkup->cell_grid()))[ie].size() )
-//		 std::cout<<"neta " << neta << "nphi "<<nphi <<", vector phi size "<<  (*(glkup->cell_grid()))[ie].size() << std::endl;
+    //		 std::cout<<"neta " << neta << "nphi "<<nphi <<", vector phi size "<<  (*(glkup->cell_grid()))[ie].size() <<
+    //std::endl;
 	
      	for (int ip=0; ip< nphi; ++ip) {
 

@@ -13,12 +13,37 @@
 #endif
 #endif
 
-  class Hit
-  {
+class Hit {
     public:
-    CUDA_HOSTDEV Hit():m_eta_x(0.),m_phi_y(0.),m_z(0.),m_E(0.),m_useXYZ(false),m_center_r(0.),m_center_z(0.),m_center_eta(0.),m_center_phi(0.) {}; // for hits with the same energy, m_E should normalized to E(layer)/nhit
-    CUDA_HOSTDEV Hit(float eta, float phi, float E):m_eta_x(eta),m_phi_y(phi),m_E(E),m_useXYZ(false),m_center_r(0.),m_center_z(0.),m_center_eta(0.),m_center_phi(0.) {};
-    CUDA_HOSTDEV Hit(float x, float y, float z, float E):m_eta_x(x),m_phi_y(y),m_z(z),m_E(E),m_useXYZ(true),m_center_r(0.),m_center_z(0.),m_center_eta(0.),m_center_phi(0.) {};
+  CUDA_HOSTDEV Hit()
+      : m_eta_x( 0. )
+      , m_phi_y( 0. )
+      , m_z( 0. )
+      , m_E( 0. )
+      , m_useXYZ( false )
+      , m_center_r( 0. )
+      , m_center_z( 0. )
+      , m_center_eta( 0. )
+      , m_center_phi( 0. ){}; // for hits with the same energy, m_E should normalized to E(layer)/nhit
+  CUDA_HOSTDEV Hit( float eta, float phi, float E )
+      : m_eta_x( eta )
+      , m_phi_y( phi )
+      , m_E( E )
+      , m_useXYZ( false )
+      , m_center_r( 0. )
+      , m_center_z( 0. )
+      , m_center_eta( 0. )
+      , m_center_phi( 0. ){};
+  CUDA_HOSTDEV Hit( float x, float y, float z, float E )
+      : m_eta_x( x )
+      , m_phi_y( y )
+      , m_z( z )
+      , m_E( E )
+      , m_useXYZ( true )
+      , m_center_r( 0. )
+      , m_center_z( 0. )
+      , m_center_eta( 0. )
+      , m_center_phi( 0. ){};
 
     CUDA_HOSTDEV inline void setEtaPhiZE(float eta,float phi,float z, float E){
       m_eta_x=eta;
@@ -50,8 +75,10 @@
     CUDA_HOSTDEV inline float& E() {return m_E;};
     CUDA_HOSTDEV inline float& z() {return m_z;}
     CUDA_HOSTDEV inline float r() {
-      if(m_useXYZ) return sqrt(m_eta_x*m_eta_x + m_phi_y*m_phi_y);
-      else return m_z/sinh(m_eta_x);
+    if ( m_useXYZ )
+      return sqrt( m_eta_x * m_eta_x + m_phi_y * m_phi_y );
+    else
+      return m_z / sinh( m_eta_x );
     }
     CUDA_HOSTDEV inline float& center_r(){return m_center_r;}
     CUDA_HOSTDEV inline float& center_z(){return m_center_z;}

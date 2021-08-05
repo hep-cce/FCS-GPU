@@ -24,12 +24,13 @@ using namespace std;
 //======= TFCS1DFunctionFactory =========
 //=============================================
 
-TFCS1DFunction* TFCS1DFunctionFactory::Create( TH1* hist, int skip_regression, int neurons_start, int neurons_end,
-                                               double maxdev_regression, double maxdev_smartrebin, int ntoys ) {
 
-  // This function is called by the user when he wants a histogram to be transformed into a space efficient variant for
-  // the parametrization. All code that decides whether a histogram should be transformed into a
-  // TFCS1DFunctionRegression or TFCS1DFunctionHistogram should go here.
+TFCS1DFunction* TFCS1DFunctionFactory::Create(TH1* hist,int skip_regression,int neurons_start, int neurons_end, double maxdev_regression, double maxdev_smartrebin, int ntoys)
+{
+ 
+ // This function is called by the user when he wants a histogram to be transformed into a space efficient variant for the parametrization.
+ // All code that decides whether a histogram should be transformed into a TFCS1DFunctionRegression or TFCS1DFunctionHistogram
+ // should go here. 
 
   TRandom1* random = new TRandom1();
   random->SetSeed( 0 );
@@ -49,11 +50,11 @@ TFCS1DFunction* TFCS1DFunctionFactory::Create( TH1* hist, int skip_regression, i
   int status = 3;
 
   if ( !skip_regression )
-    status = TFCS1DRegression::testHisto( hist, xmlweightfilename, rangeval, startval, outfilename, neurons_start,
-                                          neurons_end, maxdev_regression, ntoys );
+  status=TFCS1DRegression::testHisto(hist,xmlweightfilename,rangeval,startval,outfilename,neurons_start,neurons_end,maxdev_regression,ntoys);
 
   cout << "--- testHisto status=" << status << endl;
-  if ( status == 1 ) {
+ if(status==1)
+ {
     cout << "Regression" << endl;
     freg = new TFCS1DFunctionRegression();
     vector<vector<double>> fWeightMatrix0to1;
@@ -65,7 +66,8 @@ TFCS1DFunction* TFCS1DFunctionFactory::Create( TH1* hist, int skip_regression, i
     remove( Form( "dl/%s", xmlweightfilename.c_str() ) );
     return freg;
   }
-  if ( status == 2 ) {
+ if(status==2)
+ {
     cout << "Regression and Transformation" << endl;
     fregTF = new TFCS1DFunctionRegressionTF( rangeval, startval );
     vector<vector<double>> fWeightMatrix0to1;
@@ -77,7 +79,8 @@ TFCS1DFunction* TFCS1DFunctionFactory::Create( TH1* hist, int skip_regression, i
     remove( Form( "dl/%s", xmlweightfilename.c_str() ) );
     return fregTF;
   }
-  if ( status == 3 ) {
+ if(status==3)
+ {
     cout << "xmlweightfilename: " << xmlweightfilename << endl;
     remove( outfilename.c_str() );
     remove( Form( "dl/%s/TMVARegression_MLP.weights.xml", xmlweightfilename.c_str() ) );
@@ -86,7 +89,8 @@ TFCS1DFunction* TFCS1DFunctionFactory::Create( TH1* hist, int skip_regression, i
     fhis = new TFCS1DFunctionHistogram( hist, maxdev_smartrebin );
     return fhis;
   }
-  if ( status == 0 ) {
+ if(status==0)
+ {
     cout << "something went wrong :(" << endl;
     return 0;
   }

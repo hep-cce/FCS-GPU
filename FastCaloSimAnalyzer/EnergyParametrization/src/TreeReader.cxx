@@ -2,13 +2,13 @@
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
 
-#include "TreeReader.h"
-#include "TString.h"
 #include "TTreeFormula.h"
 #include "TTreeFormulaManager.h"
-#include <TChain.h>
+#include "TString.h"
 #include <iostream>
+#include <TChain.h>
 #include <vector>
+#include "TreeReader.h"
 
 //////////////////////////////////////////////////
 //
@@ -22,7 +22,9 @@
 Class for Tree reading through TFormula.
 ______________________________________________________________________________*/
 
-TreeReader::TreeReader() {
+
+TreeReader::TreeReader()
+{
   // Default constructor.
   m_isChain      = false;
   m_currentTree  = -1;
@@ -31,7 +33,11 @@ TreeReader::TreeReader() {
   m_entries      = -1;
 }
 
-TreeReader::~TreeReader() { m_formulae.clear(); }
+TreeReader::~TreeReader()
+{
+  m_formulae.clear();
+}
+
 
 //============================================================
 TreeReader::TreeReader( TTree* n )
@@ -68,7 +74,8 @@ double TreeReader::GetVariable( const char* c, int entry )
   if ( entry >= 0 && entry != m_currentEntry ) this->GetEntry( entry );
   std::string   s = c;
   TTreeFormula* f = m_formulae[s];
-  if ( !f ) {
+if(!f)
+  {
     f = new TTreeFormula( c, c, m_tree );
     f->SetQuickLoad( kTRUE );
     //   fManager->Add(f);
@@ -99,7 +106,8 @@ int TreeReader::GetEntry( int entry )
   //   entry += 1;
   if ( m_entries == 0 ) return 0;
   if ( entry == -1 ) entry = m_currentEntry + 1;
-  if ( entry < m_entries ) {
+  if(entry<m_entries)
+    {
     int entryNumber = m_tree->GetEntryNumber( entry );
     if ( entryNumber < 0 ) return 0;
     Long64_t localEntry = m_tree->LoadTree( entryNumber );
@@ -108,13 +116,15 @@ int TreeReader::GetEntry( int entry )
     if ( m_isChain ) // check file change in chain
     {
       int I = static_cast<TChain*>( m_tree )->GetTreeNumber();
-      if ( I != m_currentTree ) {
+        if(I!=m_currentTree) 
+          {
         m_currentTree = I;
         // fManager->Clear();
         std::map<std::string, TTreeFormula*>::iterator itr   = m_formulae.begin();
         std::map<std::string, TTreeFormula*>::iterator itrE  = m_formulae.end();
         TTreeFormula*                                  dummy = m_formulae["__DUMMY__"];
-        for ( ; itr != itrE; itr++ ) {
+          for(;itr!=itrE;itr++) 
+            { 
           if ( itr->second != dummy ) itr->second->Notify(); // itr->second->UpdateFormulaLeaves();
         }
       }

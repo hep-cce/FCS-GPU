@@ -18,7 +18,8 @@
 #endif
 #include <chrono>
 
-class TFCSShapeValidation : public TFCSAnalyzerBase {
+class TFCSShapeValidation: public TFCSAnalyzerBase
+{
 public:
   TFCSShapeValidation( long seed = 42 );
   TFCSShapeValidation( TChain* chain, int layer, long seed = 42 );
@@ -33,14 +34,8 @@ public:
   TFCSExtrapolationState& get_extrapol( int ievent ) { return m_extrapol[ievent]; };
 
   std::vector<TFCSSimulationRun>& validations() { return m_validations; };
-  int                             add_validation( TFCSParametrizationBase* sim ) {
-    m_validations.emplace_back( sim );
-    return m_validations.size() - 1;
-  };
-  int add_validation( const char* name, const char* title, TFCSParametrizationBase* sim ) {
-    m_validations.emplace_back( name, title, sim );
-    return m_validations.size() - 1;
-  };
+   int add_validation(TFCSParametrizationBase* sim) {m_validations.emplace_back(sim);return m_validations.size()-1;};
+   int add_validation(const char* name, const char* title,TFCSParametrizationBase* sim) {m_validations.emplace_back(name,title,sim);return m_validations.size()-1;};
 
   void set_firstevent( int n ) { m_firstevent = n; };
   void set_nprint( int n ) { m_nprint = n; };

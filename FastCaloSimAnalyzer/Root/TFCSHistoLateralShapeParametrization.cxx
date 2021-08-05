@@ -21,38 +21,31 @@
 //======= TFCSHistoLateralShapeParametrization =========
 //=============================================
 
-TFCSHistoLateralShapeParametrization::TFCSHistoLateralShapeParametrization(const char* name, const char* title) :
-  TFCSLateralShapeParametrizationHitBase(name,title),m_nhits(0)
-{
+TFCSHistoLateralShapeParametrization::TFCSHistoLateralShapeParametrization( const char* name, const char* title )
+    : TFCSLateralShapeParametrizationHitBase( name, title ), m_nhits( 0 ) {
   reset_phi_symmetric();
 }
 
-TFCSHistoLateralShapeParametrization::~TFCSHistoLateralShapeParametrization()
-{
+TFCSHistoLateralShapeParametrization::~TFCSHistoLateralShapeParametrization() {
 #ifdef USE_GPU
 delete m_LdFH ;
 #endif 
 }
 
-int TFCSHistoLateralShapeParametrization::get_number_of_hits(TFCSSimulationState &simulstate, const TFCSTruthState* /*truth*/, const TFCSExtrapolationState* /*extrapol*/) const
-{
-  if (!simulstate.randomEngine()) {
-    return -1;
-  }
+int TFCSHistoLateralShapeParametrization::get_number_of_hits( TFCSSimulationState& simulstate,
+                                                              const TFCSTruthState* /*truth*/,
+                                                              const TFCSExtrapolationState* /*extrapol*/ ) const {
+  if ( !simulstate.randomEngine() ) { return -1; }
 
   return CLHEP::RandPoisson::shoot(simulstate.randomEngine(), m_nhits);
 }
 
-void TFCSHistoLateralShapeParametrization::set_number_of_hits(float nhits)
-{
-  m_nhits=nhits;
-}
+void TFCSHistoLateralShapeParametrization::set_number_of_hits( float nhits ) { m_nhits = nhits; }
 
-FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSSimulationState &simulstate, const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
-{
-  if (!simulstate.randomEngine()) {
-    return FCSFatal;
-  }
+FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCSSimulationState& simulstate,
+                                                                  const TFCSTruthState*         truth,
+                                                                  const TFCSExtrapolationState* /*extrapol*/ ) {
+  if ( !simulstate.randomEngine() ) { return FCSFatal; }
   
   const int     pdgId    = truth->pdgid();
   const double  charge   = HepPDT::ParticleID(pdgId).charge();
@@ -63,9 +56,8 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
   const double center_r   = hit.center_r();
   const double center_z   = hit.center_z();
   
-  
-
-  if (TMath::IsNaN(center_r) or TMath::IsNaN(center_z) or TMath::IsNaN(center_eta) or TMath::IsNaN(center_phi)) { //Check if extrapolation fails
+  if ( TMath::IsNaN( center_r ) or TMath::IsNaN( center_z ) or TMath::IsNaN( center_eta ) or
+       TMath::IsNaN( center_phi ) ) { // Check if extrapolation fails
     return FCSFatal;
   }
 
@@ -87,7 +79,9 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
     m_hist.rnd_to_fct(alpha,r,rnd1,rnd2);
   }
   if(TMath::IsNaN(alpha) || TMath::IsNaN(r)) {
-    ATH_MSG_ERROR("  Histogram: "<<m_hist.get_HistoBordersx().size()-1<<"*"<<m_hist.get_HistoBordersy().size()-1<<" bins, #hits="<<m_nhits<<" alpha="<<alpha<<" r="<<r<<" rnd1="<<rnd1<<" rnd2="<<rnd2);
+    ATH_MSG_ERROR( "  Histogram: " << m_hist.get_HistoBordersx().size() - 1 << "*"
+                                   << m_hist.get_HistoBordersy().size() - 1 << " bins, #hits=" << m_nhits
+                                   << " alpha=" << alpha << " r=" << r << " rnd1=" << rnd1 << " rnd2=" << rnd2 );
     alpha=0;
     r=0.001;
 
@@ -99,9 +93,11 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
   float delta_eta_mm = r * cos(alpha);
   float delta_phi_mm = r * sin(alpha);
   
-  // Particles with negative eta are expected to have the same shape as those with positive eta after transformation: delta_eta --> -delta_eta
+  // Particles with negative eta are expected to have the same shape as those with positive eta after transformation:
+  // delta_eta --> -delta_eta
   if(center_eta<0.)delta_eta_mm = -delta_eta_mm;
-  // Particle with negative charge are expected to have the same shape as positively charged particles after transformation: delta_phi --> -delta_phi
+  // Particle with negative charge are expected to have the same shape as positively charged particles after
+  // transformation: delta_phi --> -delta_phi
   if(charge < 0.)  delta_phi_mm = -delta_phi_mm;
 
   const float dist000    = TMath::Sqrt(center_r * center_r + center_z * center_z);
@@ -112,15 +108,13 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit(Hit &hit, TFCSS
 
   hit.setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit.E());
 
-  ATH_MSG_DEBUG("HIT: E="<<hit.E()<<" cs="<<cs<<" eta="<<hit.eta()<<" phi="<<hit.phi()<< " z="<<hit.z()<<" r="<<r<<" alpha="<<alpha);
-
+  ATH_MSG_DEBUG( "HIT: E=" << hit.E() << " cs=" << cs << " eta=" << hit.eta() << " phi=" << hit.phi()
+                           << " z=" << hit.z() << " r=" << r << " alpha=" << alpha );
 
   return FCSSuccess;
 }
 
-
-bool TFCSHistoLateralShapeParametrization::Initialize(TH2* hist)
-{
+bool TFCSHistoLateralShapeParametrization::Initialize( TH2* hist ) {
   if(!hist) return false;
 	m_hist.Initialize(hist);
 	if(m_hist.get_HistoContents().size()==0) return false;
@@ -130,8 +124,7 @@ bool TFCSHistoLateralShapeParametrization::Initialize(TH2* hist)
   return true;
 }
 
-bool TFCSHistoLateralShapeParametrization::Initialize(const char* filepath, const char* histname)
-{
+bool TFCSHistoLateralShapeParametrization::Initialize( const char* filepath, const char* histname ) {
   // input file with histogram to fit
   std::unique_ptr<TFile> inputfile(TFile::Open( filepath, "READ" ));
   if (inputfile == NULL) return false;
@@ -147,19 +140,23 @@ bool TFCSHistoLateralShapeParametrization::Initialize(const char* filepath, cons
   return OK;
 }
 
-void TFCSHistoLateralShapeParametrization::Print(Option_t *option) const
-{
+void TFCSHistoLateralShapeParametrization::Print( Option_t* option ) const {
   TString opt(option);
   bool shortprint=opt.Index("short")>=0;
   bool longprint=msgLvl(MSG::DEBUG) || (msgLvl(MSG::INFO) && !shortprint);
-  TString optprint=opt;optprint.ReplaceAll("short","");
+  TString optprint   = opt;
+  optprint.ReplaceAll( "short", "" );
   TFCSLateralShapeParametrizationHitBase::Print(option);
 
   if(longprint) {
     if(is_phi_symmetric()) {
-      ATH_MSG_INFO(optprint <<"  Histo: "<<m_hist.get_HistoBordersx().size()-1<<"*"<<m_hist.get_HistoBordersy().size()-1<<" bins, #hits="<<m_nhits<<" (phi symmetric)");
+      ATH_MSG_INFO( optprint << "  Histo: " << m_hist.get_HistoBordersx().size() - 1 << "*"
+                             << m_hist.get_HistoBordersy().size() - 1 << " bins, #hits=" << m_nhits
+                             << " (phi symmetric)" );
     } else {
-      ATH_MSG_INFO(optprint <<"  Histo: "<<m_hist.get_HistoBordersx().size()-1<<"*"<<m_hist.get_HistoBordersy().size()-1<<" bins, #hits="<<m_nhits<<" (not phi symmetric)");
+      ATH_MSG_INFO( optprint << "  Histo: " << m_hist.get_HistoBordersx().size() - 1 << "*"
+                             << m_hist.get_HistoBordersy().size() - 1 << " bins, #hits=" << m_nhits
+                             << " (not phi symmetric)" );
     }
   }  
 }

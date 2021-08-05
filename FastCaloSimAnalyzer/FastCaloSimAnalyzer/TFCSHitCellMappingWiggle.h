@@ -37,13 +37,11 @@ public:
 
   /// modify one hit position to emulate the LAr accordeon shape
   /// and then fills all hits into calorimeter cells
-  virtual FCSReturnCode simulate_hit( Hit& hit, TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                      const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate_hit(Hit& hit,TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   void Print( Option_t* option = "" ) const override;
 
-  static void unit_test( TFCSSimulationState* simulstate = nullptr, TFCSTruthState* truth = nullptr,
-                         TFCSExtrapolationState* extrapol = nullptr );
+  static void unit_test(TFCSSimulationState* simulstate=nullptr,TFCSTruthState* truth=nullptr, TFCSExtrapolationState* extrapol=nullptr);
 #ifdef USE_GPU
   void             set_d_HistFuncs( FHs* hf_ptr ) { m_d_HistFuncs = hf_ptr; };
   const FHs*       d_HistFuncs() { return m_d_HistFuncs; };

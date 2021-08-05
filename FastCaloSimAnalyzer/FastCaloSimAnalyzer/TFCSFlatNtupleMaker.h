@@ -7,8 +7,12 @@
 
 #include "TFCSAnalyzerBase.h"
 
-class TFCSFlatNtupleMaker : public TFCSAnalyzerBase {
+
+class TFCSFlatNtupleMaker: public TFCSAnalyzerBase
+{
 public:
+
+
   TFCSFlatNtupleMaker();
   TFCSFlatNtupleMaker( TChain*, TString, std::vector<int> );
   ~TFCSFlatNtupleMaker();

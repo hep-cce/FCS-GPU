@@ -38,25 +38,27 @@ static std::once_flag calledGetEnv {};
 //======= TFCSLateralShapeParametrization =========
 //=============================================
 
-TFCSLateralShapeParametrizationHitChain::TFCSLateralShapeParametrizationHitChain(const char* name, const char* title):TFCSLateralShapeParametrization(name,title),m_number_of_hits_simul(nullptr)
-{
-}
+TFCSLateralShapeParametrizationHitChain::TFCSLateralShapeParametrizationHitChain( const char* name, const char* title )
+    : TFCSLateralShapeParametrization( name, title ), m_number_of_hits_simul( nullptr ) {}
 
-TFCSLateralShapeParametrizationHitChain::TFCSLateralShapeParametrizationHitChain(TFCSLateralShapeParametrizationHitBase* hitsim):TFCSLateralShapeParametrization(TString("hit_chain_")+hitsim->GetName(),TString("hit chain for ")+hitsim->GetTitle()),m_number_of_hits_simul(nullptr)
-{
+TFCSLateralShapeParametrizationHitChain::TFCSLateralShapeParametrizationHitChain(
+    TFCSLateralShapeParametrizationHitBase* hitsim )
+    : TFCSLateralShapeParametrization( TString( "hit_chain_" ) + hitsim->GetName(),
+                                       TString( "hit chain for " ) + hitsim->GetTitle() )
+    , m_number_of_hits_simul( nullptr ) {
   set_pdgid_Ekin_eta_Ekin_bin_calosample(*hitsim);
   
   m_chain.push_back(hitsim);
 }
 
-void TFCSLateralShapeParametrizationHitChain::set_geometry(ICaloGeometry* geo)
-{
+void TFCSLateralShapeParametrizationHitChain::set_geometry( ICaloGeometry* geo ) {
   TFCSLateralShapeParametrization::set_geometry(geo);
   if(m_number_of_hits_simul) m_number_of_hits_simul->set_geometry(geo);
 }
 
-int TFCSLateralShapeParametrizationHitChain::get_number_of_hits(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) const
-{
+int TFCSLateralShapeParametrizationHitChain::get_number_of_hits( TFCSSimulationState&          simulstate,
+                                                                 const TFCSTruthState*         truth,
+                                                                 const TFCSExtrapolationState* extrapol ) const {
   // TODO: should we still do it?
   if(m_number_of_hits_simul) {
     int n=m_number_of_hits_simul->get_number_of_hits(simulstate,truth,extrapol);
@@ -70,8 +72,9 @@ int TFCSLateralShapeParametrizationHitChain::get_number_of_hits(TFCSSimulationSt
   return 1;
 }
 
-FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
-{
+FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationState&          simulstate,
+                                                                 const TFCSTruthState*         truth,
+                                                                 const TFCSExtrapolationState* extrapol ) {
   auto ss0 = simulstate.cells().size();
   bool onGPU=false;
 
@@ -88,29 +91,27 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
   float Ehit=simulstate.E(calosample())/nhit;
 
   bool debug = msgLvl(MSG::DEBUG);
-  if (debug) {
-    ATH_MSG_DEBUG("E("<<calosample()<<")="<<simulstate.E(calosample())<<" #hits="<<nhit);
-  }
+  if ( debug ) { ATH_MSG_DEBUG( "E(" << calosample() << ")=" << simulstate.E( calosample() ) << " #hits=" << nhit ); }
 
 #ifdef USE_GPU
  if(0) {
-  std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
-	 "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
+    std::string sA[5] = {"TFCSCenterPositionCalculation", "TFCSValidationHitSpy",
+                         "TFCSHistoLateralShapeParametrization", "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy"};
   std::string sB[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
 	 "TFCSHitCellMappingWiggle" } ;
-  std::string sC[3]={"TFCSCenterPositionCalculation","TFCSHistoLateralShapeParametrization",
-	 "TFCSHitCellMapping" } ;
+    std::string sC[3] = {"TFCSCenterPositionCalculation", "TFCSHistoLateralShapeParametrization", "TFCSHitCellMapping"};
  }
  if(debug) {
   std::cout<<"---xxx---nhits="<< nhit << ", " ;
   for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain)
-      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( * hitsim ).name() << " "<< hitsim <<std::endl ;
+      std::cout << "-----In TFCSLateralShapeParametizationHitChain:" << typeid( *hitsim ).name() << " " << hitsim
+                << std::endl;
   }
   int ichn=0 ;
  
   bool  our_chainA=false;
   bool  our_chainB=false;
-  bool  our_chainC=false;
+  //  bool our_chainC = false;
 /*
    if(0) {
   bool  our_chainA=true;
@@ -134,8 +135,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(TFCSSimulationSt
 */
   if(cs == 0 ||cs == 4 || (cs >=8 && cs <21 ) ) 
      our_chainB =true ;
-  else if (cs > 0 && cs <8 && cs !=4 )  our_chainA=true ;
-  else our_chainC =true ;
+  else if ( cs > 0 && cs < 8 && cs != 4 )
+    our_chainA = true;
+  // else
+  //   our_chainC = true;
 
 TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
       
@@ -151,20 +154,21 @@ TFCSSimulationState::EventStatus* es= simulstate.get_es() ;
   //For debug, validation so same randoms on host  
 if(0) {
    for (int ir=0 ; ir< nhit ; ir++ ) {
-    float rand1 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
-    float rand2 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
-   if ( our_chainB) float rand2 = CLHEP::RandFlat::shoot(simulstate.randomEngine()) ;
+        // float rand1 = CLHEP::RandFlat::shoot( simulstate.randomEngine() );
+        // float rand2 = CLHEP::RandFlat::shoot( simulstate.randomEngine() );
+        // if ( our_chainB ) float rand2 = CLHEP::RandFlat::shoot( simulstate.randomEngine() );
    } 
 } // debug
 
         onGPU=true;
-         GeoLoadGpu * gld = (GeoLoadGpu *) simulstate.get_geold() ;	  
+    // GeoLoadGpu* gld = (GeoLoadGpu*)simulstate.get_geold();
 
 	(*es).hits=nhit ;
 	(*es).tot_hits+=nhit ;
 	int n_simbins = (*es).n_simbins ;
 	(*es).simbins[n_simbins]=(*es).tot_hits ;
-//if((*es).index < 5 ) std::cout << "Indenx0, nhits="<<nhit <<" , bin="<<n_simbins<<" ,TotalHits="<<(*es).tot_hits <<std::endl ;
+    // if((*es).index < 5 ) std::cout << "Indenx0, nhits="<<nhit <<" , bin="<<n_simbins<<" ,TotalHits="<<(*es).tot_hits
+    // <<std::endl ;
 	HitParams * htparams= (HitParams *) ((*es).hitparams) ;
 	htparams[n_simbins].index= (*es).index ; //which event/particle 
 	htparams[n_simbins].cs= cs ;
@@ -191,9 +195,7 @@ if(0) {
 //	std::string s= std::string(typeid( * hitsim ).name()) ;
 	
 //	if(s.find("TFCSCenterPositionCalculation") != std::string::npos ) {
-        if(ichn==0 ) 
-
-      htparams[n_simbins].extrapWeight=((TFCSCenterPositionCalculation *)hitsim)->getExtrapWeight() ;
+      if ( ichn == 0 ) htparams[n_simbins].extrapWeight = ( (TFCSCenterPositionCalculation*)hitsim )->getExtrapWeight();
 
 //	}
 /*
@@ -206,44 +208,54 @@ if(0) {
 		std::cout<<"---m_previous"<< ((TFCSValidationHitSpy*)hitsim)->previous() << std::endl ;
 		std::cout<<"---m_saved_hit"<< &(((TFCSValidationHitSpy*)hitsim)->saved_hit()) << std::endl ;
 		std::cout<<"---m_saved_cellele"<< ((TFCSValidationHitSpy*)hitsim)->saved_cellele() << std::endl ;
-		std::cout<<"---m_hist_hitgeo_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitgeo_dphi() << std::endl ;
-		std::cout<<"---m_hist_hitgeo_matchprevious_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitgeo_matchprevious_dphi() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_r"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_r() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_z"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_z() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_weight"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_weight() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_mean_r"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_r() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_mean_z"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_z() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_mean_weight"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_weight() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_alpha_radius"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_alpha_radius() << std::endl ;
-		std::cout<<"---m_hist_hitenergy_alpha_absPhi_radius"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_alpha_absPhi_radius() << std::endl ;
+                      std::cout<<"---m_hist_hitgeo_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitgeo_dphi() <<
+         std::endl ; std::cout<<"---m_hist_hitgeo_matchprevious_dphi"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_hitgeo_matchprevious_dphi() << std::endl ;
+                      std::cout<<"---m_hist_hitenergy_r"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_r() <<
+         std::endl ; std::cout<<"---m_hist_hitenergy_z"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_z() <<
+         std::endl ; std::cout<<"---m_hist_hitenergy_weight"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_weight()
+         << std::endl ; std::cout<<"---m_hist_hitenergy_mean_r"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_r() << std::endl ;
+                      std::cout<<"---m_hist_hitenergy_mean_z"<< ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_z()
+         << std::endl ; std::cout<<"---m_hist_hitenergy_mean_weight"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_mean_weight() << std::endl ;
+                      std::cout<<"---m_hist_hitenergy_alpha_radius"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_alpha_radius() << std::endl ;
+                      std::cout<<"---m_hist_hitenergy_alpha_absPhi_radius"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_hitenergy_alpha_absPhi_radius() << std::endl ;
 		std::cout<<"---m_hist_deltaEta"<< ((TFCSValidationHitSpy*)hitsim)->hist_deltaEta() << std::endl ;
 		std::cout<<"---m_hist_deltaPhi"<< ((TFCSValidationHitSpy*)hitsim)->hist_deltaPhi() << std::endl ;
 		std::cout<<"---m_hist_deltaRt"<< ((TFCSValidationHitSpy*)hitsim)->hist_deltaRt() << std::endl ;
 		std::cout<<"---m_hist_deltaZ"<< ((TFCSValidationHitSpy*)hitsim)->hist_deltaZ() << std::endl ;
-		std::cout<<"---m_hist_total_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_total_dphi() << std::endl ;
-		std::cout<<"---m_hist_matched_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_matched_dphi() << std::endl ;
-		std::cout<<"---m_hist_total_dphi_etaboundary"<< ((TFCSValidationHitSpy*)hitsim)->hist_total_dphi_etaboundary() << std::endl ;
-		std::cout<<"---m_hist_matched_dphi_etaboundary"<< ((TFCSValidationHitSpy*)hitsim)->hist_matched_dphi_etaboundary() << std::endl ;
-		std::cout<<"---m_hist_Rz"<< ((TFCSValidationHitSpy*)hitsim)->hist_Rz() << std::endl ;
-		std::cout<<"---m_hist_Rz_outOfRange"<< ((TFCSValidationHitSpy*)hitsim)->hist_Rz_outOfRange() << std::endl ;
-		std::cout<<"---m_get_deta_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_deta_hit_minus_extrapol_mm() << std::endl ;
-		std::cout<<"---m_get_dphi_hit_minus_extrapol_mm"<< ((TFCSValidationHitSpy*)hitsim)->get_dphi_hit_minus_extrapol_mm() << std::endl ;
-		std::cout<<"---m_phi_granularity_change_at_eta"<< ((TFCSValidationHitSpy*)hitsim)->get_eta_boundary() << std::endl ;
+                      std::cout<<"---m_hist_total_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_total_dphi() <<
+         std::endl ; std::cout<<"---m_hist_matched_dphi"<< ((TFCSValidationHitSpy*)hitsim)->hist_matched_dphi() <<
+         std::endl ; std::cout<<"---m_hist_total_dphi_etaboundary"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_total_dphi_etaboundary() << std::endl ;
+                      std::cout<<"---m_hist_matched_dphi_etaboundary"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_matched_dphi_etaboundary() << std::endl ; std::cout<<"---m_hist_Rz"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_Rz() << std::endl ; std::cout<<"---m_hist_Rz_outOfRange"<<
+         ((TFCSValidationHitSpy*)hitsim)->hist_Rz_outOfRange() << std::endl ;
+                      std::cout<<"---m_get_deta_hit_minus_extrapol_mm"<<
+         ((TFCSValidationHitSpy*)hitsim)->get_deta_hit_minus_extrapol_mm() << std::endl ;
+                      std::cout<<"---m_get_dphi_hit_minus_extrapol_mm"<<
+         ((TFCSValidationHitSpy*)hitsim)->get_dphi_hit_minus_extrapol_mm() << std::endl ;
+                      std::cout<<"---m_phi_granularity_change_at_eta"<<
+         ((TFCSValidationHitSpy*)hitsim)->get_eta_boundary() << std::endl ;
 	  }
 	  int hs_i = (ichn==4) ? 1 : 0 ;
 	  hs[hs_i].hist_hitgeo_dphi.nbin=  hspy_ptr ->hist_hitgeo_dphi()->GetNbinsX() ;
-	  hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetNbinsX() ;
-	  hs[hs_i].hist_hitgeo_dphi.low=  hspy_ptr ->hist_hitgeo_dphi()->GetXaxis()->GetXmin() ;
-	  hs[hs_i].hist_hitgeo_matchprevious_dphi.low=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmin() ;
-	  hs[hs_i].hist_hitgeo_dphi.up=  hspy_ptr ->hist_hitgeo_dphi()->GetXaxis()->GetXmax() ;
-	  hs[hs_i].hist_hitgeo_matchprevious_dphi.up=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmax() ;
-	  if(hs_i ==0 )args.hs1=hs[hs_i] ;
-	  else args.hs2=hs[hs_i] ;
-         if(0) {
-	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.nbin" <<hs[hs_i].hist_hitgeo_dphi.nbin <<std::endl ;
-	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.nbin" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin <<std::endl ;
-	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.low" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.low <<std::endl ;
-	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.up" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.up <<std::endl ;
+                hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin=  hspy_ptr ->hist_hitgeo_matchprevious_dphi()->GetNbinsX()
+         ; hs[hs_i].hist_hitgeo_dphi.low=  hspy_ptr ->hist_hitgeo_dphi()->GetXaxis()->GetXmin() ;
+                hs[hs_i].hist_hitgeo_matchprevious_dphi.low=  hspy_ptr
+         ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmin() ; hs[hs_i].hist_hitgeo_dphi.up=  hspy_ptr
+         ->hist_hitgeo_dphi()->GetXaxis()->GetXmax() ; hs[hs_i].hist_hitgeo_matchprevious_dphi.up=  hspy_ptr
+         ->hist_hitgeo_matchprevious_dphi()->GetXaxis()->GetXmax() ; if(hs_i ==0 )args.hs1=hs[hs_i] ; else
+         args.hs2=hs[hs_i] ; if(0) { std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.nbin"
+         <<hs[hs_i].hist_hitgeo_dphi.nbin <<std::endl ; std::cout <<
+         "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.nbin" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.nbin <<std::endl
+         ; std::cout << "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.low"
+         <<hs[hs_i].hist_hitgeo_matchprevious_dphi.low <<std::endl ; std::cout <<
+         "hs["<<hs_i<<"].hist_hitgeo_matchprevious_dphi.up" <<hs[hs_i].hist_hitgeo_matchprevious_dphi.up <<std::endl ;
 	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.low" <<hs[hs_i].hist_hitgeo_dphi.low <<std::endl ;
 	 std::cout << "hs["<<hs_i<<"].hist_hitgeo_dphi.up" <<hs[hs_i].hist_hitgeo_dphi.up <<std::endl ;
 	}
@@ -257,7 +269,9 @@ if(0) {
   auto t3 = std::chrono::system_clock::now();
 
 		((TFCSHistoLateralShapeParametrization *) hitsim)->LoadHistFuncs() ;
-	//std::cout<<"2D funtion size:"<<" , ChainB:"<<our_chainB<<", "<<"nhits="<<nhit<<", "<< ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsx <<", " << ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsy <<std::endl ;
+        // std::cout<<"2D funtion size:"<<" , ChainB:"<<our_chainB<<", "<<"nhits="<<nhit<<", "<<
+        // ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsx <<", " <<
+        // ((TFCSHistoLateralShapeParametrization *) hitsim)->LdFH()->hf2d_d()->nbinsy <<std::endl ;
   auto t4 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_o1 += (t4-t3) ;
 
@@ -299,10 +313,11 @@ if(0) {
         	hsp2 ->hist_hitgeo_dphi()->SetEntries((double)args.hs2.hist_hitgeo_dphi.nentries) ;
         	hsp2 ->hist_hitgeo_dphi()->PutStats(&args.hs_sumwx_h[4]) ;
 		
-        	hsp2 ->hist_hitgeo_matchprevious_dphi()->SetContent(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_h) ;
-        	hsp2 ->hist_hitgeo_matchprevious_dphi()->SetError(args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h) ;
-        	hsp2 ->hist_hitgeo_matchprevious_dphi()->SetEntries((double)args.hs2.hist_hitgeo_matchprevious_dphi.nentries) ;
-        	hsp2 ->hist_hitgeo_matchprevious_dphi()->PutStats(&args.hs_sumwx_h[8]) ;
+                    hsp2
+       ->hist_hitgeo_matchprevious_dphi()->SetContent(args.hs2.hist_hitgeo_matchprevious_dphi.ct_array_h) ; hsp2
+       ->hist_hitgeo_matchprevious_dphi()->SetError(args.hs2.hist_hitgeo_matchprevious_dphi.sumw2_array_h) ; hsp2
+       ->hist_hitgeo_matchprevious_dphi()->SetEntries((double)args.hs2.hist_hitgeo_matchprevious_dphi.nentries) ; hsp2
+       ->hist_hitgeo_matchprevious_dphi()->PutStats(&args.hs_sumwx_h[8]) ;
 
 		
 	}
@@ -315,12 +330,16 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
     hit.E()=Ehit;
     for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) {
       if (debug) {
-        if (i < 2) hitsim->setLevel(MSG::DEBUG);
-        else hitsim->setLevel(MSG::INFO);
+          if ( i < 2 )
+            hitsim->setLevel( MSG::DEBUG );
+          else
+            hitsim->setLevel( MSG::INFO );
       }
 
       for (int i = 0; i <= FCS_RETRY_COUNT; i++) {
-        if (i > 0) ATH_MSG_WARNING("TFCSLateralShapeParametrizationHitChain::simulate(): Retry simulate_hit call " << i << "/" << FCS_RETRY_COUNT);
+          if ( i > 0 )
+            ATH_MSG_WARNING( "TFCSLateralShapeParametrizationHitChain::simulate(): Retry simulate_hit call "
+                             << i << "/" << FCS_RETRY_COUNT );
   
         FCSReturnCode status = hitsim->simulate_hit(hit, simulstate, truth, extrapol);
 
@@ -330,7 +349,8 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
           return FCSFatal;
 
         if (i == FCS_RETRY_COUNT) {
-          ATH_MSG_ERROR("TFCSLateralShapeParametrizationHitChain::simulate(): simulate_hit call failed after " << FCS_RETRY_COUNT << "retries");
+            ATH_MSG_ERROR( "TFCSLateralShapeParametrizationHitChain::simulate(): simulate_hit call failed after "
+                           << FCS_RETRY_COUNT << "retries" );
         }
       }
     }
@@ -360,9 +380,11 @@ if(debug )std::cout<<"Host Nhits: "<<nhit << std::endl ;
 if(0) {
   std::cout <<"CS-Bin-Index " << simulstate.get_es()->bin_index <<" , " ;
   std::cout <<"DoneGPU " << do_gpu_sim <<" , " ;
-  std::cout <<"iE-iP " << simulstate.get_es()->ievent<<" , "<<simulstate.get_es()->ip <<  " , nhits: "<< nhit <<" ,CaloSample: "<<cs ;
+    std::cout << "iE-iP " << simulstate.get_es()->ievent << " , " << simulstate.get_es()->ip << " , nhits: " << nhit
+              << " ,CaloSample: " << cs;
   std::cout << " ,Number Cells: "<< simulstate.cells().size() ;
-  for(TFCSLateralShapeParametrizationHitBase* hitsim : m_chain) std::cout<<" ,"<< typeid( * hitsim ).name() <<" ," ;
+    for ( TFCSLateralShapeParametrizationHitBase* hitsim : m_chain )
+      std::cout << " ," << typeid( *hitsim ).name() << " ,";
   std::cout<<std::endl ;
 }
    es->bin_index++ ; 
@@ -370,27 +392,25 @@ if(0) {
 
   std::call_once(calledGetEnv, [](){
         if(const char* env_p = std::getenv("FCS_DUMP_HITCOUNT")) {
-          if  (strcmp(env_p,"1") == 0) {
-            FCS_dump_hitcount = true;
-          }
+      if ( strcmp( env_p, "1" ) == 0 ) { FCS_dump_hitcount = true; }
         }
   });
   
   if (FCS_dump_hitcount) {
-    printf(" HitCellCount: %3lu / %3lu   nhit: %4d%3s\n", simulstate.cells().size()-ss0,
-           simulstate.cells().size(), nhit, (onGPU ? "  *" : "") );
+    printf( " HitCellCount: %3lu / %3lu   nhit: %4d%3s\n", simulstate.cells().size() - ss0, simulstate.cells().size(),
+            nhit, ( onGPU ? "  *" : "" ) );
   }
    
   return FCSSuccess;
 }
 
-void TFCSLateralShapeParametrizationHitChain::Print(Option_t *option) const
-{
+void TFCSLateralShapeParametrizationHitChain::Print( Option_t* option ) const {
   TFCSLateralShapeParametrization::Print(option);
   TString opt(option);
   bool shortprint=opt.Index("short")>=0;
   bool longprint=msgLvl(MSG::DEBUG) || (msgLvl(MSG::INFO) && !shortprint);
-  TString optprint=opt;optprint.ReplaceAll("short","");
+  TString optprint   = opt;
+  optprint.ReplaceAll( "short", "" );
 
   if(m_number_of_hits_simul) {
     if(longprint) ATH_MSG_INFO(optprint <<"#:Number of hits simulation:");

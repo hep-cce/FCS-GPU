@@ -32,7 +32,8 @@
 
 using namespace std;
 
-secondPCA::secondPCA( string firstpcafilename, string outfilename ) {
+secondPCA::secondPCA(string firstpcafilename, string outfilename)
+{
   m_firstpcafilename = firstpcafilename;
   m_outfilename      = outfilename;
 
@@ -47,27 +48,50 @@ secondPCA::secondPCA( string firstpcafilename, string outfilename ) {
   m_maxdev_smartrebin = 5;
 }
 
-void secondPCA::set_cut_maxdeviation_regression( double val ) { m_maxdev_regression = val; }
+void secondPCA::set_cut_maxdeviation_regression(double val)
+{
+ m_maxdev_regression=val;
+}
 
-void secondPCA::set_cut_maxdeviation_smartrebin( double val ) { m_maxdev_smartrebin = val; }
+void secondPCA::set_cut_maxdeviation_smartrebin(double val)
+{
+ m_maxdev_smartrebin=val;
+}
 
-void secondPCA::set_Ntoys( int val ) { m_ntoys = val; }
+void secondPCA::set_Ntoys(int val)
+{
+ m_ntoys=val;
+}
 
-void secondPCA::set_neurons_iteration( int start, int end ) {
+void secondPCA::set_neurons_iteration(int start,int end)
+{
   m_neurons_start = start;
   m_neurons_end   = end;
 }
 
-void secondPCA::set_storeDetails( int flag ) { m_storeDetails = flag; }
+void secondPCA::set_storeDetails(int flag)
+{
+ m_storeDetails=flag;
+}
 
-void secondPCA::set_cumulativehistobins( int bins ) { m_numberfinebins = bins; }
+void secondPCA::set_cumulativehistobins(int bins)
+{
+ m_numberfinebins=bins;
+}
 
-void secondPCA::set_PCAbin( int bin ) { m_PCAbin = bin; }
+void secondPCA::set_PCAbin(int bin)
+{
+ m_PCAbin=bin;
+}
 
-void secondPCA::set_skip_regression( int flag ) { m_skip_regression = flag; }
+void secondPCA::set_skip_regression(int flag)
+{
+ m_skip_regression=flag;
+}
 
 // void secondPCA::run()
-void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
+void secondPCA::run(CLHEP::HepRandomEngine *randEngine)
+{
 
   // Open inputfile:
   TFile* inputfile = TFile::Open( m_firstpcafilename.c_str(), "READ" );
@@ -77,8 +101,7 @@ void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
     return;
   }
 
-  int         nbins;
-  int         nbins0  = 1;
+ int nbins; int nbins0=1;
   vector<int> layerNr = getLayerBins( inputfile, nbins );
 
   /*
@@ -97,11 +120,13 @@ void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
   */
 
   vector<string> layer;
-  for ( unsigned int l = 0; l < layerNr.size(); l++ ) layer.push_back( Form( "layer%i", layerNr[l] ) );
+ for(unsigned int l=0;l<layerNr.size();l++)
+  layer.push_back(Form("layer%i",layerNr[l]));
   layer.push_back( "totalE" );
 
   int* samplings = new int[layerNr.size()];
-  for ( unsigned int i = 0; i < layerNr.size(); i++ ) samplings[i] = layerNr[i];
+ for(unsigned int i=0;i<layerNr.size();i++)
+  samplings[i]=layerNr[i];
 
   cout << endl;
   cout << "****************" << endl;
@@ -127,21 +152,25 @@ void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
   read_inputTree->SetTree( InputTree );
 
   TFile* output = new TFile( m_outfilename.c_str(), "RECREATE" );
-  for ( int b = nbins0; b <= nbins; b++ ) {
+ for(int b=nbins0;b<=nbins;b++)
+ {
     output->mkdir( Form( "bin%i", b ) );
     output->mkdir( Form( "bin%i/pca", b ) );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) output->mkdir( Form( "bin%i/%s", b, layer[l].c_str() ) );
+	for(unsigned int l=0;l<layer.size();l++)
+   output->mkdir(Form("bin%i/%s",b,layer[l].c_str()));
   }
 
   // add the pca bin probability
   float* prob  = new float[nbins + 1];
   TH1I*  h_bin = new TH1I( "h_bin", "h_bin", nbins + 1, -0.5, nbins + 0.5 );
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+ for(int event=0;event<read_inputTree->GetEntries();event++)
+ {
     read_inputTree->GetEntry( event );
     int bin = read_inputTree->GetVariable( "firstPCAbin" );
     h_bin->Fill( bin );
   }
-  for ( int i = 0; i <= nbins; i++ ) prob[i] = (float)h_bin->GetBinContent( i + 1 ) / (float)h_bin->Integral();
+ for(int i=0;i<=nbins;i++)
+  prob[i]=(float)h_bin->GetBinContent(i+1)/(float)h_bin->Integral();
   TVectorF* PCAbinprob = new TVectorF( nbins + 1, prob );
   delete h_bin;
 
@@ -149,7 +178,8 @@ void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
   output->Write();
   output->Close();
 
-  for ( int b = nbins0; b <= nbins; b++ ) {
+ for(int b=nbins0;b<=nbins;b++)
+ {
     cout << "--- now performing 2nd PCA in bin " << b << endl;
     // do_pca(layer, b, read_inputTree, samplings);
     do_pca( randEngine, layer, b, read_inputTree, samplings );
@@ -163,8 +193,8 @@ void secondPCA::run( CLHEP::HepRandomEngine* randEngine ) {
 }
 
 // void secondPCA::do_pca(vector<string> layer, int bin, TreeReader* read_inputTree, int* samplings)
-void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer, int bin, TreeReader* read_inputTree,
-                        int* samplings ) {
+void secondPCA::do_pca(CLHEP::HepRandomEngine *randEngine, vector<string> layer, int bin, TreeReader* read_inputTree, int* samplings)
+{
 
   cout << "check1 in do_pca for bin " << bin << endl;
 
@@ -173,11 +203,14 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   double* data    = new double[layer.size()];
   for ( unsigned int l = 0; l < layer.size(); l++ )
     bintree->Branch( Form( "energy_%s", layer[l].c_str() ), &data[l], Form( "energy_%s/D", layer[l].c_str() ) );
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+ for(int event=0;event<read_inputTree->GetEntries();event++)
+ {
     read_inputTree->GetEntry( event );
     int firstPCAbin = read_inputTree->GetVariable( "firstPCAbin" );
-    if ( firstPCAbin == bin ) {
-      for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  if(firstPCAbin==bin)
+  {
+   for(unsigned int l=0;l<layer.size();l++)
+   {
         data[l] = read_inputTree->GetVariable( Form( "energy_%s", layer[l].c_str() ) );
 
         // cout<<"bin "<<bin<<" l "<<l<<" data[l] "<<data[l]<<endl;
@@ -200,9 +233,9 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   T_Gauss->SetDirectory( 0 );
   double* data_Gauss = new double[layer.size()];
   double* data_PCA   = new double[layer.size()];
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
-    T_Gauss->Branch( Form( "energy_gauss_%s", layer[l].c_str() ), &data_Gauss[l],
-                     Form( "energy_gauss_%s/D", layer[l].c_str() ) );
+ for(unsigned int l=0;l<layer.size();l++)
+ {
+  T_Gauss->Branch(Form("energy_gauss_%s",layer[l].c_str()),&data_Gauss[l],Form("energy_gauss_%s/D",layer[l].c_str()));
     T_Gauss->Branch( Form( "energy_pca_comp%i", l ), &data_PCA[l], Form( "energy_pca_%i/D", l ) );
   }
 
@@ -210,14 +243,15 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   T_Gauss0->SetDirectory( 0 );
   double* data_Gauss0 = new double[layer.size()];
   for ( unsigned int l = 0; l < layer.size(); l++ )
-    T_Gauss0->Branch( Form( "energy_gauss0_%s", layer[l].c_str() ), &data_Gauss0[l],
-                      Form( "energy_gauss0_%s/D", layer[l].c_str() ) );
+  T_Gauss0->Branch(Form("energy_gauss0_%s",layer[l].c_str()),&data_Gauss0[l],Form("energy_gauss0_%s/D",layer[l].c_str()));
 
   cout << "check3 " << endl;
 
-  for ( int event = 0; event < read_bintree->GetEntries(); event++ ) {
+ for(int event=0;event<read_bintree->GetEntries();event++)
+ {
     read_bintree->GetEntry( event );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  for(unsigned int l=0;l<layer.size();l++)
+  {
       double data = read_bintree->GetVariable( Form( "energy_%s", layer[l].c_str() ) );
       // cout<<"l "<<l<<" "<<layer[l]<<" data "<<data<<endl;
 
@@ -248,9 +282,11 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   reader_treeGauss0->SetTree( T_Gauss0 );
 
   // second loop to fill the tree with the Gauss and PCA data
-  for ( int event = 0; event < reader_treeGauss0->GetEntries(); event++ ) {
+ for(int event=0;event<reader_treeGauss0->GetEntries();event++)
+ {
     reader_treeGauss0->GetEntry( event );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  for(unsigned int l=0;l<layer.size();l++)
+  {
       double data   = reader_treeGauss0->GetVariable( Form( "energy_gauss0_%s", layer[l].c_str() ) );
       data_Gauss[l] = data;
     }
@@ -262,16 +298,17 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   TreeReader* reader_treeGauss = new TreeReader();
   reader_treeGauss->SetTree( T_Gauss );
 
-  vector<double> data_PCA_min;
-  vector<double> data_PCA_max;
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
+ vector<double> data_PCA_min; vector<double> data_PCA_max;
+ for(unsigned int l=0;l<layer.size();l++)
+ {
     data_PCA_min.push_back( 100000.0 );
     data_PCA_max.push_back( -100000.0 );
   }
 
   cout << "check6" << endl;
 
-  for ( int event = 0; event < reader_treeGauss->GetEntries(); event++ ) {
+ for(int event=0;event<reader_treeGauss->GetEntries();event++)
+ { 
     reader_treeGauss->GetEntry( event );
     double* input_data = new double[layer.size()];
     double* data_PCA   = new double[layer.size()];
@@ -279,7 +316,8 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
     for ( unsigned int l = 0; l < layer.size(); l++ )
       input_data[l] = reader_treeGauss->GetVariable( Form( "energy_gauss_%s", layer[l].c_str() ) );
     principal->X2P( input_data, data_PCA );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  for(unsigned int l=0;l<layer.size();l++)
+  {
       if ( data_PCA[l] > data_PCA_max[l] ) data_PCA_max[l] = data_PCA[l];
       if ( data_PCA[l] < data_PCA_min[l] ) data_PCA_min[l] = data_PCA[l];
     }
@@ -292,15 +330,16 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
 
   // fill histograms
   std::vector<TH1D*> h_data_PCA;
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
-    h_data_PCA.push_back( new TH1D( Form( "h_data_PCA_%s", layer[l].c_str() ),
-                                    Form( "h_data_PCA_%s", layer[l].c_str() ), 1000, data_PCA_min[l],
-                                    data_PCA_max[l] ) );
+ for(unsigned int l=0;l<layer.size();l++)
+ {
+ 	h_data_PCA.push_back(new TH1D(Form("h_data_PCA_%s",layer[l].c_str()),Form("h_data_PCA_%s",layer[l].c_str()),1000,data_PCA_min[l],data_PCA_max[l]));
   }
 
   cout << "check8" << endl;
 
-  for ( int event = 0; event < reader_treeGauss->GetEntries(); event++ ) {
+ 
+ for(int event=0;event<reader_treeGauss->GetEntries();event++)
+ {
     reader_treeGauss->GetEntry( event );
     double* input_data = new double[layer.size()];
     double* data_PCA   = new double[layer.size()];
@@ -308,22 +347,26 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
     for ( unsigned int l = 0; l < layer.size(); l++ )
       input_data[l] = reader_treeGauss->GetVariable( Form( "energy_gauss_%s", layer[l].c_str() ) );
     principal->X2P( input_data, data_PCA );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) h_data_PCA[l]->Fill( data_PCA[l] );
+  for(unsigned int l=0;l<layer.size();l++)
+ 	 h_data_PCA[l]->Fill(data_PCA[l]);
 
     delete[] input_data;
     delete[] data_PCA;
   }
   double* gauss_means = new double[layer.size()];
   double* gauss_rms   = new double[layer.size()];
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
+ for(unsigned int l=0;l<layer.size();l++)
+ {
     gauss_means[l] = h_data_PCA[l]->GetMean();
     gauss_rms[l]   = h_data_PCA[l]->GetRMS();
   }
 
-  if ( m_storeDetails ) {
+ if(m_storeDetails)
+ {
     TFile* output = TFile::Open( m_outfilename.c_str(), "UPDATE" );
     output->cd( Form( "bin%i/", bin ) );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  for(unsigned int l=0;l<layer.size();l++)
+  {
       h_data_PCA[l]->Write( Form( "h_PCA_component%i", l ) );
       histos_data[l]->Write( Form( "h_input_%s", layer[l].c_str() ) );
       cumul_data[l]->Write( Form( "h_cumul_%s", layer[l].c_str() ) );
@@ -344,7 +387,8 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   delete[] data;
   delete[] data_Gauss;
   delete[] data_Gauss0;
-  for ( auto it = h_data_PCA.begin(); it != h_data_PCA.end(); ++it ) delete *it;
+ for (auto it = h_data_PCA.begin(); it != h_data_PCA.end(); ++it)
+  delete *it;
   h_data_PCA.clear();
 
   // get the lower ranges and store them:
@@ -384,16 +428,15 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
   output->Close();
 
   // call the TFCS1DFunctionFactory to decide whether or not to use regression:
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
+ for(unsigned int l=0;l<layer.size();l++)
+ {
     cout << endl;
     cout << "====> Now create the fct object for " << layer[l] << " <====" << endl;
     cout << endl;
     stringstream ss;
     ss << bin;
     string          binstring = ss.str();
-    TFCS1DFunction* fct =
-        TFCS1DFunctionFactory::Create( cumul_data[l], m_skip_regression, m_neurons_start, m_neurons_end,
-                                       m_maxdev_regression, m_maxdev_smartrebin, m_ntoys );
+  TFCS1DFunction* fct=TFCS1DFunctionFactory::Create(cumul_data[l],m_skip_regression,m_neurons_start,m_neurons_end,m_maxdev_regression,m_maxdev_smartrebin,m_ntoys);
 
     // Store it:
     TFile* output = TFile::Open( m_outfilename.c_str(), "UPDATE" );
@@ -405,9 +448,17 @@ void secondPCA::do_pca( CLHEP::HepRandomEngine* randEngine, vector<string> layer
 
 } // do_pca
 
-double secondPCA::get_lowerBound( TH1D* h_cumulative ) { return h_cumulative->GetBinContent( 1 ); }
 
-vector<TH1D*> secondPCA::get_histos_data( vector<string> layer, TreeReader* read_bintree ) {
+double secondPCA::get_lowerBound(TH1D* h_cumulative)
+{
+ 
+ return h_cumulative->GetBinContent(1);
+ 
+}
+
+
+vector<TH1D*> secondPCA::get_histos_data(vector<string> layer, TreeReader* read_bintree)
+{
 
   vector<TH1D*> data;
 
@@ -418,20 +469,25 @@ vector<TH1D*> secondPCA::get_histos_data( vector<string> layer, TreeReader* read
   vector<double> MinInputs;
   for ( unsigned int l = 0; l < layer.size(); l++ ) MinInputs.push_back( 1000000.0 );
 
-  for ( int event = 0; event < read_bintree->GetEntries(); event++ ) {
+ for(int event=0;event<read_bintree->GetEntries();event++)
+ {
     read_bintree->GetEntry( event );
-    for ( unsigned int l = 0; l < layer.size(); l++ ) {
+  for(unsigned int l=0;l<layer.size();l++)
+  {
       double val = read_bintree->GetVariable( Form( "energy_%s", layer[l].c_str() ) );
-      if ( val > MaxInputs[l] ) MaxInputs[l] = val;
-      if ( val < MinInputs[l] ) MinInputs[l] = val;
+   if(val>MaxInputs[l])
+    MaxInputs[l]=val;
+   if(val<MinInputs[l])
+    MinInputs[l]=val;
     }
   }
 
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
+ for(unsigned int l=0; l<layer.size(); l++)
+ {
     TH1D* h_data;
-    h_data = new TH1D( Form( "h_data_%s", layer[l].c_str() ), Form( "h_data_%s", layer[l].c_str() ), m_numberfinebins,
-                       MinInputs[l], MaxInputs[l] );
-    for ( int event = 0; event < read_bintree->GetEntries(); event++ ) {
+  h_data = new TH1D(Form("h_data_%s",layer[l].c_str()),Form("h_data_%s",layer[l].c_str()),m_numberfinebins,MinInputs[l],MaxInputs[l]);
+  for(int event=0;event<read_bintree->GetEntries();event++)
+  {
       read_bintree->GetEntry( event );
       h_data->Fill( read_bintree->GetVariable( Form( "energy_%s", layer[l].c_str() ) ) );
     }
@@ -445,15 +501,18 @@ vector<TH1D*> secondPCA::get_histos_data( vector<string> layer, TreeReader* read
   return data;
 }
 
-vector<int> secondPCA::getLayerBins( TFile* file, int& bins ) {
+vector<int> secondPCA::getLayerBins(TFile* file, int &bins)
+{
 
   vector<int> layer;
 
   TH2I* h_layer = (TH2I*)file->Get( "h_layer" );
 
   // the layers are stored in the y axis
-  for ( int i = 1; i <= h_layer->GetNbinsY(); i++ ) {
-    if ( h_layer->GetBinContent( 1, i ) == 1 ) layer.push_back( h_layer->GetYaxis()->GetBinCenter( i ) );
+ for(int i=1;i<=h_layer->GetNbinsY();i++)
+ {
+ 	if(h_layer->GetBinContent(1,i)==1) 
+ 	 layer.push_back(h_layer->GetYaxis()->GetBinCenter(i));
   }
 
   bins = h_layer->GetNbinsX();
@@ -461,8 +520,10 @@ vector<int> secondPCA::getLayerBins( TFile* file, int& bins ) {
   return layer;
 }
 
+
 // double secondPCA::get_cumulant_random(double x, TH1D* h)
-double secondPCA::get_cumulant_random( CLHEP::HepRandomEngine* randEngine, double x, TH1D* h ) {
+double secondPCA::get_cumulant_random(CLHEP::HepRandomEngine *randEngine, double x, TH1D* h)
+{
 
   int bin = h->FindBin( x );
 

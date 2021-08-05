@@ -80,9 +80,9 @@ class CaloGeometryLookup {
     int cell_grid_phi() const {return m_cell_grid_phi;};
     void set_xy_grid_adjustment_factor(float factor) {m_xy_grid_adjustment_factor=factor;};
 
-    float xy_grid_adjustment_factor() const {return m_xy_grid_adjustment_factor;};
-    float deta_double() const {return m_deta_double;};
-    float dphi_double() const {return m_dphi_double;};
+    float xy_grid_adjustment_factor() {return m_xy_grid_adjustment_factor;};
+    float deta_double() {return m_deta_double;};
+    float dphi_double() {return m_dphi_double;};
     const std::vector< std::vector< const CaloDetDescrElement* > > * cell_grid(){ return & m_cell_grid ; } ;
 
     virtual const CaloDetDescrElement* getDDE(float eta,float phi,float* distance=0,int* steps=0);

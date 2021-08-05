@@ -42,7 +42,7 @@ class CaloDetDescrElement
 
   /** @brief virtual destructor
    */
-  ~CaloDetDescrElement() {};
+  virtual ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */

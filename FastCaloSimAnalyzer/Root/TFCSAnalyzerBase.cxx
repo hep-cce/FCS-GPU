@@ -208,9 +208,9 @@ void TFCSAnalyzerBase::Fill( TProfile2D* h, float valuex, float valuey, float va
 
 void TFCSAnalyzerBase::autozoom( TH1* h1, double& min, double& max, double& rmin, double& rmax ) {
 
-  double min1, max1;
-  min1 = h1->GetXaxis()->GetXmin();
-  max1 = h1->GetXaxis()->GetXmax();
+  double min1, min2, max1, max2;
+  min1 = min2 = h1->GetXaxis()->GetXmin();
+  max1 = max2 = h1->GetXaxis()->GetXmax();
 
   for ( int b = 1; b <= h1->GetNbinsX(); b++ ) {
     if ( h1->GetBinContent( b ) > 0 ) {
@@ -255,7 +255,7 @@ TH1D* TFCSAnalyzerBase::refill( TH1* h_in, double min, double max, double rmin, 
         for ( int b = h_clone->FindBin( min ); b <= h_clone->FindBin( max ); b++ ) Nbins++;
         if ( Nbins < 120 && Nbins > 50 ) {
           h_in->Rebin( rebin );
-          cout << "*decide for rebin=" << rebin << "*" << endl;
+          //          cout << "*decide for rebin=" << rebin << "*" << endl;
           break;
         }
       }

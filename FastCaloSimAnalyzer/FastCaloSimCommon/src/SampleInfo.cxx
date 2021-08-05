@@ -6,7 +6,9 @@
 
 namespace FCS {
 
-  std::ostream& operator<<( std::ostream& out, const DSIDInfo& info ) {
+std::ostream &operator<<(std::ostream &out,
+                         const DSIDInfo &info)
+{
     out << "DSID: " << info.dsid << "\t";
     out << "PDG ID: " << info.pdgId << "\t";
     out << "Energy: " << info.energy << "\t";
@@ -16,7 +18,9 @@ namespace FCS {
     return out;
   }
 
-  std::ostream& operator<<( std::ostream& out, const SampleInfo& info ) {
+std::ostream &operator<<(std::ostream &out,
+                         const SampleInfo &info)
+{
     out << "DSID: " << info.dsid << "\t";
     out << "Location: " << info.location << "\t";
 

@@ -30,15 +30,14 @@ Options:
   -o <dir>, --output <dir>   Output directory [default: ./].
 )";
 
-int runTFCSCreateParamEtaSlice( int pdgid, int int_Mom_min, int int_Mom_max, double etamin, std::string outDir,
-                                long seed ) {
+
+int runTFCSCreateParamEtaSlice(int pdgid, int int_Mom_min, int int_Mom_max, double etamin, std::string outDir, long seed)
+{
 
   system( ( "mkdir -p " + outDir ).c_str() );
 
-  FCS::LateralShapeParametrizationArray hit_to_cell_mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                               0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
-  FCS::LateralShapeParametrizationArray numbers_of_hits     = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                                           0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  FCS::LateralShapeParametrizationArray hit_to_cell_mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+  FCS::LateralShapeParametrizationArray numbers_of_hits = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
   FCS::init_hit_to_cell_mapping( hit_to_cell_mapping, true );
   FCS::init_numbers_of_hits( hit_to_cell_mapping, 1 ); // 1 is nominal stochastic term for EM
@@ -52,14 +51,13 @@ int runTFCSCreateParamEtaSlice( int pdgid, int int_Mom_min, int int_Mom_max, dou
   CLHEP::TRandomEngine* randEngine = new CLHEP::TRandomEngine();
   randEngine->setSeed( seed );
 
-  TFCSParametrizationBase* para = FCS::NewEnergyChain( randEngine, hit_to_cell_mapping, numbers_of_hits, pdgid,
-                                                       int_Mom_min, int_Mom_max, etamin, etamax );
+
+  TFCSParametrizationBase* para = FCS::NewEnergyChain(randEngine, hit_to_cell_mapping, numbers_of_hits, pdgid, int_Mom_min, int_Mom_max, etamin, etamax);
   if ( para ) {
     TString filename = Form( "%s/%s", outDir.c_str(), para->GetName() );
     auto    file     = std::unique_ptr<TFile>( TFile::Open( filename + ".root", "recreate" ) );
     if ( !file ) {
-      std::cerr << "Error: Could not create file '" << filename + ".root"
-                << "'" << std::endl;
+      std::cerr << "Error: Could not create file '" << filename + ".root" << "'" << std::endl;
       return 1;
     }
     para->Write();
@@ -72,8 +70,10 @@ int runTFCSCreateParamEtaSlice( int pdgid, int int_Mom_min, int int_Mom_max, dou
   return 0;
 }
 
-int main( int argc, char** argv ) {
-  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
+int main(int argc, char **argv)
+{
+  std::map<std::string, docopt::value> args
+    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
 
   int         pdgId  = args["--pdgId"].asLong();
   long        seed   = args["--seed"].asLong();

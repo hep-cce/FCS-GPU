@@ -34,7 +34,9 @@
 
 #include "TFCSSampleDiscovery.h"
 
-TH1F* zoomHisto( TH1* h_in ) {
+
+TH1F* zoomHisto(TH1* h_in)
+{
 
   double min = -999.;
   double max = 999.;
@@ -46,7 +48,8 @@ TH1F* zoomHisto( TH1* h_in ) {
 
   int Nbins;
   int bins = 0;
-  for ( int b = h_in->FindBin( min ); b <= h_in->FindBin( max ); b++ ) bins++;
+    for (int b = h_in->FindBin(min); b <= h_in->FindBin(max); b++)
+        bins++;
   Nbins = bins;
 
   int start = h_in->FindBin( min ) - 1;
@@ -54,7 +57,8 @@ TH1F* zoomHisto( TH1* h_in ) {
   TH1F* h_out = new TH1F( h_in->GetName() + TString( "_zoom" ), h_in->GetTitle(), Nbins, rmin, rmax );
   h_out->SetXTitle( h_in->GetXaxis()->GetTitle() );
   h_out->SetYTitle( h_in->GetYaxis()->GetTitle() );
-  for ( int b = 1; b <= h_out->GetNbinsX(); b++ ) {
+    for (int b = 1; b <= h_out->GetNbinsX(); b++)
+    {
     h_out->SetBinContent( b, h_in->GetBinContent( start + b ) );
     h_out->SetBinError( b, h_in->GetBinError( start + b ) );
   }
@@ -62,7 +66,9 @@ TH1F* zoomHisto( TH1* h_in ) {
   return h_out;
 }
 
-TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
+
+TH2* Create2DHistogram(TH2* h, float energy_cutoff)
+{
 
   TH1F* h1 = (TH1F*)h->ProjectionY();
 
@@ -75,16 +81,22 @@ TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
   float xmax   = h->GetXaxis()->GetXmax();
   int   nbinsx = h->GetXaxis()->GetNbins();
 
-  TH2* h2 = new TH2F( h->GetName() + TString( "2D" ), h->GetTitle() + TString( "2D" ), nbinsx, xmin, xmax, nbinsy, ymin,
-                      ymax );
+
+    TH2* h2 = new TH2F(h->GetName() + TString("2D"), h->GetTitle() + TString("2D"), nbinsx, xmin, xmax, nbinsy, ymin, ymax);
+
 
   for ( auto j = 0; j <= h2->GetNbinsY(); ++j ) {
-    for ( auto i = 0; i <= h2->GetNbinsX(); ++i ) { h2->SetBinContent( i, j, h->GetBinContent( i, j ) ); }
+        for (auto i = 0; i <= h2->GetNbinsX(); ++i) {
+            h2->SetBinContent(i, j, h->GetBinContent(i, j));
+        }
   }
 
   float avg = h2->Integral( 1, nbinsx, 1, 1 ) / nbinsx;
 
-  for ( int i = 1; i < nbinsx + 1; i++ ) h2->SetBinContent( i, 1, avg );
+
+    for (int i = 1; i < nbinsx + 1; i++)
+        h2->SetBinContent(i, 1, avg);
+
 
   float integral = h2->Integral();
   if ( integral > 0 ) h2->Scale( 1 / integral );
@@ -92,7 +104,8 @@ TH2* Create2DHistogram( TH2* h, float energy_cutoff ) {
   return h2;
 }
 
-void CreatePolarPlot( TH2F* h, std::string outDir ) {
+void CreatePolarPlot(TH2F* h, std::string outDir)
+{
 
   gROOT->SetBatch( 1 );
 
@@ -112,10 +125,24 @@ void CreatePolarPlot( TH2F* h, std::string outDir ) {
   delete c;
 }
 
-void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string sampleData, std::string topDir,
-                                        std::string version, float energy_cutoff, std::string topPlotDir,
-                                        bool do2DParam, bool isPhiSymmetry, bool doMeanRz, bool useMeanRz,
-                                        bool doZVertexStudies, long seed, int nEvents, int firstEvent, int debug ) {
+
+void runTFCS2DParametrizationHistogram(int dsid,
+                                       int dsid_zv0,
+                                       std::string sampleData,
+                                       std::string topDir,
+				                               std::string version,
+                                       float energy_cutoff,
+                                       std::string topPlotDir,
+                                       bool do2DParam,
+                                       bool isPhiSymmetry,
+                                       bool doMeanRz,
+                                       bool useMeanRz,
+                                       bool doZVertexStudies,
+                                       long seed,
+	                                     int nEvents,
+                        				       int firstEvent,
+                        				       int debug)
+{
 
   system( ( "mkdir -p " + topDir ).c_str() );
 
@@ -218,7 +245,8 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
   int   npca           = relevantLayers->GetNbinsX();
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+    {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 
@@ -252,19 +280,19 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
     std::cout << tm_mean_weight->GetName() << std::endl;
   }
 
-  if ( doZVertexStudies ) { fzvertex = new TFile( zvertexSample, "recreate" ); }
+    if (doZVertexStudies) {
+        fzvertex = new TFile(zvertexSample, "recreate");
+    }
 
   if ( nEvents <= 0 ) {
-    if ( firstEvent >= 0 )
-      nEvents = nentries;
-    else
-      nEvents = nentries;
-  } else {
-    if ( firstEvent >= 0 )
-      nEvents = std::max( 0, std::min( nentries, nEvents + firstEvent ) );
-    else
-      nEvents = std::max( 0, std::min( nentries, nEvents ) );
+      if ( firstEvent >=0 ) nEvents=nentries;
+      else nEvents=nentries;
   }
+    else{
+      if ( firstEvent >=0 ) nEvents=std::max( 0,std::min(nentries,nEvents+firstEvent) );
+      else nEvents = std::max( 0,std::min(nentries,nEvents) );
+    }
+
 
   for ( size_t ilayer = 0; ilayer < v_layer.size(); ilayer++ ) {
 
@@ -290,8 +318,7 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
 
     std::vector<TFCSParametrizationChain*>      RunInputHits( npca );
     std::vector<TFCSValidationEnergyAndHits*>   input_EnergyAndHits( npca );
-    std::vector<TFCSCenterPositionCalculation*> centerPosCalc( npca ); // Will decorate hits with center extrap
-                                                                       // positions
+	std::vector<TFCSCenterPositionCalculation*> centerPosCalc(npca); // Will decorate hits with center extrap positions
     std::vector<TFCSValidationHitSpy*> hitspy_orig( npca );
 
     int                 analyze_layer = v_layer.at( ilayer );
@@ -316,11 +343,12 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
       ///// Chain to read 2D alpha_radius in mm from the input file
       //////////////////////////////////////////////////////////
 
-      RunInputHits[i] =
-          new TFCSParametrizationChain( "input_EnergyAndHits", "original energy and hits from input file" );
 
-      input_EnergyAndHits[i] = new TFCSValidationEnergyAndHits( "input_EnergyAndHits",
-                                                                "original energy and hits from input file", &analyze );
+            RunInputHits[i] = new TFCSParametrizationChain("input_EnergyAndHits", "original energy and hits from input file");
+
+
+            input_EnergyAndHits[i] = new TFCSValidationEnergyAndHits("input_EnergyAndHits", "original energy and hits from input file", &analyze);
+
 
       input_EnergyAndHits[i]->set_pdgid( pdgid );
       input_EnergyAndHits[i]->set_calosample( analyze_layer );
@@ -332,10 +360,8 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
       centerPosCalc[i] = new TFCSCenterPositionCalculation( "CenterPosCalculation", "Center position calculation" );
       centerPosCalc[i]->set_calosample( analyze_layer );
 
-      if ( useMeanRz )
-        centerPosCalc[i]->setExtrapWeight( ( *tm_mean_weight )[analyze_layer][ipca] );
-      else
-        centerPosCalc[i]->setExtrapWeight( 0.5 );
+	    if(useMeanRz) centerPosCalc[i]->setExtrapWeight( (*tm_mean_weight)[analyze_layer][ipca] );
+	    else centerPosCalc[i]->setExtrapWeight(0.5);
 
       hitspy_orig[i] = new TFCSValidationHitSpy( "hitspy_2D_E_alpha_radius", "shape parametrization" );
 
@@ -343,8 +369,10 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
 
       if ( doMeanRz ) RunInputHits[i]->push_back( hitspy_orig[i] ); // to call the simulate() method in HitSpy
 
+
       int binwidth = 5;
-      if ( analyze_layer == 1 or analyze_layer == 5 ) binwidth = 1;
+            if (analyze_layer == 1 or analyze_layer == 5)
+                binwidth = 1;
       float ymin   = 0;
       float ymax   = 10000;
       int   nbinsy = (int)( ( ymax - ymin ) / binwidth );
@@ -359,13 +387,11 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
 
       if ( do2DParam ) {
         if ( isPhiSymmetry ) {
-          h_orig_hitEnergy_alpha_r[i] =
-              analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, TMath::Pi(), nbinsy, ymin, ymax );
+                    h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, TMath::Pi(), nbinsy, ymin, ymax);
           hitspy_orig[i]->hist_hitenergy_alpha_absPhi_radius() = h_orig_hitEnergy_alpha_r[i];
 
         } else {
-          h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2( prefixall + "hist_hitenergy_alpha_radius", "", 8, 0,
-                                                         2 * TMath::Pi(), nbinsy, ymin, ymax );
+                    h_orig_hitEnergy_alpha_r[i] = analyze.InitTH2(prefixall + "hist_hitenergy_alpha_radius", "", 8, 0, 2 * TMath::Pi(), nbinsy, ymin, ymax);
           hitspy_orig[i]->hist_hitenergy_alpha_radius() = h_orig_hitEnergy_alpha_r[i];
         }
       }
@@ -379,8 +405,7 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
 
         h_hitenergy_weight[i] = analyze.InitTH1( prefixall + "hist_hitenergy_weight", "1D", 2000, -2., 3. );
         hitspy_orig[i]->hist_hitenergy_weight() = h_hitenergy_weight[i];
-        h_orig_mean_hitenergy_weight[i] =
-            analyze.InitTH1( prefixall + "hist_mean_hitenergy_weight", "1D", 2000, 0., 1. );
+	        h_orig_mean_hitenergy_weight[i] = analyze.InitTH1(prefixall + "hist_mean_hitenergy_weight", "1D", 2000, 0., 1.);
         hitspy_orig[i]->hist_hitenergy_mean_weight() = h_orig_mean_hitenergy_weight[i];
 
         h_hitenergy_z[i] = analyze.InitTH1( prefixall + "hist_hitenergy_z", "1D", nbinsz, zmin, zmax );
@@ -389,15 +414,14 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
         hitspy_orig[i]->hist_hitenergy_mean_z() = h_orig_mean_hitenergy_z[i];
 
         h_Rz[i] = analyze.InitTH2( prefixall + "hist_Rz", "2D", 1000, 0, 5000, 1000, -10000, 10000 );
-        h_Rz_outOfRange[i] =
-            analyze.InitTH2( prefixall + "hist_Rz_outOfRange", "2D", 1000, 0, 5000, 1000, -10000, 10000 );
+	        h_Rz_outOfRange[i] = analyze.InitTH2(prefixall + "hist_Rz_outOfRange", "2D", 1000, 0, 5000, 1000, -10000, 10000);
         hitspy_orig[i]->hist_Rz()            = h_Rz[i];
         hitspy_orig[i]->hist_Rz_outOfRange() = h_Rz_outOfRange[i];
       }
 
+
       if ( doZVertexStudies ) {
-        h_deltaEtaAveragedPerEvent[i] =
-            new TH1F( ( prefixall + "deltaEtaAveragedPerEvent" ).c_str(), "", 4000, -400, 400 );
+                h_deltaEtaAveragedPerEvent[i] = new TH1F((prefixall + "deltaEtaAveragedPerEvent").c_str(), "", 4000, -400, 400);
         h_deltaEta[i]       = new TH1F( ( prefixall + "deltaEtaHit" ).c_str(), "", 4000, -400, 400 );
         h_deltaPhi[i]       = new TH1F( ( prefixall + "deltaPhiHit" ).c_str(), "", 4000, -400, 400 );
         h_deltaRt[i]        = new TH1F( ( prefixall + "deltaRtHit" ).c_str(), "", 4000, -400, 400 );
@@ -499,11 +523,10 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
       if ( h_Rz[i] ) delete h_Rz[i];
       if ( h_Rz_outOfRange[i] ) delete h_Rz_outOfRange[i];
 
+
       if ( doZVertexStudies ) {
-        std::cout << "\nDelta eta averaged in pca bin " << ipca
-                  << " over all events: " << input_EnergyAndHits[i]->getDeltaEtaAveraged() << std::endl;
-        std::cout << "\n Energy in layer " << analyze_layer << " and pca " << ipca << " : " << energyMeanSigma.first
-                  << " +- " << energyMeanSigma.second << std::endl;
+                std::cout << "\nDelta eta averaged in pca bin " << ipca << " over all events: " << input_EnergyAndHits[i]->getDeltaEtaAveraged() << std::endl;
+                std::cout << "\n Energy in layer " << analyze_layer << " and pca " << ipca << " : " << energyMeanSigma.first << " +- " << energyMeanSigma.second <<  std::endl;
       }
 
       delete RunInputHits[i];
@@ -521,8 +544,11 @@ void runTFCS2DParametrizationHistogram( int dsid, int dsid_zv0, std::string samp
   if ( doMeanRz || useMeanRz ) {
 
     for ( size_t ilayer = 0; ilayer < v_layer.size(); ilayer++ ) {
-      for ( int ipca = 1; ipca <= npca; ipca++ ) { std::cout << ( *tm_mean_weight )[v_layer[ilayer]][ipca] << ","; }
+            for (int ipca = 1; ipca <= npca; ipca++) {
+                 std::cout << (*tm_mean_weight)[v_layer[ilayer]][ipca] << ",";
+            }
       std::cout << std::endl;
+
     }
     delete tm_mean_weight;
   }
@@ -558,7 +584,11 @@ Options:
   
 )";
 
-int main( int argc, char** argv ) {
+
+
+int main(int argc, char **argv)
+{
+  
 
   int         dsid             = 431004;
   int         dsid_zv0         = -999;
@@ -581,102 +611,55 @@ int main( int argc, char** argv ) {
 
   try {
 
-    try {
-      dsid = args["--dsid"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument(
-          "--dsid option is mandatory and it is expected to be an integer. Check input parameters." );
-    }
+    try{ dsid=args["--dsid"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--dsid option is mandatory and it is expected to be an integer. Check input parameters."); }
 
-    try {
-      dsid_zv0 = args["--dsid_zv0"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--dsid_zv0 option is expected to be an integer. Check input parameters." );
-    }
+    try{ dsid_zv0=args["--dsid_zv0"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--dsid_zv0 option is expected to be an integer. Check input parameters."); }
 
-    try {
-      sampleData = args["--sampleData"].asString();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--sampleData option is expected to be an integer. Check input parameters." );
-    }
+    try{ sampleData=args["--sampleData"].asString();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--sampleData option is expected to be an integer. Check input parameters."); }
 
-    try {
-      topDir = args["--topDir"].asString();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--topDir option is expected to be an integer. Check input parameters." );
-    }
+    try{ topDir=args["--topDir"].asString();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--topDir option is expected to be an integer. Check input parameters."); }
 
-    try {
-      version = args["--version"].asString();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--version option is expected to be an integer. Check input parameters." );
-    }
+    try{ version=args["--version"].asString();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--version option is expected to be an integer. Check input parameters."); }
 
-    try {
-      energy_cutoff = std::stof( args["--energy_cutoff"].asString() );
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--energy_cutoff option is expected to be a float. Check input parameters." );
-    }
+    try{ energy_cutoff=std::stof( args["--energy_cutoff"].asString() );} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--energy_cutoff option is expected to be a float. Check input parameters."); }
 
-    try {
-      topPlotDir = args["--topPlotDir"].asString();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--topPlotDir option is expected to be a string. Check input parameters." );
-    }
+    try{ topPlotDir=args["--topPlotDir"].asString();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--topPlotDir option is expected to be a string. Check input parameters."); }
 
-    try {
-      do2DParam = args["--do2DParam"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--do2DParam option is expected to be an integer. Check input parameters." );
-    }
 
-    try {
-      isPhiSymmetry = args["--isPhiSymmetry"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--isPhiSymmetry option is expected to be an integer. Check input parameters." );
-    }
+    try{ do2DParam=args["--do2DParam"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--do2DParam option is expected to be an integer. Check input parameters."); }
 
-    try {
-      doMeanRz = args["--doMeanRz"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--doMeanRz option is expected to be an integer. Check input parameters." );
-    }
+    try{ isPhiSymmetry=args["--isPhiSymmetry"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--isPhiSymmetry option is expected to be an integer. Check input parameters."); }
 
-    try {
-      useMeanRz = args["--useMeanRz"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--useMeanRz option is expected to be an integer. Check input parameters." );
-    }
+    try{ doMeanRz=args["--doMeanRz"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--doMeanRz option is expected to be an integer. Check input parameters."); }
 
-    try {
-      doZVertexStudies = args["--doZVertexStudies"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--doZVertexStudies option is expected to be an integer. Check input parameters." );
-    }
+    try{ useMeanRz=args["--useMeanRz"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--useMeanRz option is expected to be an integer. Check input parameters."); }
 
-    try {
-      seed = args["--seed"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--seed option is expected to be an integer. Check input parameters." );
-    }
+    try{ doZVertexStudies=args["--doZVertexStudies"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--doZVertexStudies option is expected to be an integer. Check input parameters."); }
 
-    try {
-      nEvents = args["--nEvents"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--nEvents option is expected to be an integer. Check input parameters." );
-    }
+    try{ seed=args["--seed"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--seed option is expected to be an integer. Check input parameters."); }
 
-    try {
-      firstEvent = args["--firstEvent"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--firstEvent option is expected to be an integer. Check input parameters." );
-    }
+    try{ nEvents=args["--nEvents"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--nEvents option is expected to be an integer. Check input parameters."); }
+  
+    try{ firstEvent=args["--firstEvent"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--firstEvent option is expected to be an integer. Check input parameters."); }
+  
+    try{ debug=args["--debug"].asLong();} catch(const std::invalid_argument& e)
+      { throw std::invalid_argument("--debug option is expected to be an integer. Check input parameters."); }
 
-    try {
-      debug = args["--debug"].asLong();
-    } catch ( const std::invalid_argument& e ) {
-      throw std::invalid_argument( "--debug option is expected to be an integer. Check input parameters." );
-    }
 
   } catch ( const std::invalid_argument& e ) {
     std::cout << "Error: " << e.what() << std::endl << std::endl;
@@ -690,12 +673,12 @@ int main( int argc, char** argv ) {
   }
 
   std::cout << std::endl
-            << "Parameters are loaded successfully!" << std::endl
-            << "Executing runTFCS2DParametrizationHistogram function." << std::endl;
+            << "Parameters are loaded successfully!"
+            << std::endl
+            << "Executing runTFCS2DParametrizationHistogram function."
+            << std::endl;
 
-  runTFCS2DParametrizationHistogram( dsid, dsid_zv0, sampleData, topDir, version, energy_cutoff, topPlotDir, do2DParam,
-                                     isPhiSymmetry, doMeanRz, useMeanRz, doZVertexStudies, seed, nEvents, firstEvent,
-                                     debug );
+  runTFCS2DParametrizationHistogram(dsid,dsid_zv0,sampleData,topDir,version,energy_cutoff,topPlotDir,do2DParam,isPhiSymmetry,doMeanRz,useMeanRz,doZVertexStudies,seed,nEvents,firstEvent,debug);
 
   return 0;
 }

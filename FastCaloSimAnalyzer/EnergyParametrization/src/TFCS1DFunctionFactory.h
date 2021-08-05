@@ -7,7 +7,8 @@
 
 #include "ISF_FastCaloSimEvent/TFCS1DFunction.h"
 
-class TFCS1DFunctionFactory {
+class TFCS1DFunctionFactory
+{
 public:
   TFCS1DFunctionFactory(){};
   virtual ~TFCS1DFunctionFactory(){};

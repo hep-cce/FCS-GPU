@@ -5,15 +5,18 @@
 #ifndef secondPCA_h
 #define secondPCA_h
 
-#include "TFCSApplyFirstPCA.h"
 #include "TreeReader.h"
+#include "TFCSApplyFirstPCA.h"
 
-namespace CLHEP {
+namespace CLHEP
+{
   class HepRandomEngine;
 }
 
-class secondPCA : public TFCSApplyFirstPCA {
+class secondPCA: public TFCSApplyFirstPCA
+{
 public:
+  
   secondPCA( std::string, std::string );
   // void run();
   void             run( CLHEP::HepRandomEngine* );

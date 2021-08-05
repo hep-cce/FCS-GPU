@@ -2,25 +2,28 @@
   Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
 */
 
-#include "TChain.h"
 #include "TFCSFlatNtupleMaker.h"
 #include "TFCSInputValidationPlots.h"
 #include "TFCSfirstPCA.h"
 #include "TFile.h"
-#include "TH2.h"
-#include "TString.h"
+#include "TChain.h"
 #include "TTree.h"
+#include "TString.h"
+#include "TH2.h"
 
-#include <algorithm>
 #include <iostream>
-#include <stdlib.h>
+#include <algorithm>
 #include <string>
+#include <stdlib.h>
 #include <tuple>
 
 void MakeTFCSEventAnalyzerFCal();
 
+
 // int main(int argc, char const *argv[])
-void MakeTFCSEventAnalyzerFCal() {
+void MakeTFCSEventAnalyzerFCal()
+{
+
 
   std::string particle = "pion";
   // particle = "pionplus";
@@ -52,8 +55,9 @@ void MakeTFCSEventAnalyzerFCal() {
   std::string label  = particle + "." + energy + "." + eta;
   TString     Sample = topDir + production + "/" + release + "/%s/" + campaign + "." + label + "." + merge + ".%s";
 
-  TString inputSample( "/afs/cern.ch/work/p/pjacka/FCS/athena/Simulation/ISF/ISF_FastCaloSim/"
-                       "ISF_FastCaloSimParametrization/tools/pion.calohit.E50000.eta_400_405.root" );
+
+
+    TString inputSample("/afs/cern.ch/work/p/pjacka/FCS/athena/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tools/pion.calohit.E50000.eta_400_405.root");
   TString pcaSample( "PCAs/firstPCA.root" );
   TString flatSample( "flatSamples/flatcalohit.root" );
 
@@ -105,7 +109,8 @@ void MakeTFCSEventAnalyzerFCal() {
   std::vector<int> v_layer;
 
   TH2I* relevantLayers = (TH2I*)fpca->Get( "h_layer" );
-  for ( int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ ) {
+    for (int ibiny = 1; ibiny <= relevantLayers->GetNbinsY(); ibiny++ )
+    {
     if ( relevantLayers->GetBinContent( 1, ibiny ) == 1 ) v_layer.push_back( ibiny - 1 );
   }
 
@@ -147,15 +152,18 @@ void MakeTFCSEventAnalyzerFCal() {
   validate->CreateBinning( 0.99 ); // fraction of the total energy
 
   std::vector<std::string> v_hist;
-  for ( unsigned int ihist = 0; ihist < histos.size(); ihist++ ) {
+    for (unsigned int ihist = 0; ihist < histos.size(); ihist++)
+    {
     std::string hist = std::get<0>( histos[ihist] );
     v_hist.push_back( hist );
     std::string xlabel = std::get<1>( histos[ihist] );
     std::string ylabel = std::get<2>( histos[ihist] );
 
-    if ( validate->findWord( hist, ":" ) ) {
+        if (validate->findWord(hist, ":"))
+        {
       validate->PlotTH2( hist, xlabel, ylabel );
-    } else {
+        } else
+        {
       validate->PlotTH1( hist, xlabel );
     }
   }

@@ -14,8 +14,7 @@ public:
   TFCSLateralShapeParametrizationHitChain( const char* name = nullptr, const char* title = nullptr );
   TFCSLateralShapeParametrizationHitChain( TFCSLateralShapeParametrizationHitBase* hitsim );
 
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   virtual void set_geometry( ICaloGeometry* geo ) override;
 
@@ -27,13 +26,10 @@ public:
   Chain_t&                               chain() { return m_chain; };
   void                                   push_back( const Chain_t::value_type& value ) { m_chain.push_back( value ); };
 
-  virtual void set_number_of_hits_simul( TFCSLateralShapeParametrizationHitBase* sim ) {
-    m_number_of_hits_simul = sim;
-  };
+  virtual void set_number_of_hits_simul(TFCSLateralShapeParametrizationHitBase* sim) {m_number_of_hits_simul=sim;};
 
   /// Call get_number_of_hits() only once, as it could contain a random number
-  virtual int get_number_of_hits( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) const;
+  virtual int get_number_of_hits(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) const;
 
   void Print( Option_t* option = "" ) const override;
 
@@ -45,8 +41,7 @@ public:
   /// Update outputlevel
   virtual void setLevel( int level, bool recursive = false ) override {
     TFCSLateralShapeParametrization::setLevel( level, recursive );
-    if ( recursive )
-      if ( m_number_of_hits_simul ) m_number_of_hits_simul->setLevel( level, recursive );
+    if(recursive) if(m_number_of_hits_simul) m_number_of_hits_simul->setLevel(level,recursive);
   }
 #endif
 

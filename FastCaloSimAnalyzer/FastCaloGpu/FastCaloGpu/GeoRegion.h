@@ -89,12 +89,16 @@ class GeoRegion {
     CUDA_HOSTDEV float maxphi() {return m_maxphi ; };
     CUDA_HOSTDEV float minphi() {return m_minphi ; };
 
-
-    CUDA_HOSTDEV int raw_eta_position_to_index(float eta_raw) const {return floor((eta_raw-m_mineta_raw)/m_deta_double);};
-    CUDA_HOSTDEV int raw_phi_position_to_index(float phi_raw) const {return floor((phi_raw-m_minphi_raw)/m_dphi_double);};
+  CUDA_HOSTDEV int raw_eta_position_to_index( float eta_raw ) const {
+    return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
+  };
+  CUDA_HOSTDEV int raw_phi_position_to_index( float phi_raw ) const {
+    return floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
+  };
 
     CUDA_HOSTDEV bool index_range_adjust(int& ieta,int& iphi) ;
-    CUDA_HOSTDEV float calculate_distance_eta_phi(const long long DDE,float eta,float phi,float& dist_eta0,float& dist_phi0) ;
+  CUDA_HOSTDEV float calculate_distance_eta_phi( const long long DDE, float eta, float phi, float& dist_eta0,
+                                                 float& dist_phi0 );
 
     CUDA_HOSTDEV long long  getDDE(float eta,float phi,float* distance=0,int* steps=0) ;
 

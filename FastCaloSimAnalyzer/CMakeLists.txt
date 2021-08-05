@@ -11,11 +11,6 @@ set(CMAKE_MODULE_PATH
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
-set(RNDGEN_CPU OFF CACHE BOOL "Generate Random Numbers on CPU")
-
-if(USE_KOKKOS)
-  find_package(Kokkos) 
-endif()
 
 include(FastCaloSim)
 include(XRootD)

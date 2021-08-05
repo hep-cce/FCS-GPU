@@ -54,14 +54,6 @@ if(ENABLE_GPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
 endif() 
 
-if(USE_KOKKOS)
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
-endif()
-
-if(RNDGEN_CPU)
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DRNDGEN_CPU )
-endif()
-
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon

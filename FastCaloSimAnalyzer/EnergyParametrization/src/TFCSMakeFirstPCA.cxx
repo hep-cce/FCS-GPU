@@ -28,7 +28,8 @@ using namespace std;
 
 #define LAYERMAX 24
 
-TFCSMakeFirstPCA::TFCSMakeFirstPCA() {
+TFCSMakeFirstPCA::TFCSMakeFirstPCA()
+{
   // default parameters:
   m_use_absolute_layercut = 0;
   m_numberfinebins        = 5000;
@@ -42,7 +43,8 @@ TFCSMakeFirstPCA::TFCSMakeFirstPCA() {
   m_chain       = 0;
 }
 
-TFCSMakeFirstPCA::TFCSMakeFirstPCA( TChain* chain, string outfilename ) {
+TFCSMakeFirstPCA::TFCSMakeFirstPCA(TChain* chain,string outfilename)
+{
   // default parameters:
   m_use_absolute_layercut = 0;
   m_numberfinebins        = 5000;
@@ -54,19 +56,30 @@ TFCSMakeFirstPCA::TFCSMakeFirstPCA( TChain* chain, string outfilename ) {
   m_chain                 = chain;
 }
 
-void TFCSMakeFirstPCA::apply_etacut( int flag ) { m_apply_etacut = flag; }
+void TFCSMakeFirstPCA::apply_etacut(int flag)
+{
+ m_apply_etacut=flag;
+}
 
-void TFCSMakeFirstPCA::set_cumulativehistobins( int bins ) { m_numberfinebins = bins; }
+void TFCSMakeFirstPCA::set_cumulativehistobins(int bins)
+{
+  m_numberfinebins=bins;
+}
 
-void TFCSMakeFirstPCA::set_edepositcut( double cut ) { m_edepositcut = cut; }
+void TFCSMakeFirstPCA::set_edepositcut(double cut)
+{
+  m_edepositcut=cut;
+}
 
-void TFCSMakeFirstPCA::set_etacut( double cut_low, double cut_high ) {
+void TFCSMakeFirstPCA::set_etacut(double cut_low, double cut_high)
+{
   m_cut_eta_low  = cut_low;
   m_cut_eta_high = cut_high;
 }
 
 // void TFCSMakeFirstPCA::run()
-void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
+void TFCSMakeFirstPCA::run(CLHEP::HepRandomEngine *randEngine)
+{
   cout << endl;
   cout << "****************" << endl;
   cout << "     1st PCA" << endl;
@@ -86,7 +99,8 @@ void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
 
   TH1I*          h_layer_input = new TH1I( "h_layer_input", "h_layer_input", 24, -0.5, 23.5 );
   vector<string> layer;
-  for ( unsigned int l = 0; l < layerNr.size(); l++ ) {
+  for(unsigned int l=0;l<layerNr.size();l++)
+  {
     layer.push_back( Form( "layer%i", layerNr[l] ) );
     h_layer_input->SetBinContent( layerNr[l] + 1, 1 );
   }
@@ -101,34 +115,35 @@ void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
   T_Gauss0->SetDirectory( 0 );
   double* data_Gauss0 = new double[layer.size()];
   for ( unsigned int l = 0; l < layer.size(); l++ )
-    T_Gauss0->Branch( Form( "data_Gauss0_%s", layer[l].c_str() ), &data_Gauss0[l],
-                      Form( "data_Gauss0_%s/D", layer[l].c_str() ) );
+   T_Gauss0->Branch(Form("data_Gauss0_%s",layer[l].c_str()),&data_Gauss0[l],Form("data_Gauss0_%s/D",layer[l].c_str()));
 
   TTree* T_Gauss = new TTree( "T_Gauss", "T_Gauss" );
   T_Gauss->SetDirectory( 0 );
   double* data_Gauss = new double[layer.size()];
   double* data_PCA   = new double[layer.size()];
-  for ( unsigned int l = 0; l < layer.size(); l++ ) {
-    T_Gauss->Branch( Form( "data_Gauss_%s", layer[l].c_str() ), &data_Gauss[l],
-                     Form( "data_Gauss_%s/D", layer[l].c_str() ) );
+  for(unsigned int l=0;l<layer.size();l++)
+  {
+    T_Gauss->Branch(Form("data_Gauss_%s",layer[l].c_str()),&data_Gauss[l],Form("data_Gauss_%s/D",layer[l].c_str()));
     T_Gauss->Branch( Form( "data_PCA_comp%i", l ), &data_PCA[l], Form( "data_PCA_comp%i/D", l ) );
   }
 
   cout << "--- Uniformization/Gaussianization" << endl;
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+  for(int event=0;event<read_inputTree->GetEntries();event++)
+  {
     read_inputTree->GetEntry( event );
     bool pass_eta = 0;
     if ( !m_apply_etacut ) pass_eta = 1;
-    if ( m_apply_etacut ) {
+    if(m_apply_etacut)
+    {
       double         E  = read_inputTree->GetVariable( "TruthE" );
       double         px = read_inputTree->GetVariable( "TruthPx" );
       double         py = read_inputTree->GetVariable( "TruthPy" );
       double         pz = read_inputTree->GetVariable( "TruthPz" );
-      TLorentzVector tlv;
-      tlv.SetPxPyPzE( px, py, pz, E );
+     TLorentzVector tlv;  tlv.SetPxPyPzE(px,py,pz,E);
       pass_eta = ( fabs( tlv.Eta() ) > m_cut_eta_low && fabs( tlv.Eta() ) < m_cut_eta_high );
     }
-    if ( pass_eta ) {
+    if(pass_eta)
+    {
       double total_e = read_inputTree->GetVariable( "total_cell_energy" );
 
       if ( fabs( total_e ) < 0.0001 ) continue;
@@ -147,20 +162,22 @@ void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
       */
 
       // rescale to get rid of negative fractions:
-      if ( m_dorescale ) {
+      if(m_dorescale)
+      {
         double e_positive_sum = 0.0;
-        for ( unsigned int e = 0; e < layerNr.size(); e++ ) {
-          if ( e_layer[e] > 0 )
-            e_positive_sum += e_layer[e];
-          else
-            e_layer[e] = 0.0;
+       for(unsigned int e=0;e<layerNr.size();e++)
+       {
+        if(e_layer[e]>0) e_positive_sum+=e_layer[e];
+        else             e_layer[e]=0.0;
         }
         double rescale = 1.0;
         if ( e_positive_sum > 0 ) rescale = total_e / e_positive_sum;
-        for ( unsigned int e = 0; e < e_layer.size(); e++ ) e_layer[e] *= rescale;
+       for(unsigned int e=0;e<e_layer.size();e++)
+        e_layer[e]*=rescale;
       }
 
-      for ( unsigned int l = 0; l < layer.size(); l++ ) {
+      for(unsigned int l=0;l<layer.size();l++)
+      {
         double data = 0.;
 
         if ( l == layer.size() - 1 )
@@ -202,14 +219,14 @@ void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
   read_T_Gauss0->SetTree( T_Gauss0 );
 
   // save both the input and the ouput of the PCA (output is just for debug)
-  for ( int event = 0; event < read_T_Gauss0->GetEntries(); event++ ) {
+  for(int event=0;event<read_T_Gauss0->GetEntries();event++)
+  {
     read_T_Gauss0->GetEntry( event );
     for ( unsigned int l = 0; l < layer.size(); l++ )
       data_Gauss[l] = read_T_Gauss0->GetVariable( Form( "data_Gauss0_%s", layer[l].c_str() ) );
     principal->X2P( data_Gauss, data_PCA );
 
-    // for(unsigned int l=0;l<layer.size();l++)    cout<<"l "<<l<<" layer "<<layer[l]<<" Gauss "<<data_Gauss[l]<<" PCA
-    // "<<data_PCA[l]<<endl;
+   //for(unsigned int l=0;l<layer.size();l++)    cout<<"l "<<l<<" layer "<<layer[l]<<" Gauss "<<data_Gauss[l]<<" PCA "<<data_PCA[l]<<endl;
 
     T_Gauss->Fill();
   }
@@ -231,15 +248,18 @@ void TFCSMakeFirstPCA::run( CLHEP::HepRandomEngine* randEngine ) {
 
 } // run
 
-vector<TH1D*> TFCSMakeFirstPCA::get_cumul_histos( vector<string> layer_totE_name, vector<TH1D*> histos ) {
+vector<TH1D*> TFCSMakeFirstPCA::get_cumul_histos(vector<string> layer_totE_name, vector<TH1D*> histos)
+{
 
   cout << "in TFCSMakeFirstPCA::get_cumul_histos" << endl;
 
   vector<TH1D*> cumul;
 
-  for ( unsigned int i = 0; i < histos.size(); i++ ) {
+  for(unsigned int i=0;i<histos.size();i++)
+  {
     TH1D* h_cumul = (TH1D*)histos[i]->Clone( Form( "h_cumul_%s", layer_totE_name[i].c_str() ) );
-    for ( int b = 1; b <= h_cumul->GetNbinsX(); b++ ) {
+    for (int b=1; b<=h_cumul->GetNbinsX(); b++)
+    {
       h_cumul->SetBinContent( b, histos[i]->Integral( 1, b ) );
       h_cumul->SetBinError( b, 0 );
     }
@@ -249,7 +269,9 @@ vector<TH1D*> TFCSMakeFirstPCA::get_cumul_histos( vector<string> layer_totE_name
   return cumul;
 }
 
-vector<int> TFCSMakeFirstPCA::get_relevantlayers( TreeReader* read_inputTree, double ecut ) {
+
+vector<int> TFCSMakeFirstPCA::get_relevantlayers(TreeReader* read_inputTree, double ecut)
+{
 
   cout << "in TFCSMakeFirstPCA::get_relevantlayers" << endl;
 
@@ -260,36 +282,43 @@ vector<int> TFCSMakeFirstPCA::get_relevantlayers( TreeReader* read_inputTree, do
   vector<double> sum_efraction;
   vector<double> sum_e;
 
-  for ( int l = 0; l < NLAYER; l++ ) {
+  for(int l=0;l<NLAYER;l++)
+  {
     sum_efraction.push_back( 0.0 );
     sum_e.push_back( 0.0 );
   }
 
   int good_events = 0;
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+  for(int event=0;event<read_inputTree->GetEntries();event++ )
+  {
     read_inputTree->GetEntry( event );
     int  event_ok = 1;
     bool pass_eta = 0;
     if ( !m_apply_etacut ) pass_eta = 1;
-    if ( m_apply_etacut ) {
+   if(m_apply_etacut)
+   {
       double         E  = read_inputTree->GetVariable( "TruthE" );
       double         px = read_inputTree->GetVariable( "TruthPx" );
       double         py = read_inputTree->GetVariable( "TruthPy" );
       double         pz = read_inputTree->GetVariable( "TruthPz" );
-      TLorentzVector tlv;
-      tlv.SetPxPyPzE( px, py, pz, E );
+    TLorentzVector tlv; tlv.SetPxPyPzE(px,py,pz,E);
       pass_eta = ( fabs( tlv.Eta() ) > m_cut_eta_low && fabs( tlv.Eta() ) < m_cut_eta_high );
     }
-    if ( pass_eta ) {
+   if(pass_eta)
+   {
       double total_e = read_inputTree->GetVariable( "total_cell_energy" );
-      if ( total_e > 0.0001 ) {
-        for ( int l = 0; l < NLAYER; l++ ) {
+    if(total_e>0.0001)
+    {
+     for(int l=0;l<NLAYER;l++)
+     {
           double efraction = read_inputTree->GetVariable( Form( "cell_energy[%d]", l ) ) / total_e;
           if ( efraction / total_e > 1 || efraction / total_e < 0 ) event_ok = 0;
         }
-        if ( event_ok ) {
+     if(event_ok)
+     {
           good_events++;
-          for ( int l = 0; l < NLAYER; l++ ) {
+      for(int l=0;l<NLAYER;l++)
+      {
             double eval = read_inputTree->GetVariable( Form( "cell_energy[%i]", l ) );
             sum_efraction[l] += eval / total_e;
             sum_e[l] += eval;
@@ -334,23 +363,26 @@ vector<int> TFCSMakeFirstPCA::get_relevantlayers( TreeReader* read_inputTree, do
   adc_to_energy_conversion[22] = 75.0; //"FCAL1";
   adc_to_energy_conversion[23] = 85.0; //"FCAL2";
 
-  for ( int l = 0; l < NLAYER; l++ ) {
-    if ( sum_efraction[l] / (double)good_events >= ecut ) {
-      if ( ( m_use_absolute_layercut && sum_e[l] / (double)good_events >= adc_to_energy_conversion[l] ) ||
-           !m_use_absolute_layercut ) {
+  for(int l=0;l<NLAYER;l++)
+  {
+   if(sum_efraction[l]/(double)good_events>=ecut)
+   {
+    if((m_use_absolute_layercut && sum_e[l]/(double)good_events>=adc_to_energy_conversion[l]) || !m_use_absolute_layercut)
+    {
         layer_number.push_back( l );
-        cout << "Layer " << l << " is relevant! <sum_efraction>= " << sum_efraction[l] / (double)good_events
-             << " <sum_e> " << sum_e[l] / (double)good_events << endl;
+     cout<<"Layer "  <<l <<" is relevant! <sum_efraction>= "<<sum_efraction[l]/(double)good_events<<" <sum_e> "<<sum_e[l]/(double)good_events<<endl;
       }
     }
   }
 
-  for ( unsigned int k = 0; k < layer_number.size(); k++ ) cout << "Relevant " << layer_number[k] << endl;
+  for(unsigned int k=0;k<layer_number.size();k++)
+   cout<<"Relevant "<<layer_number[k]<<endl;
 
   return layer_number;
 }
 
-vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree( vector<int> layer_number, TreeReader* read_inputTree ) {
+vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree(vector<int> layer_number, TreeReader* read_inputTree)
+{
 
   cout << "in TFCSMakeFirstPCA::get_G4_histos_from_tree" << endl;
 
@@ -359,21 +391,24 @@ vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree( vector<int> layer_numbe
 
   cout << "layer_number size " << layer_number.size() << endl;
 
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+  for(int event=0;event<read_inputTree->GetEntries();event++)
+  {
     read_inputTree->GetEntry( event );
     bool pass_eta = 0;
     if ( !m_apply_etacut ) pass_eta = 1;
-    if ( m_apply_etacut ) {
+   if(m_apply_etacut)
+   {
       TLorentzVector tlv;
-      tlv.SetPxPyPzE( read_inputTree->GetVariable( "TruthPx" ), read_inputTree->GetVariable( "TruthPy" ),
-                      read_inputTree->GetVariable( "TruthPz" ), read_inputTree->GetVariable( "TruthE" ) );
+    tlv.SetPxPyPzE(read_inputTree->GetVariable("TruthPx"),read_inputTree->GetVariable("TruthPy"),read_inputTree->GetVariable("TruthPz"),read_inputTree->GetVariable("TruthE"));
       pass_eta = ( fabs( tlv.Eta() ) > m_cut_eta_low && fabs( tlv.Eta() ) < m_cut_eta_high );
     }
-    if ( pass_eta ) {
+   if(pass_eta)
+   {
       double total_e = read_inputTree->GetVariable( "total_cell_energy" );
       // if(fabs(total_e)<0.0001) continue;
       vector<double> e_layer;
-      for ( unsigned int l = 0; l < layer_number.size(); l++ ) {
+    for(unsigned int l=0;l<layer_number.size();l++)
+    {
         e_layer.push_back( read_inputTree->GetVariable( Form( "cell_energy[%d]", layer_number[l] ) ) );
       }
       /*
@@ -393,7 +428,8 @@ vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree( vector<int> layer_numbe
 
   vector<TH1D*> h_data;
   cout << "init data histos" << endl;
-  for ( unsigned int l = 0; l < layer_number.size(); l++ ) {
+  for(unsigned int l=0;l<layer_number.size();l++)
+  {
     TH1D* hist = new TH1D( Form( "h_data_layer%i", l ), Form( "h_data_layer%i", l ), m_numberfinebins, 0, 1 );
     hist->Sumw2();
     h_data.push_back( hist );
@@ -404,18 +440,20 @@ vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree( vector<int> layer_numbe
 
   cout << "fill data histos" << endl;
 
-  for ( int event = 0; event < read_inputTree->GetEntries(); event++ ) {
+  for(int event=0;event<read_inputTree->GetEntries();event++)
+  {
     read_inputTree->GetEntry( event );
 
     bool pass_eta = 0;
     if ( !m_apply_etacut ) pass_eta = 1;
-    if ( m_apply_etacut ) {
+   if(m_apply_etacut)
+   {
       TLorentzVector tlv;
-      tlv.SetPxPyPzE( read_inputTree->GetVariable( "TruthPx" ), read_inputTree->GetVariable( "TruthPy" ),
-                      read_inputTree->GetVariable( "TruthPz" ), read_inputTree->GetVariable( "TruthE" ) );
+    tlv.SetPxPyPzE(read_inputTree->GetVariable("TruthPx"),read_inputTree->GetVariable("TruthPy"),read_inputTree->GetVariable("TruthPz"),read_inputTree->GetVariable("TruthE"));
       pass_eta = ( fabs( tlv.Eta() ) > m_cut_eta_low && fabs( tlv.Eta() ) < m_cut_eta_high );
     }
-    if ( pass_eta ) {
+   if(pass_eta)
+   {
       double total_e = read_inputTree->GetVariable( "total_cell_energy" );
       // if(fabs(total_e)<0.0001) continue;
       vector<double> e_layer;
@@ -431,38 +469,43 @@ vector<TH1D*> TFCSMakeFirstPCA::get_G4_histos_from_tree( vector<int> layer_numbe
       */
 
       // rescale to get rid of negative fractions:
-      if ( m_dorescale ) {
+    if(m_dorescale)
+    {
         double e_positive_sum = 0.0;
-        for ( unsigned int e = 0; e < layer_number.size(); e++ ) {
-          if ( e_layer[e] > 0 )
-            e_positive_sum += e_layer[e];
-          else
-            e_layer[e] = 0.0;
+     for(unsigned int e=0;e<layer_number.size();e++)
+     {
+      if(e_layer[e]>0) e_positive_sum+=e_layer[e];
+      else             e_layer[e]=0.0;
         }
         double rescale = 1.0;
         if ( e_positive_sum > 0 ) rescale = total_e / e_positive_sum;
-        for ( unsigned int e = 0; e < e_layer.size(); e++ ) e_layer[e] *= rescale;
+     for(unsigned int e=0;e<e_layer.size();e++)
+      e_layer[e]*=rescale;
 
         h_data[h_data.size() - 1]->Fill( total_e );
-        for ( unsigned int l = 0; l < layer_number.size(); l++ ) h_data[l]->Fill( e_layer[l] / total_e );
+     for(unsigned int l=0;l<layer_number.size();l++)
+      h_data[l]->Fill(e_layer[l]/total_e);
       }
     } // pass eta
     if ( event % 2000 == 0 ) cout << event << " from " << read_inputTree->GetEntries() << " done" << endl;
   } // for event
 
-  for ( unsigned int l = 0; l < h_data.size(); l++ ) h_data[l]->Scale( 1.0 / h_data[l]->Integral() );
+ for(unsigned int l=0;l<h_data.size();l++)
+  h_data[l]->Scale(1.0/h_data[l]->Integral());
 
   return h_data;
 }
 
-double TFCSMakeFirstPCA::get_cumulant( double x, TH1D* h ) {
+double TFCSMakeFirstPCA::get_cumulant(double x, TH1D* h)
+{
 
   int bin = h->FindBin( x );
   return h->GetBinContent( bin );
 }
 
 // double TFCSMakeFirstPCA::get_cumulant_random(double x, TH1D* h)
-double TFCSMakeFirstPCA::get_cumulant_random( CLHEP::HepRandomEngine* randEngine, double x, TH1D* h ) {
+double TFCSMakeFirstPCA::get_cumulant_random(CLHEP::HepRandomEngine *randEngine, double x, TH1D* h)
+{
 
   int bin = h->FindBin( x );
 

@@ -18,14 +18,11 @@ public:
   void set_offset( float offset ) { m_offset = offset; };
 
   // Initialize simulstate with the mean reconstructed energy in the calorimater expeted from the true kinetic energy
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
   void Print( Option_t* option = "" ) const override;
 
-  static void unit_test( TFCSSimulationState* simulstate = nullptr, TFCSTruthState* truth = nullptr,
-                         const TFCSExtrapolationState* extrapol = nullptr );
-
+  static void unit_test(TFCSSimulationState* simulstate=nullptr,TFCSTruthState* truth=nullptr, const TFCSExtrapolationState* extrapol=nullptr);
 private:
   float m_slope;
   float m_offset;

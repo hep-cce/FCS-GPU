@@ -1,5 +1,5 @@
 //
-//  main.cxx
+//  main.cpp
 //  docopt
 //
 //  Created by Jared Grubb on 2013-10-03.
@@ -8,4 +8,9 @@
 
 #include "docopt.h"
 
-int main( int argc, const char* argv[] ) { return 0; }
+int main(int argc, const char * argv[])
+{
+	
+	return 0;
+}
+

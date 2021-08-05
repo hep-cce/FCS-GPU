@@ -11,11 +11,15 @@
 #include "CU_BigMem.h"
 
 #include <chrono>
+#include <mutex>
 
 static CaloGpuGeneral::KernelTime timing;
 
-#define BLOCK_SIZE 256 
+#define DEFAULT_BLOCK_SIZE 256
 #define NLOOPS 1
+
+static std::once_flag calledGetEnv {};
+static int BLOCK_SIZE{DEFAULT_BLOCK_SIZE};
 
 #define M_PI 3.14159265358979323846
 #define M_2PI 6.28318530717958647692
@@ -44,9 +48,10 @@ if(sampling<0) return -1;
   *distance=+10000000;
   int intsteps;
   int beststeps;
-  if(steps) beststeps=(*steps);
-   else beststeps=0;
-
+  if ( steps )
+    beststeps = ( *steps );
+  else
+    beststeps = 0;
   
   if(sampling<21) {
     for(int skip_range_check=0;skip_range_check<=1;++skip_range_check) {
@@ -55,7 +60,8 @@ if(sampling<0) return -1;
           if(eta< gr[j].mineta()) continue;
           if(eta> gr[j].maxeta()) continue;
         }
-    if(steps) intsteps=(*steps);
+        if ( steps )
+          intsteps = ( *steps );
          else 
        intsteps=0;
         float newdist;
@@ -86,8 +92,10 @@ int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
 while (m_index != high ) {
-     if( value < array[m_index] ) high=m_index ; 
-     else low=m_index+1 ;  
+    if ( value < array[m_index] )
+      high = m_index;
+    else
+      low = m_index + 1;
        m_index=(high+low+1)/2 ;
 }
 return m_index ;
@@ -103,8 +111,10 @@ int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
 while (m_index != high ) {
-     if( value < array[m_index] ) high=m_index ;
-     else low = m_index +1 ;
+    if ( value < array[m_index] )
+      high = m_index;
+    else
+      low = m_index + 1;
        m_index=(high+low+1)/2  ;
 }
 return m_index ;
@@ -117,11 +127,13 @@ int  low=0 ;
 int  high=size-1 ;
 int  m_index= (high-low)/2 ;
 while (high != low ) {
-     if( value >array[m_index] ) low=m_index+1 ;
+    if ( value > array[m_index] )
+      low = m_index + 1;
      else if( value == array[m_index] )  {
         return m_index + 1   ;
        // return min(m_index + 1, size-1)   ;
-     } else  high=m_index ;
+    } else
+      high = m_index;
        m_index=(high-low)/2 +low ;
 }
 return m_index ;
@@ -249,17 +261,30 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
 }
 __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
 
- size_t free, total ;
- gpuQ(cudaMemGetInfo(&free, &total)) ;
- std::cout << "GPU memory used(MB): "<< (total-free)/1000000 <<"  bm table allocate size(MB), used:  "<< CU_BigMem::bm_ptr->size()/1000000 << ", " << CU_BigMem::bm_ptr->used()/1000000<< std::endl ;
- if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
- if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
-
- std::cout << "time kernel sim_clean: " << timing.t_sim_clean.count() << std::endl;
- std::cout << "time kernel sim_A:     " << timing.t_sim_A.count() << std::endl;
- std::cout << "time kernel sim_ct:    " << timing.t_sim_ct.count() << std::endl;
- std::cout << "time kernel sim_cp:    " << timing.t_sim_cp.count() << std::endl;
-
+  size_t free, total ;
+  gpuQ(cudaMemGetInfo(&free, &total)) ;
+  std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
+            << "  bm table allocate size(MB), used:  " << CU_BigMem::bm_ptr->size() / 1000000 << ", "
+            << CU_BigMem::bm_ptr->used() / 1000000 << std::endl;
+  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
+  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
+  
+  if (timing.count > 0) {
+    std::cout << "kernel timing\n";
+    printf("%12s %15s %15s\n","kernel","total /s","avg launch /s");
+    printf("%12s %15.8f %15.8f\n","sim_clean",timing.t_sim_clean.count(),
+           timing.t_sim_clean.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_A",timing.t_sim_A.count(),
+           timing.t_sim_A.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_ct",timing.t_sim_ct.count(),
+           timing.t_sim_ct.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_cp",timing.t_sim_cp.count(),
+           timing.t_sim_cp.count()/timing.count);
+    printf("%12s %15d\n","launch count",timing.count);
+  } else {
+    std::cout << "no kernel timing available" << std::endl;
+  }
+  
 }
 
 
@@ -282,30 +307,22 @@ __host__ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, lon
 
 __global__  void simulate_clean(Sim_Args args) {
  unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
- if(tid < args.ncells*args.nsims ) {
-	 args.cells_energy[tid] =0.0 ; 
-	}
+  if ( tid < args.ncells * args.nsims ) { args.cells_energy[tid] = 0.0; }
  if(tid < args.nsims) args.ct[tid]= 0 ; 
 }
 
-
-
-__host__ int highestPowerof2(unsigned int n) 
-{ 
+__host__ int highestPowerof2( unsigned int n ) {
     // Invalid input 
-    if (n < 1) 
-        return 0; 
+  if ( n < 1 ) return 0;
   
     int res = 1; 
   
     // Try all powers starting from 2^1 
-    for (unsigned int i=0; i<8*sizeof(unsigned int); i++) 
-    { 
+  for ( unsigned int i = 0; i < 8 * sizeof( unsigned int ); i++ ) {
         unsigned int curr = 1 << i; 
   
         // If current power is more than n, break 
-        if (curr > n) 
-           break; 
+    if ( curr > n ) break;
   
         res = curr; 
     } 
@@ -317,14 +334,10 @@ __host__ int highestPowerof2(unsigned int n)
 
 __device__  void CenterPositionCalculation_g_d(const HitParams hp, Hit& hit, const Sim_Args args) {
 
-    hit.setCenter_r((1.- hp.extrapWeight)*hp.extrapol_r_ent +
-        hp.extrapWeight*hp.extrapol_r_ext) ;
-    hit.setCenter_z((1.- hp.extrapWeight)*hp.extrapol_z_ent +
-        hp.extrapWeight*hp.extrapol_z_ext) ;
-    hit.setCenter_eta((1.- hp.extrapWeight)*hp.extrapol_eta_ent +
-        hp.extrapWeight*hp.extrapol_eta_ext) ;
-    hit.setCenter_phi((1.- hp.extrapWeight)*hp.extrapol_phi_ent +
-        hp.extrapWeight*hp.extrapol_phi_ext) ;
+  hit.setCenter_r( ( 1. - hp.extrapWeight ) * hp.extrapol_r_ent + hp.extrapWeight * hp.extrapol_r_ext );
+  hit.setCenter_z( ( 1. - hp.extrapWeight ) * hp.extrapol_z_ent + hp.extrapWeight * hp.extrapol_z_ext );
+  hit.setCenter_eta( ( 1. - hp.extrapWeight ) * hp.extrapol_eta_ent + hp.extrapWeight * hp.extrapol_eta_ext );
+  hit.setCenter_phi( ( 1. - hp.extrapWeight ) * hp.extrapol_phi_ent + hp.extrapWeight * hp.extrapol_phi_ext );
 }
 
 __device__ void HistoLateralShapeParametrization_g_d( const HitParams hp, Hit& hit, int t , Sim_Args args ) {
@@ -359,9 +372,11 @@ __device__ void HistoLateralShapeParametrization_g_d( const HitParams hp, Hit& h
   float delta_eta_mm = r * cos(alpha);
   float delta_phi_mm = r * sin(alpha);
 
-  // Particles with negative eta are expected to have the same shape as those with positive eta after transformation: delta_eta --> -delta_eta
+  // Particles with negative eta are expected to have the same shape as those with positive eta after transformation:
+  // delta_eta --> -delta_eta
   if(center_eta<0.)delta_eta_mm = -delta_eta_mm;
-  // Particle with negative charge are expected to have the same shape as positively charged particles after transformation: delta_phi --> -delta_phi
+  // Particle with negative charge are expected to have the same shape as positively charged particles after
+  // transformation: delta_phi --> -delta_phi
   if(charge < 0.)  delta_phi_mm = -delta_phi_mm;
 
   float dist000    = sqrt(center_r * center_r + center_z * center_z);
@@ -392,12 +407,8 @@ __device__ void HitCellMappingWiggle_g_d( HitParams hp,Hit& hit, long t,  Sim_Ar
  int nhist=(*f1d).nhist;
  float*  bin_low_edge = (*f1d ).low_edge ;
  
-
  float eta =fabs( hit.eta()); 
- if(eta<bin_low_edge[0] || eta> bin_low_edge[nhist]) {
-   HitCellMapping_g_d(hp, hit,  args) ;
-
- }
+  if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_g_d( hp, hit, args ); }
 
  int bin= nhist ;
   for (int i =0; i< nhist+1 ; ++i ) {
@@ -467,6 +478,16 @@ __global__  void simulate_hits_ct( const Sim_Args args) {
 
 __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 
+  std::call_once(calledGetEnv, [](){
+        if(const char* env_p = std::getenv("FCS_BLOCK_SIZE")) {
+          std::string bs(env_p);
+          BLOCK_SIZE = std::stoi(bs);
+        }
+        if (BLOCK_SIZE != DEFAULT_BLOCK_SIZE) {
+          std::cout << "kernel BLOCK_SIZE: " << BLOCK_SIZE << std::endl;
+        }
+  });
+
   // get Randowm numbers ptr , generate if need
   long nhits =args.nhits ;
   Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
@@ -493,6 +514,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   int nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t0 = std::chrono::system_clock::now();
   simulate_clean <<< nblocks, blocksize >>>( args) ;
+  gpuQ( cudaGetLastError() );
   gpuQ( cudaDeviceSynchronize() );
   
   // Now main hit simulation find cell and populate hitcells_energy[] :
@@ -501,6 +523,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t1 = std::chrono::system_clock::now();
   simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
+  gpuQ( cudaGetLastError() );
   gpuQ( cudaDeviceSynchronize() );
   
   // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
@@ -508,6 +531,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
   auto t2 = std::chrono::system_clock::now();
   simulate_hits_ct <<<nblocks, blocksize >>>(args ) ; 
+  gpuQ( cudaGetLastError() );
   gpuQ( cudaDeviceSynchronize() );
   
   // cpy result back 
@@ -515,15 +539,14 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   auto t3 = std::chrono::system_clock::now();
   gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
   
-  gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+  gpuQ(
+      cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
   auto t4 = std::chrono::system_clock::now();
   
   CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
   timing += kt;
   
   //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
-  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
-  
+  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT],
+  //     args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
 } 
-
-

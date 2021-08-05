@@ -7,9 +7,9 @@
 
 #include "TFCSLateralShapeParametrizationHitChain.h"
 #include "TFCSValidationHitSpy.h"
-#include "TH2.h"
-#include <tuple>
 #include <vector>
+#include <tuple>
+#include "TH2.h"
 
 class TFCSAnalyzerBase;
 class ICaloGeometry;
@@ -30,11 +30,9 @@ public:
 
   int n_bins() { return -1; }; // TO BE FIXED, SHOULD BE SOMEHOW READ FROM PCA FILE
 
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  virtual FCSReturnCode simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) override;
 
-  virtual int get_number_of_hits( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) const override;
+  virtual int get_number_of_hits(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState* extrapol) const override;
 
   void Print( Option_t* option = "" ) const override;
 
@@ -52,12 +50,7 @@ public:
   std::vector<double> m_hist_ratioErecoEhit_vs_Ehit_endtime;
 
   inline double                    getDeltaEtaAveraged() { return m_deltaEtaAveraged / m_energy_total; }
-  inline std::pair<double, double> getMeanEnergyWithError() {
-    return std::make_pair<double, double>(
-        m_energy_total / m_eventCounter,
-        sqrt( ( m_energy_squared_total / m_eventCounter - pow( m_energy_total / m_eventCounter, 2 ) ) /
-              m_eventCounter ) );
-  }
+  inline std::pair<double,double> getMeanEnergyWithError(){return std::make_pair<double,double>( m_energy_total/m_eventCounter , sqrt( (m_energy_squared_total/m_eventCounter - pow(m_energy_total/m_eventCounter , 2) ) / m_eventCounter ) );}
 
 private:
   ICaloGeometry*       m_geo;

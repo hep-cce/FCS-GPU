@@ -11,7 +11,14 @@
 class LoadGpuFuncHist {
 
 public :
-	LoadGpuFuncHist(){ m_hf=0 ; m_d_hf=0 ; m_d_hf2d=0; m_hf2d=0; m_hf_d=0 ; m_hf2d_d=0 ; } ;
+  LoadGpuFuncHist() {
+    m_hf     = 0;
+    m_d_hf   = 0;
+    m_d_hf2d = 0;
+    m_hf2d   = 0;
+    m_hf_d   = 0;
+    m_hf2d_d = 0;
+  };
 	~LoadGpuFuncHist() ;
 
 
