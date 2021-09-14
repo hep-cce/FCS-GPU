@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "GeoLoadGpu.h"
+#include "gpuQ.h"
 
 __global__ void testHello() { printf( "Hello, I am from GPU thread %d\n", threadIdx.x ); }
 
@@ -141,6 +142,10 @@ bool GeoLoadGpu::LoadGpu_cu() {
     return false;
   }
 
+  cudaDeviceProp prop;
+  gpuQ( cudaGetDeviceProperties( &prop, 0 ) );
+  std::cout << "Executing on GPU: " << prop.name << std::endl;
+  
   GeoGpu geo_gpu_h;
 
   // Allocate Device memory for cells and copy cells as array
