@@ -11,10 +11,13 @@ enable_language( CUDA )
 # set(CMAKE_CUDA_FLAGS "-arch=sm_75")
 # Sources
 
-if(USE_KOKKOS)
-  set(FastCaloGpu_Srcs KokkosWrapper.cxx)
+if(USE_STDPAR)
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu )
+#  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
+elseif(USE_KOKKOS)
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx )
 else()
-  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
+  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu Rand4Hits.cu ) 
 endif()
 
 # # Global include is needed for dictionary generation to work
@@ -41,9 +44,11 @@ add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
 
 target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
-if(USE_KOKKOS)
-  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
-  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
+if(USE_STDPAR)
+  #  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR )
+  # target_compile_options(${FastCaloGpu_LIB} PRIVATE -stdpar=gpu )
 endif()
 
 if(RNDGEN_CPU)

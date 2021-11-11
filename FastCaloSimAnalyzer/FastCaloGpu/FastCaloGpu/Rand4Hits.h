@@ -13,6 +13,10 @@
 #  include <Kokkos_Random.hpp>
 #endif
 
+#ifdef USE_STDPAR
+#   include <atomic>
+#endif
+
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
@@ -47,7 +51,11 @@ public:
   Cell_E* get_cell_e() { return m_cell_e; };
   Cell_E* get_cell_e_h() { return m_cell_e_h; };
 
+#ifdef USE_STDPAR
+  std::atomic<int>* get_ct() { return m_ct; };
+#else
   int* get_ct() { return m_ct; };
+#endif
 
   unsigned long* get_hitcells() { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };
@@ -78,7 +86,11 @@ private:
   // patch in some GPU pointers for cudaMalloc
   float*  m_cells_energy {0};
   Cell_E* m_cell_e {0};
-  int*    m_ct {0};
+#ifdef USE_STDPAR
+  std::atomic<int>*    m_ct {0};
+#else
+  int* m_ct {0};
+#endif
 
   // host side ;
   unsigned long* m_hitcells{nullptr};

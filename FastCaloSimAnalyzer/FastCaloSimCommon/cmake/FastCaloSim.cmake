@@ -37,7 +37,7 @@ set(EnergyParametrization_LIB EnergyParametrization)
 
 if(ENABLE_GPU) 
   set(FastCaloGpu_LIB FastCaloGpu)
-endif() 
+endif()
 
 # Common definitions
 set(FCS_CommonDefinitions -D__FastCaloSimStandAlone__)
@@ -56,6 +56,10 @@ endif()
 
 if(USE_KOKKOS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
+endif()
+
+if(USE_STDPAR)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR )
 endif()
 
 if(RNDGEN_CPU)

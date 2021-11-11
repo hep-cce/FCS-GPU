@@ -4,6 +4,7 @@
 
 #ifndef GeoRegion_H
 #define GeoRegion_H
+#include <cmath>
 
 #include "CaloDetDescrElement_g.h"
 
@@ -25,6 +26,8 @@
 #  include <Kokkos_Core.hpp>
 #  include <Kokkos_Random.hpp>
 #  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
+// #elif defined (USE_STDPAR)
+//    #define __HOSTDEV__
 #else
 #  ifdef __CUDACC__
 #    define __HOSTDEV__ __host__ __device__
@@ -110,7 +113,7 @@ public:
     return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
   };
   __HOSTDEV__ int raw_phi_position_to_index( float phi_raw ) const {
-    return floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
+    return std::floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
   };
 
   __HOSTDEV__ bool  index_range_adjust( int& ieta, int& iphi ) const;

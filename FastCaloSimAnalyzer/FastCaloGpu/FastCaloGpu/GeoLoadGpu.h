@@ -39,16 +39,12 @@ public:
   void                       set_max_sample( int s ) { m_max_sample = s; };
   void                       set_sample_index_h( Rg_Sample_Index* s ) { m_sample_index_h = s; };
   const CaloDetDescrElement* index2cell( unsigned long index ) { return ( *m_cells )[m_cellid_array[index]]; };
-
-  bool LoadGpu() {
-#ifdef USE_KOKKOS
-    return LoadGpu_kk();
-#else
-    return LoadGpu_cu();
-#endif
-  }
+  
+  bool LoadGpu();
+  
   bool LoadGpu_kk();
   bool LoadGpu_cu();
+  bool LoadGpu_sp();
 
   void    set_geoPtr( GeoGpu* ptr ) { m_geo_d = ptr; }
   GeoGpu* get_geoPtr() const { return m_geo_d; }
@@ -73,6 +69,7 @@ protected:
   Rg_Sample_Index*     m_sample_index_h{0}; // index for flatout of  GeoLookup over sample
 
   GeoGpu* m_geo_d{0};
+  GeoGpu* m_geo_h{0};
 
 #ifdef USE_KOKKOS
   Kokkos::View<CaloDetDescrElement*> m_cells_vd;
