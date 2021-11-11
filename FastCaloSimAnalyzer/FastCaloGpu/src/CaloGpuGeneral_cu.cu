@@ -35,6 +35,8 @@ namespace CaloGpuGeneral_cu {
     if ( t < nhits ) {
       Hit hit;
       hit.E() = E;
+      printf(" sA: %d %f\n",t,E);
+
       CenterPositionCalculation_d( hit, args );
       HistoLateralShapeParametrization_d( hit, t, args );
       HitCellMappingWiggle_d( hit, args, t );

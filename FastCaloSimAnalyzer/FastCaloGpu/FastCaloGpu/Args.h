@@ -9,6 +9,10 @@
 #include "GpuGeneral_structs.h"
 #include <chrono>
 
+#ifdef USE_STDPAR
+#include <atomic>
+#endif
+
 #define MAXHITS 200000
 #define MAXBINS 1024
 #define MAXHITCT 2000
@@ -102,7 +106,11 @@ typedef struct Chain0_Args {
   // bool * hitcells_b ;  // GPU array of whether a cell got hit
   // unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
   // unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes
+#ifdef USE_STDPAR
+  std::atomic<int>* hitcells_ct;
+#else
   int*          hitcells_ct; // GPU pointer for number of uniq hit cells
+#endif
   unsigned long ncells;
   unsigned int  maxhitct;
 

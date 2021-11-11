@@ -14,6 +14,7 @@ project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
 set(RNDGEN_CPU OFF CACHE BOOL "Generate Random Numbers on CPU")
+set(USE_STDPAR OFF CACHE BOOL "Use std::par")
 
 if(USE_KOKKOS)
   find_package(Kokkos) 

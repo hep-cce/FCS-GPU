@@ -12,6 +12,13 @@
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
 
+#include <cstdio>
+#include <algorithm>
+#include <execution>
+#include <atomic>
+#include "citer.h"
+
+
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
 #endif
@@ -338,6 +345,20 @@ int runTFCSSimulation( int pdgid = 22,
 }
 
 int main( int argc, char** argv ) {
+
+  int NUM=5;
+  
+  // std::atomic<int> *atm = new std::atomic<int>{1};
+
+  // std::cout << "starting for_each_n\n";
+  // std::for_each_n(std::execution::par_unseq, counting_iterator(0), NUM,
+  //                 [=](int i) {
+  //                   int j = (*atm)++;
+  //                   printf("%d  %d  %d\n",i,j, (int)(*atm));
+  //                 } );
+  // std::cout << "done for_each_n\n";  
+  // std::cout << "atm: " << *atm << std::endl;
+  
 
   std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
 

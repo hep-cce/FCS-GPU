@@ -4,6 +4,7 @@
 
 #ifndef GeoRegion_H
 #define GeoRegion_H
+#include <cmath>
 
 #include "CaloDetDescrElement_g.h"
 #include "HostDevDef.h"
@@ -85,7 +86,7 @@ public:
     return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
   };
   __HOSTDEV__ int raw_phi_position_to_index( float phi_raw ) const {
-    return floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
+    return std::floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
   };
 
   __HOSTDEV__ bool  index_range_adjust( int& ieta, int& iphi ) const;

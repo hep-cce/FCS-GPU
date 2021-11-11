@@ -297,6 +297,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   if (FCS_dump_hitcount) {
     printf(" HitCellCount: %3lu / %3lu   nhit: %4d%3s\n", simulstate.cells().size()-ss0,
            simulstate.cells().size(), nhit, (onGPU ? "  *" : "") );
+    for (auto &e: simulstate.cells()) {
+      std::cout << "   " << e.first->m_eta << "  " << e.first->m_phi << "  "
+                << e.second << std::endl;
+    }
   }
   
   return FCSSuccess;

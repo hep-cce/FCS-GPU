@@ -246,6 +246,8 @@ namespace CaloGpuGeneral_fnc {
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
+#elif defined (USE_STDPAR)
+    args.cells_energy[cellele] += hit.E();
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
