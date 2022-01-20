@@ -4,6 +4,7 @@
 
 #include "LoadGpuFuncHist.h"
 #include <iostream>
+#include <cstring>
 
 
 LoadGpuFuncHist::LoadGpuFuncHist() {
