@@ -7,6 +7,8 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon/cmake
 )
 
+cmake_policy(SET CMP0074 NEW)
+
 # Set project
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
