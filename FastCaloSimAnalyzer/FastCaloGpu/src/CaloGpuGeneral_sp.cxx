@@ -53,7 +53,7 @@ namespace CaloGpuGeneral_stdpar {
                       int j = (*ii)++;
                       //                      int k = di[i];
                       //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
-                      printf("%d %d %d\n",i,j);
+                      printf("%d %d\n",i,j);
                     } );
     std::cout << "   after loop: " << *ii << std::endl;
     
