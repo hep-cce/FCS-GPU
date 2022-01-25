@@ -12,7 +12,7 @@
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
 
-    printf("DDE: %p %d %f %f\n",(void*)geo, sampling, eta, phi);
+    // printf("DDE: %p %d %f %f\n",(void*)geo, sampling, eta, phi);
     
     float* distance = 0;
     int*   steps    = 0;
@@ -72,7 +72,6 @@ namespace CaloGpuGeneral_fnc {
       return -3;
     }
     if ( steps ) *steps = beststeps;
-    printf("done DDE\n");
 
     return bestDDE;
   }
@@ -255,7 +254,7 @@ namespace CaloGpuGeneral_fnc {
 
     //    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
-    printf("HCM: %lld\n", cellele);
+    // printf("HCM: %lld\n", cellele);
 
     if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
 
@@ -266,16 +265,16 @@ namespace CaloGpuGeneral_fnc {
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
 #elif defined (USE_STDPAR)
-    printf(" cellene: %p %lld\n",(void*)args.cells_energy, cellele);
-    printf("   cellene[0]: %f\n",args.cells_energy[0]);
-    printf("   cellene[%lld] %f\n",cellele,args.cells_energy[cellele]);
+    // printf(" cellene: %p %lld\n",(void*)args.cells_energy, cellele);
+    // printf("   cellene[0]: %f\n",args.cells_energy[0]);
+    // printf("   cellene[%lld] %f\n",cellele,args.cells_energy[cellele]);
     
     args.cells_energy[cellele] += hit.E();
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
-    printf("done HCM_d %lu\n",t);
+    // printf("done HCM_d %lu\n",t);
     
     /*
       CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
@@ -326,7 +325,7 @@ namespace CaloGpuGeneral_fnc {
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
 
     HitCellMapping_d( hit, t, args );
-    printf("done HCMW %lu\n",t);
+    // printf("done HCMW %lu\n",t);
   }
 } // namespace CaloGpuGeneral_fnc
 

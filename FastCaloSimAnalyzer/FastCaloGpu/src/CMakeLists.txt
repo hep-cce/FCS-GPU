@@ -13,7 +13,7 @@ endif()
 
 # Sources
 if(USE_STDPAR)
-  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu )
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu Rand4Hits_sp.cxx )
 #  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
 elseif(USE_KOKKOS)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx )

@@ -17,6 +17,7 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_clean(Chain0_Args& args) {
 
+    args.cells_energy = new float[args.ncells];
     for (unsigned int i=0; i<args.ncells; ++i) {
       args.cells_energy[i] = 0.;
     }
@@ -64,37 +65,35 @@ namespace CaloGpuGeneral_stdpar {
     
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
                   [=](unsigned int i) {
-
-                    printf("cell ene: %p\n",(void*)args.cells_energy);
-                    printf(" cell ene[0]: %f\n", args.cells_energy[0]);
                     
                     Hit hit;                    
                     hit.E() = E;
 
                     (*ii)++;
                     
-                    //                    printf(" sA: %d %f\n",i,E);
-
                     CenterPositionCalculation_d( hit, args );
                     //                    printf("done CPC\n");
                     HistoLateralShapeParametrization_d( hit, i, args );
                     //                    printf("done HLSP %d\n",i);
                     HitCellMappingWiggle_d( hit, args, i );
-                    printf("done HCMW\n");
+                    // printf("done HCMW\n");
                   }
                   );
-    std::cout << "===> done simulate_A " << *ii << "\n";
+    //    std::cout << "===> done simulate_A " << *ii << "\n";
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_ct( Chain0_Args args ) {
-    
+
+    //    std::cout << "start sim_ct\n";
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells,
                     [=](unsigned int i) {
+                      // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
                       if ( args.cells_energy[i] > 0 ) {
                         // unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
                         unsigned int ct = *(args.hitcells_ct);
+                        // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
                         *(args.hitcells_ct) += 1;
                         Cell_E              ce;
                         ce.cellid           = i;
@@ -102,7 +101,7 @@ namespace CaloGpuGeneral_stdpar {
                         args.hitcells_E[ct] = ce;
                       }
                     } );
-    std::cout << "===> done simulate_ct\n";
+    //    std::cout << "===> done simulate_ct\n";
   }  
   
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

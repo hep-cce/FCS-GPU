@@ -15,9 +15,11 @@
     exit( EXIT_FAILURE );                                                                                              \
   }
 
+#ifndef USE_STDPAR
 void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*maxbins*/, unsigned short maxhitct,
                                      unsigned long n_cells ) {
 
+  // for args.cells_energy
   float* Cells_Energy;
 #ifdef USE_STDPAR
   //  Cells_Energy = (float*)malloc(n_cells*sizeof(float));
@@ -26,8 +28,8 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   gpuQ( cudaMalloc( (void**)&Cells_Energy, n_cells * sizeof( float ) ) );
 #endif
   m_cells_energy = Cells_Energy;
-  printf(" R4H cells_ene: %p %lu\n",(void*)m_cells_energy, n_cells);
-  
+
+  // for args.hitcells_E
 #ifdef USE_STDPAR
 #else
   Cell_E* cell_e;
@@ -35,7 +37,8 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   m_cell_e   = cell_e;
 #endif
   m_cell_e_h = (Cell_E*)malloc( maxhitct * sizeof( Cell_E ) );
-  
+
+  // for args.hitcells_E_h and args.hitcells_ct
 #ifdef USE_STDPAR
   m_cell_e = m_cell_e_h;
   m_ct = new std::atomic<int>{0};
@@ -44,7 +47,12 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   gpuQ( cudaMalloc( (void**)&ct, sizeof( int ) ) );
   m_ct = ct;
 #endif
+
+  printf(" -- R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
+         n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
+
 }
+#endif
 
 Rand4Hits::~Rand4Hits() {
   gpuQ( cudaFree( m_rand_ptr ) );
