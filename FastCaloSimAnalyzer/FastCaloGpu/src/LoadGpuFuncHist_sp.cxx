@@ -25,12 +25,27 @@ void LoadGpuFuncHist::LD2D() {
   hf_ptr->nbinsx = ( *m_hf2d ).nbinsx;
   hf_ptr->nbinsy = ( *m_hf2d ).nbinsy;
 
-  hf_ptr->h_bordersx = (*m_hf2d).h_bordersx;
-  hf_ptr->h_bordersy = (*m_hf2d).h_bordersx;
-  hf_ptr->h_contents = (*m_hf2d).h_contents;
+  // FIXME!! This should be done by making TFCSHistoLateralShapeParametrization::m_hist a ptr
+  float *bx = new float[hf_ptr->nbinsx];
+  float *by = new float[hf_ptr->nbinsy];
+  float *ct = new float[hf_ptr->nbinsx * hf_ptr->nbinsy];
+
+  std::memcpy(bx, m_hf2d->h_bordersx, sizeof(float)*hf_ptr->nbinsx);
+  std::memcpy(by, m_hf2d->h_bordersy, sizeof(float)*hf_ptr->nbinsy);
+  std::memcpy(ct, m_hf2d->h_contents, sizeof(float)*hf_ptr->nbinsy*hf_ptr->nbinsx);
+
+  // hf_ptr->h_bordersx = (*m_hf2d).h_bordersx;
+  // hf_ptr->h_bordersy = (*m_hf2d).h_bordersx;
+  // hf_ptr->h_contents = (*m_hf2d).h_contents;
+
+  hf_ptr->h_bordersx = bx;
+  hf_ptr->h_bordersy = by;
+  hf_ptr->h_contents = ct;
   
   m_hf2d_h = hf_ptr;
   m_hf2d_d = hf_ptr;
+
+  printf("---> LGFH: %p %p %f %p %p\n",(void*)hf_ptr, (void*)hf_ptr->h_contents, hf_ptr->h_contents[0], hf_ptr->h_bordersx, hf_ptr->h_bordersy);
 
 }
 
@@ -49,14 +64,24 @@ void LoadGpuFuncHist::LD() {
   hf_ptr->nhist            = ( *m_hf ).nhist;
   hf_ptr->mxsz             = ( *m_hf ).mxsz;
 
-  hf_ptr->low_edge = ( *m_hf ).low_edge;
-  hf_ptr->h_szs    = ( *m_hf ).h_szs;
+  // FIXME:: should do this at level of m_hf
+  // hf_ptr->low_edge = ( *m_hf ).low_edge;
+  // hf_ptr->h_szs    = ( *m_hf ).h_szs;
+
+  float* le = new float[hf_ptr->nhist+1];
+  unsigned int *hs = new unsigned int[hf_ptr->nhist];
+
+  std::memcpy(le, m_hf->low_edge, sizeof(float)*(hf_ptr->nhist+1));
+  std::memcpy(hs, m_hf->h_szs, sizeof(unsigned int)*hf_ptr->nhist);
+
+  hf_ptr->low_edge = le;
+  hf_ptr->h_szs = hs;
+  
 
   // std::cout << "low edge:\n";
   // for (int i=0; i<hf_ptr->nhist; ++i) {
   //   std::cout << " " << i << " " << hf_ptr->low_edge[i] << "\n";
   // }
-  
     
   hf_ptr->h_contents = ( *m_hf ).h_contents;
   hf_ptr->h_borders  = ( *m_hf ).h_borders;

@@ -83,4 +83,14 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
   }
 
   m_rand_ptr = f;
+
+
+  // float *fh = new float[100];
+  // cudaMemcpy( fh, f, 10*sizeof(float), cudaMemcpyDeviceToHost );
+  // std::cout << "rndptr: " << m_rand_ptr << std::endl;
+  // for (int i=0; i<10; ++i) {
+  //   //    std::cout << "r4h: " << m_rnd_cpu[i] << std::endl;
+  //   std::cout << "r4h: " << fh[i] << std::endl;
+  // }
+  //  m_rand_ptr = m_rnd_cpu.data();
 }

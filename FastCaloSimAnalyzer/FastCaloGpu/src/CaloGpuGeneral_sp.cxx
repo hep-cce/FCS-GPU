@@ -31,13 +31,29 @@ namespace CaloGpuGeneral_stdpar {
 
     std::cout << "sim_A: nhits: " << nhits << std::endl;
 
+    int* id = new int[10];
+    for (int i=0; i<10; ++i) {
+      id[i] = i*10;
+    }
+
+    // for (int i=0; i<10; ++i) {
+    //   std::cout << i << "  " << id[i] << std::endl;
+    // }
+
+    // int* di{nullptr};
+    // cudaMalloc( &di, 10*sizeof(int) );
+    // cudaMemcpy( di, id, 10*sizeof(int), cudaMemcpyHostToDevice );
+    // std::cout << "devptr: " << di << std::endl;
+    
     std::atomic<int> *ii = new std::atomic<int>{0};
 
     std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
                     [=](int i) {
                       int j = (*ii)++;
-                      printf("%d %d\n",i,j);
+                      //                      int k = di[i];
+                      //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
+                      printf("%d %d %d\n",i,j);
                     } );
     std::cout << "   after loop: " << *ii << std::endl;
     
@@ -50,11 +66,14 @@ namespace CaloGpuGeneral_stdpar {
 
                     (*ii)++;
                     
-                    printf(" sA: %d %f\n",i,E);
+                    //                    printf(" sA: %d %f\n",i,E);
 
                     CenterPositionCalculation_d( hit, args );
+                    //                    printf("done CPC\n");
                     HistoLateralShapeParametrization_d( hit, i, args );
+                    //                    printf("done HLSP %d\n",i);
                     HitCellMappingWiggle_d( hit, args, i );
+                    printf("done HCMW\n");
                   }
                   );
     std::cout << "===> done simulate_A " << *ii << "\n";

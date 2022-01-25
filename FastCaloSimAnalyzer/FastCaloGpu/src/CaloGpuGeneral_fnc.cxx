@@ -12,16 +12,22 @@
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
 
+    printf("DDE: %p %d %f %f\n",(void*)geo, sampling, eta, phi);
+    
     float* distance = 0;
     int*   steps    = 0;
 
+    printf(" geo: %d %p\n",geo->max_sample, (void*)geo->sample_index);
+    
     int              MAX_SAMPLING = geo->max_sample;
     Rg_Sample_Index* SampleIdx    = geo->sample_index;
     GeoRegion*       regions_g    = geo->regions;
 
+    printf("  ss: %d %u\n",SampleIdx[sampling].size, SampleIdx[sampling].index);
+
     if ( sampling < 0 ) return -1;
     if ( sampling >= MAX_SAMPLING ) return -1;
-
+    
     int          sample_size  = SampleIdx[sampling].size;
     unsigned int sample_index = SampleIdx[sampling].index;
 
@@ -64,6 +70,7 @@ namespace CaloGpuGeneral_fnc {
       return -3;
     }
     if ( steps ) *steps = beststeps;
+    printf("done DDE\n");
 
     return bestDDE;
   }
@@ -117,6 +124,8 @@ namespace CaloGpuGeneral_fnc {
     float* HistoBorders  = ( *hf2d ).h_bordersx;
     float* HistoBordersy = ( *hf2d ).h_bordersy;
 
+    // printf("fh2d: %p %p %f %d %d %f %p %p\n",(void*)hf2d, (void*)HistoContents, HistoContents[0], nbinsx, nbinsy, rnd0, (void*)HistoBorders, (void*) HistoBordersy);
+    
     /*
      int ibin = nbinsx*nbinsy-1 ;
      for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
@@ -127,6 +136,7 @@ namespace CaloGpuGeneral_fnc {
      }
     */
     int ibin = find_index_f( HistoContents, nbinsx * nbinsy, rnd0 );
+    //    printf("ibin: %d\n",ibin);
 
     int biny = ibin / nbinsx;
     int binx = ibin - nbinsx * biny;
@@ -187,18 +197,23 @@ namespace CaloGpuGeneral_fnc {
   __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
     // int     pdgId    = args.pdgId;
+    //    printf("here\n");
     float charge = args.charge;
+    //    printf("charge: %f\n",charge);
 
     // int cs=args.charge;
     float center_eta = hit.center_eta();
     float center_phi = hit.center_phi();
     float center_r   = hit.center_r();
     float center_z   = hit.center_z();
+    //    printf("hit pos: %f %f %f\n",hit.center_eta(), center_phi, center_r);
 
     float alpha, r, rnd1, rnd2;
     rnd1 = args.rand[t];
     rnd2 = args.rand[t + args.nhits];
 
+    //    printf("rand: %lu %p %f %f\n",t, (void*)args.rand,rnd1, rnd2);
+    
     if ( args.is_phi_symmetric ) {
       if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
         rnd2 -= 0.5;
@@ -234,9 +249,11 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
+  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
+    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
+    printf("HCM: %ll\n", cellele);
 
     if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
 
@@ -252,6 +269,8 @@ namespace CaloGpuGeneral_fnc {
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
+    printf("done HCM_d %lu\n",t);
+    
     /*
       CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
       long long id = cell.identify();
@@ -266,8 +285,11 @@ namespace CaloGpuGeneral_fnc {
 
   __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args args, unsigned long t ) {
 
+    //    printf("HCMW: %lu %p %d \n", t, (void*)args.fhs, args.fhs->nhist);
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
+    // printf("HCMW: %lu low_edge %p\n", t, (void*)args.fhs->low_edge);
+    // printf("HCMW: %lu low_edge %p %f\n", t, (void*)args.fhs->low_edge, args.fhs->low_edge[0]);
 
     float eta = fabs( hit.eta() );
     if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args ); }
@@ -298,6 +320,7 @@ namespace CaloGpuGeneral_fnc {
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
 
     HitCellMapping_d( hit, t, args );
+    printf("done HCMW %lu\n",t);
   }
 } // namespace CaloGpuGeneral_fnc
 
