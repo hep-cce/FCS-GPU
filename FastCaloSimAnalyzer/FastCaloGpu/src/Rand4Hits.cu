@@ -20,11 +20,13 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
 
   float* Cells_Energy;
 #ifdef USE_STDPAR
-  Cells_Energy = (float*)malloc(n_cells*sizeof(float));
+  //  Cells_Energy = (float*)malloc(n_cells*sizeof(float));
+  Cells_Energy = new float[n_cells];
 #else
   gpuQ( cudaMalloc( (void**)&Cells_Energy, n_cells * sizeof( float ) ) );
 #endif
   m_cells_energy = Cells_Energy;
+  printf(" R4H cells_ene: %p %lu\n",(void*)m_cells_energy, n_cells);
   
 #ifdef USE_STDPAR
 #else

@@ -48,18 +48,25 @@ namespace CaloGpuGeneral_stdpar {
     std::atomic<int> *ii = new std::atomic<int>{0};
 
     std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
+    float* ce = new float[200000];
+    ce[0] = 1.1;
+    ce[1] = 2.2;
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
                     [=](int i) {
                       int j = (*ii)++;
                       //                      int k = di[i];
                       //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
                       printf("%d %d\n",i,j);
+                      printf(" -> %p %f\n",(void*)ce,ce[i]);
                     } );
     std::cout << "   after loop: " << *ii << std::endl;
     
     
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
                   [=](unsigned int i) {
+
+                    printf("cell ene: %p\n",(void*)args.cells_energy);
+                    printf(" cell ene[0]: %f\n", args.cells_energy[0]);
                     
                     Hit hit;                    
                     hit.E() = E;
