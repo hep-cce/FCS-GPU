@@ -5,6 +5,7 @@
 #include "GeoLoadGpu.h"
 #include "gpuQ.h"
 #include "cuda_runtime.h"
+#include <cstring>
 
 bool GeoLoadGpu::LoadGpu_sp() {
 
@@ -52,19 +53,32 @@ bool GeoLoadGpu::LoadGpu_sp() {
   // each Region allocate a grid (long Long) gpu array
   //  copy array to GPU
   //  save to regions m_cell_g ;
-  for ( unsigned int ir = 0; ir < m_nregions; ++ir ) {
-    //	std::cout << "debug m_regions_d[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
-    long long* ptr_g;
+  // for ( unsigned int ir = 0; ir < m_nregions; ++ir ) {
+  //   //	std::cout << "debug m_regions_d[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
+  //   long long* ptr_g;
 
-    ptr_g = m_regions[ir].cell_grid();
+  //   ptr_g = m_regions[ir].cell_grid();
+  //   m_regions[ir].set_cell_grid_g( ptr_g );
+  //   m_regions[ir].set_all_cells( m_cells_d ); // set this so all region instance know where the GPU cells are, before
+  // }
+
+  // each Region allocate a grid (long Long) gpu array
+  //  copy array to GPU
+  //  save to regions m_cell_g ;
+  for ( unsigned int ir = 0; ir < m_nregions; ++ir ) {
+    long long* ptr_g;
+    ptr_g = new long long[ m_regions[ir].cell_grid_eta() * m_regions[ir].cell_grid_phi() ];
+    std::memcpy(ptr_g, m_regions[ir].cell_grid(), sizeof( long long ) * m_regions[ir].cell_grid_eta() * m_regions[ir].cell_grid_phi() );
+    
     m_regions[ir].set_cell_grid_g( ptr_g );
     m_regions[ir].set_all_cells( m_cells_d ); // set this so all region instance know where the GPU cells are, before
+                                              // copy to GPU
   }
 
   // GPU allocate Regions data  and load them to GPU as array of regions
 
-
-  m_regions_d = m_regions;
+  m_regions_d = new GeoRegion[m_nregions];
+  std::memcpy(m_regions_d, m_regions, sizeof(GeoRegion) * m_nregions);
 
   m_geo_d->cells        = m_cells_d;
   m_geo_d->ncells       = m_ncells;
@@ -73,8 +87,15 @@ bool GeoLoadGpu::LoadGpu_sp() {
   m_geo_d->max_sample   = m_max_sample;
   m_geo_d->sample_index = m_sample_index_h;
 
+  m_geo_d->sample_index = new Rg_Sample_Index[m_max_sample];
+  std::memcpy(m_geo_d->sample_index, m_sample_index_h, sizeof(Rg_Sample_Index)*m_max_sample);
+  
   std::cout << "STDPAR GEO\n";
   std::cout << "ncells: " << m_geo_d->ncells << "\n";
+  std::cout << "  sample_index: " << (void*) m_geo_d->sample_index << " "
+            << m_geo_d->sample_index[0].size << " " << m_geo_d->sample_index[0].index << std::endl;
+  std::cout << "  regions: " << m_nregions << " " << m_regions_d << std::endl;
+  std::cout << "  cells:   " << m_ncells << " " << m_cells_d << std::endl;
   // for (int i=0; i<m_geo_d->ncells; ++i) {
   //   CaloDetDescrElement& d= m_geo_d->cells[i];
   //   std::cout << "  " << i << " " << d.m_identify << "  " << d.m_r << "  " << d.m_eta << "\n";

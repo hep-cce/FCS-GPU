@@ -26,13 +26,13 @@ namespace CaloGpuGeneral_fnc {
     float* distance = 0;
     int*   steps    = 0;
 
-    printf(" geo: %d %p\n",geo->max_sample, (void*)geo->sample_index);
+    //    printf(" geo: %d %p\n",geo->max_sample, (void*)geo->sample_index);
     
     int              MAX_SAMPLING = geo->max_sample;
     Rg_Sample_Index* SampleIdx    = geo->sample_index;
     GeoRegion*       regions_g    = geo->regions;
 
-    printf("  ss: %d %u\n",SampleIdx[sampling].size, SampleIdx[sampling].index);
+    //    printf("  ss: %d %u\n",SampleIdx[sampling].size, SampleIdx[sampling].index);
 
     if ( sampling < 0 ) return -1;
     if ( sampling >= MAX_SAMPLING ) return -1;
@@ -41,6 +41,7 @@ namespace CaloGpuGeneral_fnc {
     unsigned int sample_index = SampleIdx[sampling].index;
 
     GeoRegion* gr = (GeoRegion*)regions_g;
+    //    printf(" gr: %p\n", (void*)gr);
     if ( sample_size == 0 ) return -1;
     float     dist;
     long long bestDDE = -1;
@@ -57,6 +58,7 @@ namespace CaloGpuGeneral_fnc {
       for ( int skip_range_check = 0; skip_range_check <= 1; ++skip_range_check ) {
         for ( unsigned int j = sample_index; j < sample_index + sample_size; ++j ) {
           if ( !skip_range_check ) {
+            //            printf(" eta: %d %f\n", j, gr[j].mineta());
             if ( eta < gr[j].mineta() ) continue;
             if ( eta > gr[j].maxeta() ) continue;
           }
@@ -260,9 +262,9 @@ namespace CaloGpuGeneral_fnc {
 
   __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
-    printf("start HCM_d %lu\n",t);
+    //    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
-    printf("HCM: %ll\n", cellele);
+    printf("HCM: %lld\n", cellele);
 
     if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
 
@@ -273,6 +275,10 @@ namespace CaloGpuGeneral_fnc {
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
 #elif defined (USE_STDPAR)
+    printf(" cellene: %p %lld\n",(void*)args.cells_energy, cellele);
+    printf("   cellene[0]: %f\n",args.cells_energy[0]);
+    printf("   cellene[%lld] %f\n",cellele,args.cells_energy[cellele]);
+    
     args.cells_energy[cellele] += hit.E();
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
