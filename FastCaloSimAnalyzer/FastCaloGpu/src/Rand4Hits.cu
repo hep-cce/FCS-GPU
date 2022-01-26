@@ -55,6 +55,11 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
 #endif
 
 Rand4Hits::~Rand4Hits() {
+
+#ifdef USE_STDPAR
+  deallocate();
+#endif
+  
   gpuQ( cudaFree( m_rand_ptr ) );
   if ( m_useCPU ) {
     destroyCPUGen();

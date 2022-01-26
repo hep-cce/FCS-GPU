@@ -8,10 +8,20 @@
 
 
 LoadGpuFuncHist::LoadGpuFuncHist() {
-  std::cout << "============= LoadGpuFuncHist ================\n";
+  // std::cout << "============= LoadGpuFuncHist ================\n";
 }
 
 LoadGpuFuncHist::~LoadGpuFuncHist() {
+  delete m_hf2d_h->h_bordersx ;
+  delete m_hf2d_h->h_bordersy ;
+  delete m_hf2d_h->h_contents;
+  delete m_hf2d;
+
+  delete m_hf_h->low_edge;
+  delete m_hf_h->h_szs;
+  delete m_hf_h->d_contents1D;
+  delete m_hf_h->d_borders1D;
+  delete m_hf_h;
 }
 
 void LoadGpuFuncHist::LD2D() {
@@ -45,7 +55,7 @@ void LoadGpuFuncHist::LD2D() {
   m_hf2d_h = hf_ptr;
   m_hf2d_d = hf_ptr;
 
-  printf("---> LGFH: %p %p %f %p %p\n",(void*)hf_ptr, (void*)hf_ptr->h_contents, hf_ptr->h_contents[0], hf_ptr->h_bordersx, hf_ptr->h_bordersy);
+  //  printf("---> LGFH: %p %p %f %p %p\n",(void*)hf_ptr, (void*)hf_ptr->h_contents, hf_ptr->h_contents[0], hf_ptr->h_bordersx, hf_ptr->h_bordersy);
 
 }
 

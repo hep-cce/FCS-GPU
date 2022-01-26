@@ -19,3 +19,10 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
   
 }
+
+void Rand4Hits::deallocate() {
+  free ( m_cells_energy );
+  free ( m_cell_e_h );
+  free ( m_ct );
+}
+
