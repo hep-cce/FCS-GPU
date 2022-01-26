@@ -22,7 +22,7 @@ namespace CaloGpuGeneral_stdpar {
       args.cells_energy[i] = 0.;
     }
     args.hitcells_ct[0] = 0;
-    std::cout << "===> done simulate_clean\n";
+    // std::cout << "===> done simulate_clean\n";
         
   }
 
@@ -30,12 +30,12 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_A( float E, int nhits, Chain0_Args args ) {
 
-    std::cout << "sim_A: nhits: " << nhits << std::endl;
+    // std::cout << "sim_A: nhits: " << nhits << std::endl;
 
-    int* id = new int[10];
-    for (int i=0; i<10; ++i) {
-      id[i] = i*10;
-    }
+    // int* id = new int[10];
+    // for (int i=0; i<10; ++i) {
+    //   id[i] = i*10;
+    // }
 
     // for (int i=0; i<10; ++i) {
     //   std::cout << i << "  " << id[i] << std::endl;
@@ -46,21 +46,21 @@ namespace CaloGpuGeneral_stdpar {
     // cudaMemcpy( di, id, 10*sizeof(int), cudaMemcpyHostToDevice );
     // std::cout << "devptr: " << di << std::endl;
     
-    std::atomic<int> *ii = new std::atomic<int>{0};
+    // std::atomic<int> *ii = new std::atomic<int>{0};
 
-    std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
-    float* ce = new float[200000];
-    ce[0] = 1.1;
-    ce[1] = 2.2;
-    std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
-                    [=](int i) {
-                      int j = (*ii)++;
-                      //                      int k = di[i];
-                      //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
-                      printf("%d %d\n",i,j);
-                      printf(" -> %p %f\n",(void*)ce,ce[i]);
-                    } );
-    std::cout << "   after loop: " << *ii << std::endl;
+    // std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
+    // float* ce = new float[200000];
+    // ce[0] = 1.1;
+    // ce[1] = 2.2;
+    // std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
+    //                 [=](int i) {
+    //                   int j = (*ii)++;
+    //                   //                      int k = di[i];
+    //                   //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
+    //                   printf("%d %d\n",i,j);
+    //                   printf(" -> %p %f\n",(void*)ce,ce[i]);
+    //                 } );
+    // std::cout << "   after loop: " << *ii << std::endl;
     
     
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
@@ -69,7 +69,7 @@ namespace CaloGpuGeneral_stdpar {
                     Hit hit;                    
                     hit.E() = E;
 
-                    (*ii)++;
+                    // (*ii)++;
                     
                     CenterPositionCalculation_d( hit, args );
                     //                    printf("done CPC\n");

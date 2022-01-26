@@ -47,6 +47,10 @@ public:
 
   void allocate_simulation( long long maxhits, unsigned short maxbins, unsigned short maxhitct, unsigned long n_cells );
 
+#ifdef USE_STDPAR
+  void deallocate();
+#endif
+  
   float*  get_cells_energy() { return m_cells_energy; };
   Cell_E* get_cell_e() { return m_cell_e; };
   Cell_E* get_cell_e_h() { return m_cell_e_h; };
