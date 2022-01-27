@@ -227,6 +227,11 @@ int runTFCSSimulation( int pdgid = 22,
 #if defined( __linux__ )
   std::cout << "* Running on linux system " << std::endl;
 #endif
+  if (inputSample == "") {
+    std::cout << "no input sample file found for dsid " << dsid << " with pid " << pdgid
+              << " and energy " << int_E << std::endl;
+    return 1;
+  }
   std::cout << dsid << "\t" << inputSample << std::endl;
   TChain* inputChain = new TChain( "FCS_ParametrizationInput" );
   if ( inputChain->Add( inputSample, -1 ) == 0 ) {
