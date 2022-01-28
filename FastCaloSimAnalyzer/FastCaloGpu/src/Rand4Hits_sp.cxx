@@ -20,9 +20,18 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   
 }
 
+
+void Rand4Hits::allocateGenMem(size_t num) {
+  m_rnd_cpu = new std::vector<float>;
+  m_rnd_cpu->resize(num);
+  std::cout << "m_rnd_cpu: " << m_rnd_cpu << "  " << m_rnd_cpu->data() << std::endl;
+}
+
+
 void Rand4Hits::deallocate() {
   free ( m_cells_energy );
   free ( m_cell_e_h );
   free ( m_ct );
+  delete ( m_rnd_cpu );
 }
 

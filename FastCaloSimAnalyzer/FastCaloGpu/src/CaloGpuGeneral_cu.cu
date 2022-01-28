@@ -27,15 +27,38 @@ static bool first{true};
 
 using namespace CaloGpuGeneral_fnc;
 
+static CaloGpuGeneral::KernelTime timing;
+
 namespace CaloGpuGeneral_cu {
 
+  __host__ void Rand4Hits_finish( void* rd4h ) {
+
+    size_t free, total;
+    gpuQ( cudaMemGetInfo( &free, &total ) );
+    std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
+              << std::endl;
+    //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+
+    printf("time kernel sim_clean: %5.2f s / %4.0f us\n", timing.t_sim_clean.count(),
+           timing.t_sim_clean.count() * 1000000 / timing.count);
+    printf("time kernel sim_A:     %5.2f s / %4.0f us\n", timing.t_sim_A.count(),
+           timing.t_sim_A.count() * 1000000 / timing.count);
+    printf("time kernel sim_ct:    %5.2f s / %4.0f us\n", timing.t_sim_ct.count(),
+           timing.t_sim_ct.count() * 1000000 / timing.count);
+    printf("time kernel sim_cp:    %5.2f s / %4.0f us\n", timing.t_sim_cp.count(),
+           timing.t_sim_cp.count() * 1000000 / timing.count);
+    printf("time kernel count:     %5d\n",timing.count); 
+
+  }
+
+  
   __global__ void simulate_A( float E, int nhits, Chain0_Args args ) {
 
     long t = threadIdx.x + blockIdx.x * blockDim.x;
     if ( t < nhits ) {
       Hit hit;
       hit.E() = E;
-      printf(" sA: %d %f\n",t,E);
+      //      printf(" sA: %d %f\n",t,E);
 
       CenterPositionCalculation_d( hit, args );
       HistoLateralShapeParametrization_d( hit, t, args );
@@ -87,26 +110,27 @@ namespace CaloGpuGeneral_cu {
     int           threads_tot = args.ncells;
     int           nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
 
-    auto t0 = std::chrono::system_clock::now();
+    
+    auto              t0   = std::chrono::system_clock::now();
     simulate_clean<<<nblocks, blocksize>>>( args );
     gpuQ( cudaGetLastError() );
     gpuQ( cudaDeviceSynchronize() );
-    
+
     blocksize   = BLOCK_SIZE;
     threads_tot = nhits;
     nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
-
-    auto t1 = std::chrono::system_clock::now();
+    auto t1     = std::chrono::system_clock::now();
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
     gpuQ( cudaGetLastError() );
     gpuQ( cudaDeviceSynchronize() );
+
 
     nblocks = ( ncells + blocksize - 1 ) / blocksize;
     auto t2 = std::chrono::system_clock::now();
     simulate_ct<<<nblocks, blocksize>>>( args );
     gpuQ( cudaGetLastError() );
     gpuQ( cudaDeviceSynchronize() );
-    
+
     int ct;
     auto t3 = std::chrono::system_clock::now();
     gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
@@ -115,14 +139,10 @@ namespace CaloGpuGeneral_cu {
     auto t4 = std::chrono::system_clock::now();
     // pass result back
     args.ct = ct;
-
+    //   args.hitcells_ct_h=hitcells_ct ;
 
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
-    if (first) {
-      first = false;
-    } else {
-      timing += kt;
-    }
+    timing += kt;
     
   }
 
