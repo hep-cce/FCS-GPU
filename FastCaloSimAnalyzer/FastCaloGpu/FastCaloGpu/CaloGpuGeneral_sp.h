@@ -10,6 +10,9 @@
 namespace CaloGpuGeneral_stdpar {
 
   void simulate_hits( float, int, Chain0_Args& );
+  void Rand4Hits_finish( void* );  
 
+  float* m_cells_ene{nullptr};
+  
 } // namespace CaloGpuGeneral_stdpar
 #endif

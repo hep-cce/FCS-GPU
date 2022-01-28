@@ -90,12 +90,12 @@ bool GeoLoadGpu::LoadGpu_sp() {
   m_geo_d->sample_index = new Rg_Sample_Index[m_max_sample];
   std::memcpy(m_geo_d->sample_index, m_sample_index_h, sizeof(Rg_Sample_Index)*m_max_sample);
   
-  std::cout << "STDPAR GEO\n";
-  std::cout << "ncells: " << m_geo_d->ncells << "\n";
-  std::cout << "  sample_index: " << (void*) m_geo_d->sample_index << " "
-            << m_geo_d->sample_index[0].size << " " << m_geo_d->sample_index[0].index << std::endl;
-  std::cout << "  regions: " << m_nregions << " " << m_regions_d << std::endl;
-  std::cout << "  cells:   " << m_ncells << " " << m_cells_d << std::endl;
+  // std::cout << "STDPAR GEO\n";
+  // std::cout << "ncells: " << m_geo_d->ncells << "\n";
+  // std::cout << "  sample_index: " << (void*) m_geo_d->sample_index << " "
+  //           << m_geo_d->sample_index[0].size << " " << m_geo_d->sample_index[0].index << std::endl;
+  // std::cout << "  regions: " << m_nregions << " " << m_regions_d << std::endl;
+  // std::cout << "  cells:   " << m_ncells << " " << m_cells_d << std::endl;
   // for (int i=0; i<m_geo_d->ncells; ++i) {
   //   CaloDetDescrElement& d= m_geo_d->cells[i];
   //   std::cout << "  " << i << " " << d.m_identify << "  " << d.m_r << "  " << d.m_eta << "\n";

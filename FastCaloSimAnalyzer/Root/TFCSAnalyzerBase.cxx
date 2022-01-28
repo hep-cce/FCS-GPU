@@ -255,7 +255,7 @@ TH1D* TFCSAnalyzerBase::refill( TH1* h_in, double min, double max, double rmin, 
         for ( int b = h_clone->FindBin( min ); b <= h_clone->FindBin( max ); b++ ) Nbins++;
         if ( Nbins < 120 && Nbins > 50 ) {
           h_in->Rebin( rebin );
-          cout << "*decide for rebin=" << rebin << "*" << endl;
+          //          cout << "*decide for rebin=" << rebin << "*" << endl;
           break;
         }
       }

@@ -79,6 +79,7 @@ public:
 private:
   float* genCPU( size_t num );
   void   createCPUGen( unsigned long long seed );
+  void   allocateGenMem( size_t num );
   void   destroyCPUGen();
 
   float*       m_rand_ptr{nullptr};
@@ -101,7 +102,7 @@ private:
   int*           m_hitcells_ct{nullptr};
   Cell_E*        m_cell_e_h{nullptr};
 
-  std::vector<float> m_rnd_cpu;
+  std::vector<float>* m_rnd_cpu{nullptr};
 
 #ifdef USE_KOKKOS
   Kokkos::View<float*>  m_cells_energy_v;
