@@ -103,16 +103,19 @@ namespace CaloGpuGeneral_stdpar {
                     [=](unsigned int i) {
                       // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
                       if ( args.cells_energy[i] > 0 ) {
-                        // unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
-                        unsigned int ct = *(args.hitcells_ct);
+                        unsigned int ct = (*(args.hitcells_ct))++;
                         // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
-                        *(args.hitcells_ct) += 1;
+                        //                        *(args.hitcells_ct) += 1;
                         Cell_E              ce;
                         ce.cellid           = i;
                         ce.energy           = args.cells_energy[i];
                         args.hitcells_E[ct] = ce;
+                        
+                        //                        printf("i: %u  id: %lu  ene: %f\n",ct, ce.cellid, ce.energy);
+                        
                       }
                     } );
+    std::cout << "sim_ct nhitcells: " << *(args.hitcells_ct) << std::endl;
     //    std::cout << "===> done simulate_ct\n";
   }  
   
@@ -137,6 +140,12 @@ namespace CaloGpuGeneral_stdpar {
 
     auto t4 = std::chrono::system_clock::now();
 
+    std::cout << "hits: " << args.ct << "\n";
+    for (int i=0; i<args.ct; ++i) {
+      std::cout << "  " << args.hitcells_E[i].cellid << " "
+                << args.hitcells_E_h[i].energy << "\n";
+    }
+    
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     timing += kt;
     
