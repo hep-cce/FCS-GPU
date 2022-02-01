@@ -2,10 +2,12 @@
 
 NVCPP=$( which nvc++ )
 CXX=$( which g++ )
-# echo $*
 A=$*
-# echo $X
 
+#
+## These can be generated with
+## > makelocalrc -gcc PATH_TO_GCC -gpp PATH_TO_G++ -x -d PATH_TO_LOCALRC_DIR
+#
 LOCALRC=""
 which gcc | grep -q 10.1.0
 if [[ $? -eq 0 ]]; then

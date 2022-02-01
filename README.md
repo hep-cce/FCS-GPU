@@ -142,7 +142,7 @@ In order to compile for std::par, `nvc++` from the nvidia nvhpc package must be
 chosen for the CXX compiler. However ROOT still cannot build with nvc++, so part
 of FastCaloSim must be built with g++. Also, nvc++ is not well supported in cmake,
 and a number of compiler flags must be removed from the command line for it to work.
-A wrapper script is provided in `scripts/nvc++p` which chooses the correct compiler
+A wrapper script is provided in [scripts/nvc++p](scripts/nvc++_p) which chooses the correct compiler
 for the various parts of FastCaloSim, and filters out the problematic compiler flags
 for nvc++. Either set the `CXX` environment variable to point to this, or explicitly
 set it during cmake configuration with `-DCMAKE_CXX_COMPILER=$PWD/../src/scripts/nvc++_p`.
