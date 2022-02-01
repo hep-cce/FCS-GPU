@@ -1,0 +1,65 @@
+#!/bin/bash
+
+NVCPP=$( which nvc++ )
+CXX=$( which g++ )
+# echo $*
+A=$*
+# echo $X
+
+LOCALRC=""
+which gcc | grep -q 10.1.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
+fi
+which gcc | grep -q 10.2.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
+fi
+which gcc | grep -q 9.3.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
+fi
+
+
+## ubsan needed for Debug
+STDPAROPTS="-cudalib=curand -lubsan"
+
+echo $A | grep -q USE_STDPAR
+SP=$?
+
+echo $A | grep -q FastCaloGpu.dir
+FC=$?
+
+echo $A | grep -q runTFCSSimulation.dir
+echo $A | grep -q runTFCS.*.dir
+RT=$?
+
+# echo $A | grep -q macro
+# RT=1
+
+if [[ $FC -eq 0 || $RT -eq 0 || $FORCE_NVCPP -eq 1 ]]; then
+    X=$( echo $* | sed s/-pipe// )
+    X=$( echo $X | sed s/-Wno-unused-local-typedefs// )
+    X=$( echo $X | sed s/-Woverloaded-virtual// )
+    X=$( echo $X | sed s/gnu++17/c++17/ )
+
+    ## needed for CMAKE_RELEASE_TYPE=Debug
+    X=$( echo $X | sed s/-fsanitize=undefined// )
+
+    ## get an undefined cudaGetDevice
+    X=$( echo $X | perl -ne '@X=split(" ",$_); @Y=map(/libcudart_static.a/ ? () : $_, @X); print "@Y"' )
+    X=$( echo $X | sed s/-lcudart_static// )
+
+    CXX=${NVCPP}
+    CXXARGS="$LOCALRC $STDPAROPTS $X"
+    
+else
+    A=$( echo $A | perl -ne '@X=split(" ",$_); @Y=map(/libcudart_static.a/ ? () : $_, @X); print "@Y"' )
+
+    CXXARGS=$A
+fi
+
+if [[ ! -z ${NVCPP_VERBOSE+set} ]]; then
+    echo "==> $CXX $CXXARGS"
+fi
+$CXX $CXXARGS
