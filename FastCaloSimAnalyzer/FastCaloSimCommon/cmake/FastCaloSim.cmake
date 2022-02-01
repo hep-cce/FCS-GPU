@@ -59,7 +59,7 @@ if(USE_KOKKOS)
 endif()
 
 if(USE_STDPAR)
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR )
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 endif()
 
 if(RNDGEN_CPU)

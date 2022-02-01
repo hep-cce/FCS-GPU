@@ -46,10 +46,13 @@ target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
 
 target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
 if(USE_STDPAR)
-  #  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
   target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
-  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR )
-  # target_compile_options(${FastCaloGpu_LIB} PRIVATE -stdpar=gpu )
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
+
+  target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+      ${STDPAR_DIRECTIVE}> )
+  target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})
+
 endif()
 
 if(RNDGEN_CPU)
