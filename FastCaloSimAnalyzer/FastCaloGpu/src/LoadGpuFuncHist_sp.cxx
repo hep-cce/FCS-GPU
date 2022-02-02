@@ -36,17 +36,13 @@ void LoadGpuFuncHist::LD2D() {
   hf_ptr->nbinsy = ( *m_hf2d ).nbinsy;
 
   // FIXME!! This should be done by making TFCSHistoLateralShapeParametrization::m_hist a ptr
-  float *bx = new float[hf_ptr->nbinsx];
-  float *by = new float[hf_ptr->nbinsy];
+  float *bx = new float[hf_ptr->nbinsx+1];
+  float *by = new float[hf_ptr->nbinsy+1];
   float *ct = new float[hf_ptr->nbinsx * hf_ptr->nbinsy];
 
-  std::memcpy(bx, m_hf2d->h_bordersx, sizeof(float)*hf_ptr->nbinsx);
-  std::memcpy(by, m_hf2d->h_bordersy, sizeof(float)*hf_ptr->nbinsy);
+  std::memcpy(bx, m_hf2d->h_bordersx, sizeof(float)*(hf_ptr->nbinsx+1));
+  std::memcpy(by, m_hf2d->h_bordersy, sizeof(float)*(hf_ptr->nbinsy+1));
   std::memcpy(ct, m_hf2d->h_contents, sizeof(float)*hf_ptr->nbinsy*hf_ptr->nbinsx);
-
-  // hf_ptr->h_bordersx = (*m_hf2d).h_bordersx;
-  // hf_ptr->h_bordersy = (*m_hf2d).h_bordersx;
-  // hf_ptr->h_contents = (*m_hf2d).h_contents;
 
   hf_ptr->h_bordersx = bx;
   hf_ptr->h_bordersy = by;
@@ -54,8 +50,6 @@ void LoadGpuFuncHist::LD2D() {
   
   m_hf2d_h = hf_ptr;
   m_hf2d_d = hf_ptr;
-
-  //  printf("---> LGFH: %p %p %f %p %p\n",(void*)hf_ptr, (void*)hf_ptr->h_contents, hf_ptr->h_contents[0], hf_ptr->h_bordersx, hf_ptr->h_bordersy);
 
 }
 
