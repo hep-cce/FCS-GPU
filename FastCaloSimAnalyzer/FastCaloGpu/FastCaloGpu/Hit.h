@@ -33,11 +33,7 @@ public:
       , m_phi_y( y )
       , m_z( z )
       , m_E( E )
-      , m_useXYZ( true )
-      , m_center_r( 0. )
-      , m_center_z( 0. )
-      , m_center_eta( 0. )
-      , m_center_phi( 0. ){};
+      , m_useXYZ( true ) {};
 
   __HOSTDEV__ __INLINE__ void setEtaPhiZE( float eta, float phi, float z, float E ) {
     m_eta_x  = eta;
@@ -83,17 +79,21 @@ public:
   __HOSTDEV__ __INLINE__ void   setCenter_eta( float eta ) { m_center_eta = eta; }
   __HOSTDEV__ __INLINE__ void   setCenter_phi( float phi ) { m_center_phi = phi; }
 
+  void print() const {
+    printf("hit- E: %f  eta: %f  phi: %f  r: %f  z: %f\n",m_E, m_eta_x, m_phi_y, this->r(), m_z);
+  }
+  
 private:
-  float m_eta_x; // eta for barrel and end-cap, x for FCal
-  float m_phi_y; // phi for barrel and end-cap, y for FCal
-  float m_z;
-  float m_E;
-  bool  m_useXYZ;
+  float m_eta_x      {0.}; // eta for barrel and end-cap, x for FCal
+  float m_phi_y      {0.}; // phi for barrel and end-cap, y for FCal
+  float m_z          {0.};
+  float m_E          {0.};
+  bool  m_useXYZ     {false};
   // Variables used to store extrapolated position
-  float m_center_r;
-  float m_center_z;
-  float m_center_eta;
-  float m_center_phi;
+  float m_center_r   {0.};
+  float m_center_z   {0.};
+  float m_center_eta {0.};
+  float m_center_phi {0.};
 };
 
 #endif
