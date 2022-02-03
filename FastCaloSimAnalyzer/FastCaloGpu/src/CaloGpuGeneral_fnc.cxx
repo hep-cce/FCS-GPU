@@ -20,19 +20,13 @@
 
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
-
-    // printf("DDE: %p %d %f %f\n",(void*)geo, sampling, eta, phi);
     
     float* distance = 0;
     int*   steps    = 0;
-
-    //    printf(" geo: %d %p\n",geo->max_sample, (void*)geo->sample_index);
     
     int              MAX_SAMPLING = geo->max_sample;
     Rg_Sample_Index* SampleIdx    = geo->sample_index;
     GeoRegion*       regions_g    = geo->regions;
-
-    //    printf("  ss: %d %u\n",SampleIdx[sampling].size, SampleIdx[sampling].index);
 
     if ( sampling < 0 ) return -1;
     if ( sampling >= MAX_SAMPLING ) return -1;
@@ -41,7 +35,6 @@ namespace CaloGpuGeneral_fnc {
     unsigned int sample_index = SampleIdx[sampling].index;
 
     GeoRegion* gr = (GeoRegion*)regions_g;
-    //    printf(" gr: %p\n", (void*)gr);
     if ( sample_size == 0 ) return -1;
     float     dist;
     long long bestDDE = -1;
@@ -58,7 +51,6 @@ namespace CaloGpuGeneral_fnc {
       for ( int skip_range_check = 0; skip_range_check <= 1; ++skip_range_check ) {
         for ( unsigned int j = sample_index; j < sample_index + sample_size; ++j ) {
           if ( !skip_range_check ) {
-            //            printf(" eta: %d %f\n", j, gr[j].mineta());
             if ( eta < gr[j].mineta() ) continue;
             if ( eta > gr[j].maxeta() ) continue;
           }
@@ -126,16 +118,15 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D* hf2d ) {
+  __DEVICE__ void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D* hf2d,
+                                unsigned long i, float ene) {
 
     int    nbinsx        = ( *hf2d ).nbinsx;
     int    nbinsy        = ( *hf2d ).nbinsy;
     float* HistoContents = ( *hf2d ).h_contents;
     float* HistoBorders  = ( *hf2d ).h_bordersx;
     float* HistoBordersy = ( *hf2d ).h_bordersy;
-
-    // printf("fh2d: %p %p %f %d %d %f %p %p\n",(void*)hf2d, (void*)HistoContents, HistoContents[0], nbinsx, nbinsy, rnd0, (void*)HistoBorders, (void*) HistoBordersy);
-    
+        
     /*
      int ibin = nbinsx*nbinsy-1 ;
      for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
@@ -146,7 +137,6 @@ namespace CaloGpuGeneral_fnc {
      }
     */
     int ibin = find_index_f( HistoContents, nbinsx * nbinsy, rnd0 );
-    //    printf("ibin: %d\n",ibin);
 
     int biny = ibin / nbinsx;
     int binx = ibin - nbinsx * biny;
@@ -161,6 +151,7 @@ namespace CaloGpuGeneral_fnc {
       valuex = HistoBorders[binx] + ( HistoBorders[binx + 1] - HistoBorders[binx] ) / 2;
     }
     valuey = HistoBordersy[biny] + ( HistoBordersy[biny + 1] - HistoBordersy[biny] ) * rnd1;
+    
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -194,7 +185,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
+  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {           
 
     hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
     hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
@@ -207,35 +198,32 @@ namespace CaloGpuGeneral_fnc {
   __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
     // int     pdgId    = args.pdgId;
-    //    printf("here\n");
     float charge = args.charge;
-    //    printf("charge: %f\n",charge);
 
     // int cs=args.charge;
     float center_eta = hit.center_eta();
     float center_phi = hit.center_phi();
     float center_r   = hit.center_r();
     float center_z   = hit.center_z();
-    //    printf("hit pos: %f %f %f\n",hit.center_eta(), center_phi, center_r);
 
     float alpha, r, rnd1, rnd2;
     rnd1 = args.rand[t];
     rnd2 = args.rand[t + args.nhits];
 
-    //    printf("rand: %lu %p %f %f\n",t, (void*)args.rand,rnd1, rnd2);
+    //    printf("rand: %lu %f %f %f\n",t,hit.E(),rnd1,rnd2);
     
     if ( args.is_phi_symmetric ) {
       if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
         rnd2 -= 0.5;
         rnd2 *= 2;
-        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
         alpha = -alpha;
       } else { // Fill positive phi half of shape
         rnd2 *= 2;
-        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
       }
     } else {
-      rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+      rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
     }
 
     float delta_eta_mm = r * cos( alpha );
@@ -248,13 +236,16 @@ namespace CaloGpuGeneral_fnc {
     // transformation: delta_phi --> -delta_phi
     if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
 
-    float dist000    = sqrt( center_r * center_r + center_z * center_z );
+    // FIXME! use doulbe for testing purposes to have cuda results same as std::par
+    // float dist000    = std::sqrt( center_r * center_r + center_z * center_z );
+    float dist000    = std::sqrt( double(center_r * center_r) + double(center_z * center_z) );
     float eta_jakobi = abs( 2.0 * exp( -center_eta ) / ( 1.0 + exp( -2 * center_eta ) ) );
 
     float delta_eta = delta_eta_mm / eta_jakobi / dist000;
     float delta_phi = delta_phi_mm / center_r;
 
-    hit.setEtaPhiZE( center_eta + delta_eta, center_phi + delta_phi, center_z, hit.E() );
+    hit.setEtaPhiZ( center_eta + delta_eta, center_phi + delta_phi, center_z );
+
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -263,28 +254,35 @@ namespace CaloGpuGeneral_fnc {
 
     //    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
-    // printf("HCM: %lld\n", cellele);
+    // printf("HCM: %lu %f %lld\n", t, hit.E(),cellele);
 
-    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
-
-      //  args.hitcells_b[cellele]= true ;
-      //  args.hitcells[t]=cellele ;
+    if ( cellele < 0 ) {
+      printf( "HitCellMappingWiggle_d: cellele not found  eta: %f  phi: %f\n",
+              hit.eta(), hit.phi() );
+      //      hit.print();
+    }
 
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
 #elif defined (USE_STDPAR)
-    // printf(" cellene: %p %lld\n",(void*)args.cells_energy, cellele);
-    // printf("   cellene[0]: %f\n",args.cells_energy[0]);
-    // printf("   cellene[%lld] %f\n",cellele,args.cells_energy[cellele]);
-    
+
+    //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
+  #ifdef _NVHPC_STDPAR_NONE
     args.cells_energy[cellele] += hit.E();
+  #else
+    args.cells_energy[cellele] += int( CELL_ENE_FAC*hit.E() );
+  #endif
+    //    args.cells_energy[cellele] += hit.E();
+    //    atomicAdd( &args.cells_energy[cellele], hit.E() );
+    //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
+
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
-    // printf("done HCM_d %lu\n",t);
-    
+    //    printf("HCM: %lu %f %lld %f\n", t, hit.E(), cellele, args.cells_energy[cellele]);
+        
     /*
       CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
       long long id = cell.identify();
@@ -299,15 +297,12 @@ namespace CaloGpuGeneral_fnc {
 
   __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args args, unsigned long t ) {
 
-    //    printf("HCMW: %lu %p %d \n", t, (void*)args.fhs, args.fhs->nhist);
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
-    // printf("HCMW: %lu low_edge %p\n", t, (void*)args.fhs->low_edge);
-    // printf("HCMW: %lu low_edge %p %f\n", t, (void*)args.fhs->low_edge, args.fhs->low_edge[0]);
 
     float eta = fabs( hit.eta() );
     if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args ); }
-
+    
     int bin = nhist;
     for ( int i = 0; i < nhist + 1; ++i ) {
       if ( bin_low_edge[i] > eta ) {
@@ -328,13 +323,12 @@ namespace CaloGpuGeneral_fnc {
 
     float rnd = args.rand[t + 2 * args.nhits];
 
-    float wiggle = rnd_to_fct1d( rnd, contents, borders, h_size, s_MaxValue );
+    float wiggle = rnd_to_fct1d( rnd, contents, borders, h_size, s_MaxValue );    
 
     float hit_phi_shifted = hit.phi() + wiggle;
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
 
     HitCellMapping_d( hit, t, args );
-    // printf("done HCMW %lu\n",t);
   }
 } // namespace CaloGpuGeneral_fnc
 

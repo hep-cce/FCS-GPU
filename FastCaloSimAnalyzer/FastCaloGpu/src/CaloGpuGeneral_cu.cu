@@ -11,6 +11,7 @@
 #include "gpuQ.h"
 #include "Args.h"
 #include <chrono>
+#include <climits>
 
 #ifdef USE_KOKKOS
 #include <Kokkos_Core.hpp>
@@ -36,32 +37,41 @@ namespace CaloGpuGeneral_cu {
               << std::endl;
     //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
-    printf("time kernel sim_clean: %5.2f s / %4.0f us\n", timing.t_sim_clean.count(),
-           timing.t_sim_clean.count() * 1000000 / timing.count);
-    printf("time kernel sim_A:     %5.2f s / %4.0f us\n", timing.t_sim_A.count(),
-           timing.t_sim_A.count() * 1000000 / timing.count);
-    printf("time kernel sim_ct:    %5.2f s / %4.0f us\n", timing.t_sim_ct.count(),
-           timing.t_sim_ct.count() * 1000000 / timing.count);
-    printf("time kernel sim_cp:    %5.2f s / %4.0f us\n", timing.t_sim_cp.count(),
-           timing.t_sim_cp.count() * 1000000 / timing.count);
-    printf("time kernel count:     %5d\n",timing.count); 
-
+    if (timing.count > 0) {
+      std::cout << "kernel timing\n";
+      printf("%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      printf("%12s %15.8f %15.1f\n","sim_clean",timing.t_sim_clean.count(),
+             timing.t_sim_clean.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_A",timing.t_sim_A.count(),
+             timing.t_sim_A.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_ct",timing.t_sim_ct.count(),
+             timing.t_sim_ct.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_cp",timing.t_sim_cp.count(),
+             timing.t_sim_cp.count() * 1000000 /timing.count);
+      printf("%12s %15d\n","launch count",timing.count);
+    } else {
+      std::cout << "no kernel timing available" << std::endl;
+    }
+    
   }
 
-  
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
   __global__ void simulate_A( float E, int nhits, Chain0_Args args ) {
 
     long t = threadIdx.x + blockIdx.x * blockDim.x;
     if ( t < nhits ) {
       Hit hit;
       hit.E() = E;
-      //      printf(" sA: %d %f\n",t,E);
 
       CenterPositionCalculation_d( hit, args );
       HistoLateralShapeParametrization_d( hit, t, args );
       HitCellMappingWiggle_d( hit, args, t );
+
     }
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __global__ void simulate_ct( Chain0_Args args ) {
 
@@ -73,15 +83,20 @@ namespace CaloGpuGeneral_cu {
         ce.cellid           = tid;
         ce.energy           = args.cells_energy[tid];
         args.hitcells_E[ct] = ce;
+        // printf("i: %u  id: %lu  ene: %f\n", ct, ce.cellid, ce.energy);
       }
     }
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __global__ void simulate_clean( Chain0_Args args ) {
     unsigned long tid = threadIdx.x + blockIdx.x * blockDim.x;
     if ( tid < args.ncells ) { args.cells_energy[tid] = 0.0; }
     if ( tid == 0 ) args.hitcells_ct[0] = 0;
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __host__ void simulate_A_cu( float E, int nhits, Chain0_Args& args ) {
     int blocksize   = BLOCK_SIZE;
@@ -90,8 +105,12 @@ namespace CaloGpuGeneral_cu {
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
   }
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
   __host__ void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
+    //    printf("nhits: %d   ene: %f\n",nhits,E);
+    
     cudaError_t err = cudaGetLastError();
 
     unsigned long ncells      = args.ncells;
@@ -132,8 +151,10 @@ namespace CaloGpuGeneral_cu {
 
     // std::cout << "hits: " << args.ct << "\n";
     // for (int i=0; i<args.ct; ++i) {
-    //   std::cout << "  " << args.hitcells_E_h[i].cellid << " "
-    //             << args.hitcells_E_h[i].energy << "\n";
+    //   //      if ( args.hitcells_E_h[i].energy > float(ULONG_MAX)/1000000) {
+    //     std::cout << " cell: " << E << "  " << args.hitcells_E_h[i].cellid << " "
+    //               << args.hitcells_E_h[i].energy << "\n";
+    //     //      }
     // }
     
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );

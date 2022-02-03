@@ -6,7 +6,7 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
                                      unsigned long n_cells ) {
 
   // for args.cells_energy
-  m_cells_energy = (float*)malloc( n_cells * sizeof(float) );
+  m_cells_energy = (CELL_ENE_T*)malloc( n_cells * sizeof(CELL_ENE_T) );
 
   // for args.hitcells_E
   m_cell_e_h = (Cell_E*)malloc( maxhitct * sizeof( Cell_E ) );

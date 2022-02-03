@@ -80,13 +80,7 @@ void LoadGpuFuncHist::LD() {
 
   hf_ptr->low_edge = le;
   hf_ptr->h_szs = hs;
-  
-
-  // std::cout << "low edge:\n";
-  // for (int i=0; i<hf_ptr->nhist; ++i) {
-  //   std::cout << " " << i << " " << hf_ptr->low_edge[i] << "\n";
-  // }
-    
+      
   hf_ptr->h_contents = ( *m_hf ).h_contents;
   hf_ptr->h_borders  = ( *m_hf ).h_borders;
 
@@ -101,12 +95,6 @@ void LoadGpuFuncHist::LD() {
             (*m_hf).h_szs[i] * sizeof( float ));
     
   }
-
-  // std::cout << "contents\n";
-  // for (int i=0; i<hf_ptr->nhist*hf_ptr->mxsz; ++i) {
-  //   std::cout << " " << i << " " << hf_ptr->d_borders1D[i] << std::endl;
-  // }
-
 
   m_hf_h      = hf_ptr;
   m_hf_d       = hf_ptr;

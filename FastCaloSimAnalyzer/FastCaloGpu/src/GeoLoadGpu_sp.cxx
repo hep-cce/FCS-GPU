@@ -18,10 +18,11 @@ bool GeoLoadGpu::LoadGpu_sp() {
     m_geo_d = new GeoGpu;
   }
   
-
+  #ifdef  _NVHPC_STDPAR_GPU
   cudaDeviceProp prop;
   gpuQ( cudaGetDeviceProperties( &prop, 0 ) );
   std::cout << "Executing on GPU: " << prop.name << std::endl;
+  #endif
   
   // Allocate Device memory for cells and copy cells as array
   // move cells on host to a array first

@@ -20,7 +20,8 @@
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
-public:
+public:  
+  
   Rand4Hits() {
     m_rand_ptr     = 0;
     m_total_a_hits = 0;
@@ -51,9 +52,9 @@ public:
   void deallocate();
 #endif
   
-  float*  get_cells_energy() { return m_cells_energy; };
-  Cell_E* get_cell_e() { return m_cell_e; };
-  Cell_E* get_cell_e_h() { return m_cell_e_h; };
+  CELL_ENE_T*  get_cells_energy() { return m_cells_energy; };
+  Cell_E* get_cell_e()            { return m_cell_e; };
+  Cell_E* get_cell_e_h()          { return m_cell_e_h; };
 
 #ifdef USE_STDPAR
   std::atomic<int>* get_ct() { return m_ct; };
@@ -61,7 +62,7 @@ public:
   int* get_ct() { return m_ct; };
 #endif
 
-  unsigned long* get_hitcells() { return m_hitcells; };
+  unsigned long* get_hitcells()    { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };
 
   void rd_regen();
@@ -89,12 +90,12 @@ private:
   bool         m_useCPU{false};
 
   // patch in some GPU pointers for cudaMalloc
-  float*  m_cells_energy {0};
+  CELL_ENE_T*  m_cells_energy {0};
   Cell_E* m_cell_e {0};
 #ifdef USE_STDPAR
   std::atomic<int>*    m_ct {0};
 #else
-  int* m_ct {0};
+  int*    m_ct {0};
 #endif
 
   // host side ;
