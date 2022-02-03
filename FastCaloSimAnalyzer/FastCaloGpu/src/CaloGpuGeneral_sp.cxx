@@ -18,22 +18,12 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_clean(Chain0_Args& args) {
 
-    if (m_cells_ene == 0) {
-      m_cells_ene = new float[args.ncells];
-    }
-    
-    args.cells_energy = m_cells_ene;
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells,
                     [=](unsigned int i) {
-                      args.cells_energy[i] = 0.;
+                      args.cells_energy[i] = 0;
                     }
                     );    
     
-    memset( m_cells_ene, 0, args.ncells*sizeof(float) );
-    // for (unsigned int i=0; i<args.ncells; ++i) {
-    //   args.cells_energy[i] = 0.;
-    // }
-
     args.hitcells_ct[0] = 0;
         
   }
@@ -41,8 +31,6 @@ namespace CaloGpuGeneral_stdpar {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_A( float E, int nhits, Chain0_Args args ) {
-
-    // std::cout << "sim_A: nhits: " << nhits << std::endl;
 
     // int* id = new int[10];
     // for (int i=0; i<10; ++i) {
@@ -58,7 +46,6 @@ namespace CaloGpuGeneral_stdpar {
     // cudaMemcpy( di, id, 10*sizeof(int), cudaMemcpyHostToDevice );
     // std::cout << "devptr: " << di << std::endl;
     
-    // std::atomic<int> *ii = new std::atomic<int>{0};
 
     // std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
     // float* ce = new float[200000];
@@ -73,50 +60,64 @@ namespace CaloGpuGeneral_stdpar {
     //                   printf(" -> %p %f\n",(void*)ce,ce[i]);
     //                 } );
     // std::cout << "   after loop: " << *ii << std::endl;
-    
-    
+
+    // float *fa = new float[10];
+    // float *fb = new float[10];
+    // float *fc = new float[10];
+    // std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
+    //                 [=](int i) {
+    //                   atomicAdd(&fa[i%2],i);
+    //                   fb[i%2] += i;
+    //                   atomicAdd(&fc[i],i);
+    //                 } );
+    // for (int i=0; i<10; ++i) {
+    //   std::cout << i << " == " << fa[i] << "  " << fb[i] << "  " << fc[i] << std::endl;
+    // }
+    // return;
+
+    std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
                   [=](unsigned int i) {
+
+                    int j = (*ii)++;
                     
                     Hit hit;                    
                     hit.E() = E;
-
-                    // (*ii)++;
                     
                     CenterPositionCalculation_d( hit, args );
-                    //                    printf("done CPC\n");
+
                     HistoLateralShapeParametrization_d( hit, i, args );
-                    //                    printf("done HLSP %d\n",i);
+                    
                     HitCellMappingWiggle_d( hit, args, i );
-                    // printf("done HCMW\n");
+
+                    
                   }
-                  );
-    //    std::cout << "===> done simulate_A " << *ii << "\n";
+                    );
+    int j = *ii;
+    
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_ct( Chain0_Args args ) {
 
-    //    std::cout << "start sim_ct\n";
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells,
                     [=](unsigned int i) {
                       // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
                       if ( args.cells_energy[i] > 0 ) {
                         unsigned int ct = (*(args.hitcells_ct))++;
-                        // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
-                        //                        *(args.hitcells_ct) += 1;
                         Cell_E              ce;
                         ce.cellid           = i;
+                      #ifdef _NVHPC_STDPAR_NONE
                         ce.energy           = args.cells_energy[i];
+                      #else
+                        ce.energy           = double(args.cells_energy[i])/CELL_ENE_FAC;
+                      #endif
+                        // ce.energy           = args.cells_energy[i];
                         args.hitcells_E[ct] = ce;
-                        
-                        //                        printf("i: %u  id: %lu  ene: %f\n",ct, ce.cellid, ce.energy);
                         
                       }
                     } );
-    std::cout << "sim_ct nhitcells: " << *(args.hitcells_ct) << std::endl;
-    //    std::cout << "===> done simulate_ct\n";
   }  
   
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -142,7 +143,7 @@ namespace CaloGpuGeneral_stdpar {
 
     // std::cout << "hits: " << args.ct << "\n";
     // for (int i=0; i<args.ct; ++i) {
-    //   std::cout << "  " << args.hitcells_E[i].cellid << " "
+    //   std::cout << " cell: " << E << "  " << args.hitcells_E[i].cellid << " "
     //             << args.hitcells_E_h[i].energy << "\n";
     // }
     
@@ -158,15 +159,22 @@ namespace CaloGpuGeneral_stdpar {
     
     if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
-    printf("time kernel sim_clean: %5.2f s / %4.0f us\n", timing.t_sim_clean.count(),
-           timing.t_sim_clean.count() * 1000000 / timing.count);
-    printf("time kernel sim_A:     %5.2f s / %4.0f us\n", timing.t_sim_A.count(),
-           timing.t_sim_A.count() * 1000000 / timing.count);
-    printf("time kernel sim_ct:    %5.2f s / %4.0f us\n", timing.t_sim_ct.count(),
-           timing.t_sim_ct.count() * 1000000 / timing.count);
-    printf("time kernel sim_cp:    %5.2f s / %4.0f us\n", timing.t_sim_cp.count(),
-           timing.t_sim_cp.count() * 1000000 / timing.count);
-    printf("time kernel count:     %5d\n",timing.count); 
+    if (timing.count > 0) {
+      std::cout << "kernel timing\n";
+      printf("%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      printf("%12s %15.8f %15.1f\n","sim_clean",timing.t_sim_clean.count(),
+             timing.t_sim_clean.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_A",timing.t_sim_A.count(),
+             timing.t_sim_A.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_ct",timing.t_sim_ct.count(),
+             timing.t_sim_ct.count() * 1000000 /timing.count);
+      printf("%12s %15.8f %15.1f\n","sim_cp",timing.t_sim_cp.count(),
+             timing.t_sim_cp.count() * 1000000 /timing.count);
+      printf("%12s %15d\n","launch count",timing.count);
+    } else {
+      std::cout << "no kernel timing available" << std::endl;
+    }
+
   }
 
 } // namespace CaloGpuGeneral_stdpar

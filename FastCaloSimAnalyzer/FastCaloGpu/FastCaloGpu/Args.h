@@ -103,26 +103,26 @@ typedef struct Chain0_Args {
   bool is_first; // first event
   bool is_last;  // last event
 
-  // bool * hitcells_b ;  // GPU array of whether a cell got hit
+  // bool *          hitcells_b ;  // GPU array of whether a cell got hit
   // unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
   // unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes
 #ifdef USE_STDPAR
-  std::atomic<int>* hitcells_ct;
+  std::atomic<int>*  hitcells_ct;
 #else
-  int*          hitcells_ct; // GPU pointer for number of uniq hit cells
+  int*               hitcells_ct; // GPU pointer for number of uniq hit cells
 #endif
-  unsigned long ncells;
-  unsigned int  maxhitct;
+  CELL_ENE_T*        cells_energy; // big, all cells, ~ 200K array
+  unsigned long      ncells;
+  unsigned int       maxhitct;
 
-  float*  cells_energy; // big, all cells, ~ 200K array
-  Cell_E* hitcells_E;   // array with only hit cells (Mem maxhitct )
-  Cell_E* hitcells_E_h; // host array
+  Cell_E*            hitcells_E;   // array with only hit cells (Mem maxhitct )
+  Cell_E*            hitcells_E_h; // host array
 
-  unsigned int* hitcounts_b; // GPU pointer for interm blockwise result of hit counts
+  unsigned int*      hitcounts_b; // GPU pointer for interm blockwise result of hit counts
 
   // unsigned long * hitcells_h ; //Host array of hit cell index
-  // int * hitcells_ct_h ; // host array of corresponding hit cell counts
-  unsigned int ct; // cells got hit for the event
+  // int *           hitcells_ct_h ; // host array of corresponding hit cell counts
+  unsigned int       ct; // cells got hit for the event
 
 } Chain0_Args;
 
