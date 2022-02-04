@@ -141,11 +141,16 @@ namespace CaloGpuGeneral_stdpar {
 
     auto t4 = std::chrono::system_clock::now();
 
-    // std::cout << "hits: " << args.ct << "\n";
-    // for (int i=0; i<args.ct; ++i) {
-    //   std::cout << " cell: " << E << "  " << args.hitcells_E[i].cellid << " "
-    //             << args.hitcells_E_h[i].energy << "\n";
-    // }
+#ifdef DUMP_HITCELLS
+    std::cout << "hitcells: " << args.ct << "  nhits: " << nhits << "  E: " << E << "\n";
+    std::map<unsigned int,float> cm;
+    for (int i=0; i<args.ct; ++i) {
+      cm[args.hitcells_E_h[i].cellid] = args.hitcells_E_h[i].energy;
+    }
+    for (auto &em: cm) {
+      std::cout << "  cell: " << em.first << "  " << em.second << std::endl;
+    }
+#endif
     
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     timing += kt;
