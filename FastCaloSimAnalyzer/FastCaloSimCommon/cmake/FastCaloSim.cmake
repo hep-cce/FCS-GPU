@@ -62,6 +62,10 @@ if(USE_STDPAR)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 endif()
 
+if(DUMP_HITCELLS)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DDUMP_HITCELLS )
+endif()
+
 if(RNDGEN_CPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DRNDGEN_CPU )
 endif()

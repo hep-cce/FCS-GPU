@@ -60,6 +60,10 @@ if(RNDGEN_CPU)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DRNDGEN_CPU )
 endif()
 
+if(DUMP_HITCELLS)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DDUMP_HITCELLS )
+endif()
+
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
