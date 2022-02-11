@@ -20,8 +20,8 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
                                      unsigned long n_cells ) {
 
   // for args.cells_energy
-  float* Cells_Energy;
-  gpuQ( cudaMalloc( (void**)&Cells_Energy, n_cells * sizeof( float ) ) );
+  CELL_ENE_T* Cells_Energy;
+  gpuQ( cudaMalloc( (void**)&Cells_Energy, n_cells * sizeof( CELL_ENE_T ) ) );
   m_cells_energy = Cells_Energy;
 
   // for args.hitcells_E
