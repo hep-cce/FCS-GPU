@@ -12,8 +12,6 @@
   #else
     #define CELL_ENE_T std::atomic<unsigned long>
     #define CELL_ENE_FAC 1000000
-// #define CELL_ENE_T float
-// #define CELL_ENE_FAC 1
   #endif
 #else
   #define CELL_ENE_T float

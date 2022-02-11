@@ -11,6 +11,7 @@
 #include "CountingIterator.h"
 
 static CaloGpuGeneral::KernelTime timing;
+static bool first{true};
 
 using namespace CaloGpuGeneral_fnc;
 
@@ -66,9 +67,9 @@ namespace CaloGpuGeneral_stdpar {
     // float *fc = new float[10];
     // std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
     //                 [=](int i) {
-    //                   atomicAdd(&fa[i%2],i);
+    //                   atomicAdd(&fa[i%2],float(i));
     //                   fb[i%2] += i;
-    //                   atomicAdd(&fc[i],i);
+    //                   atomicAdd(&fc[i],float(i));
     //                 } );
     // for (int i=0; i<10; ++i) {
     //   std::cout << i << " == " << fa[i] << "  " << fb[i] << "  " << fc[i] << std::endl;
@@ -153,7 +154,11 @@ namespace CaloGpuGeneral_stdpar {
 #endif
     
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
-    timing += kt;
+    if (first) {
+      first = false;
+    } else {
+      timing += kt;
+    }
     
   }
 
