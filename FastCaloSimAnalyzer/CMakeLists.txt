@@ -7,14 +7,34 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon/cmake
 )
 
+cmake_policy(SET CMP0074 NEW)
+
 # Set project
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
+set(USE_STDPAR OFF CACHE BOOL "Use std::par")
+set(STDPAR_TARGET "gpu" CACHE STRING "target for std::par. should be gpu,multicore or cpu")
+set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
+
+if ( USE_STDPAR )
+  if ( ${STDPAR_TARGET} STREQUAL "cpu" )
+    if ( NOT RNDGEN_CPU )
+      message(FATAL_ERROR "when STDPAR_TARGET=cpu, RNDGEN_CPU must be ON")
+    endif()
+    set(STDPAR_DIRECTIVE "-nostdpar")
+  elseif( ${STDPAR_TARGET} STREQUAL "gpu" )
+    set(STDPAR_DIRECTIVE "-stdpar=gpu")
+  elseif( ${STDPAR_TARGET} STREQUAL "multicore" )
+    set(STDPAR_DIRECTIVE "-stdpar=multicore")
+  else()
+    message(FATAL_ERROR "unknown stdpar target ${STDPAR_TARGET}")
+  endif()
+  message (STATUS "Will target ${STDPAR_TARGET} for std::par with ${STDPAR_DIRECTIVE}")
+endif()
 
 include(FastCaloSim)
 include(XRootD)
-
 
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)

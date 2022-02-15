@@ -2,17 +2,20 @@
 
 # "First-class" CUDA support needs at least CMake 3.10.
 cmake_minimum_required( VERSION 3.10 )
+cmake_policy(SET CMP0074 NEW)
 
 # Set up the "modern" usage of CUDA with CMake.
 find_package(CUDA REQUIRED)
 enable_language( CUDA )
 
-#Need to do other way.
-#set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
 # Sources
-set(FastCaloGpu_Srcs
-  GeoLoadGpu.cu
-)
+
+if(USE_STDPAR)
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu Rand4Hits_sp.cxx )
+else()
+#  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu Rand4Hits.cu )
+  set(FastCaloGpu_Srcs GeoLoadGpu.cu)
+endif()
 
 # # Global include is needed for dictionary generation to work
 #include_directories(../../)
@@ -38,6 +41,19 @@ add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
 
 target_link_libraries(${FastCaloGpu_LIB} PUBLIC ${CUDA_curand_LIBRARY})
+if(USE_STDPAR)
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
+
+  target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+      ${STDPAR_DIRECTIVE}> )
+  target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})
+
+endif()
+
+if(DUMP_HITCELLS)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DDUMP_HITCELLS )
+endif()
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
