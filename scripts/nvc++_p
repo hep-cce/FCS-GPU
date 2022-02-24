@@ -22,9 +22,17 @@ if [[ $? -eq 0 ]]; then
    LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
 fi
 
+STDPAROPTS="-cudalib=curand -lacchost -laccdevaux -laccdevice"
+
+# CMAKE_BUILD_TYPE == RelWithDebInfo or Release uses -DNDEBUG
+echo $A | grep -q DNDEBUG
+DBG=$?
 
 ## ubsan needed for Debug
-STDPAROPTS="-cudalib=curand -lubsan"
+if [[ $DBG -eq 1 ]]; then
+    echo "is debug"
+    DBGOPTS=" -lubsan -lHistPainter"
+fi
 
 echo $A | grep -q USE_STDPAR
 SP=$?
@@ -60,6 +68,8 @@ else
 
     CXXARGS=$A
 fi
+
+CXXARGS+=$DBGOPTS
 
 if [[ ! -z ${NVCPP_VERBOSE+set} ]]; then
     echo "==> $CXX $CXXARGS"
