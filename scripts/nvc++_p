@@ -22,8 +22,8 @@ if [[ $? -eq 0 ]]; then
    LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
 fi
 
-#STDPAROPTS="-cudalib=curand -lacchost -laccdevaux -laccdevice"
-STDPAROPTS="-cudalib=curand"
+STDPAROPTS="-cudalib=curand -lacchost -laccdevaux -laccdevice"
+#STDPAROPTS="-cudalib=curand"
 
 # CMAKE_BUILD_TYPE == RelWithDebInfo or Release uses -DNDEBUG
 echo $A | grep -q DNDEBUG
