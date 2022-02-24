@@ -134,6 +134,33 @@ environment loaded, and that `$CXX` points to `nvcc_wrapper` from Kokkos.
 Then add `-DUSE_KOKKOS=on` to the FastCaloSim cmake configuration
 
 
+## std::par
+
+Use cmake flag `-DUSE_STDPAR=On`.
+
+In order to compile for std::par, `nvc++` from the nvidia nvhpc package must be
+chosen for the CXX compiler. However ROOT still cannot build with nvc++, so part
+of FastCaloSim must be built with g++. Also, nvc++ is not well supported in cmake,
+and a number of compiler flags must be removed from the command line for it to work.
+A wrapper script is provided in [scripts/nvc++p](scripts/nvc++_p) which chooses the correct compiler
+for the various parts of FastCaloSim, and filters out the problematic compiler flags
+for nvc++. Either set the `CXX` environment variable to point to this, or explicitly
+set it during cmake configuration with `-DCMAKE_CXX_COMPILER=$PWD/../src/scripts/nvc++_p`.
+You may need to edit the script to pickup the correct localrc configuration file for
+nvc++. These can be generated with `makelocalrc` from the nvhpc package.
+
+To see exactly what the wrapper script is doing, set the env var `NVCPP_VERBOSE=1`.
+
+There are 3 backends for std::par: gpu, multicore, and serial cpu. These are normally
+triggered by the nvc++ flags `-stdpar=gpu`, `-stdpar=multicore` and `-nostdpar`. Select
+the desired backend with the cmake flags `-DSTDPAR_TARGET=XXX` where `XXX` is one of
+`gpu`, `mutlicore` or `cpu`. If `cpu` is selected, the random numbers must be generated
+on the cpu with `-DRNDGEN_CPU=On`
+
+
+When profiling using `nsys`, make sure to pick it up from the nvhpc package, and not
+directly from cuda.
+
 ## Validation
 ### Random Numbers
 

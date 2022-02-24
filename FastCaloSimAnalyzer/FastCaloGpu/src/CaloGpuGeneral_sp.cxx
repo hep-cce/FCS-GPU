@@ -9,6 +9,7 @@
 #include "Rand4Hits.h"
 #include "Hit.h"
 #include "CountingIterator.h"
+#include "GpuParams.h"
 
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
@@ -80,6 +81,7 @@ namespace CaloGpuGeneral_stdpar {
                         ce.energy = double(args.cells_energy[tid])/CELL_ENE_FAC;
                       #endif
                         ce.energy                            = args.cells_energy[tid];
+                        args.hitcells_E[ct + sim * MAXHITCT] = ce;
                         }
 
                     } );
@@ -93,7 +95,7 @@ namespace CaloGpuGeneral_stdpar {
     simulate_clean( args );
 
     auto t1 = std::chrono::system_clock::now();
-    simulate_hits_de( E, nhits, args );
+    simulate_hits_de( args );
 
     auto t2 = std::chrono::system_clock::now();
     simulate_hits_ct( args );
@@ -101,8 +103,11 @@ namespace CaloGpuGeneral_stdpar {
     auto t3 = std::chrono::system_clock::now();
 
     // pass result back
-    std::memcpy( args.ct_h, args.ct, args.nsims * sizeof(int));
-    std::memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAXSIM * sizeof( Cell_E ));
+    //    std::memcpy( args.ct_h, args.ct, args.nsims * sizeof(int));
+    for (int i=0; i<args.nsims; ++i) {
+      args.ct_h[i] = args.ct[i];
+    }
+    std::memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ));
     auto t4 = std::chrono::system_clock::now();
 
 #ifdef DUMP_HITCELLS

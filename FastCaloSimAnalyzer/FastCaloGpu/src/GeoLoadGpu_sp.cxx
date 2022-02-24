@@ -7,6 +7,9 @@
 #include "cuda_runtime.h"
 #include <cstring>
 
+GeoGpu*       GeoLoadGpu::Geo_g;
+unsigned long GeoLoadGpu::num_cells;
+
 bool GeoLoadGpu::LoadGpu_sp() {
 
   if ( !m_cells || m_ncells == 0 ) {
@@ -90,6 +93,10 @@ bool GeoLoadGpu::LoadGpu_sp() {
 
   m_geo_d->sample_index = new Rg_Sample_Index[m_max_sample];
   std::memcpy(m_geo_d->sample_index, m_sample_index_h, sizeof(Rg_Sample_Index)*m_max_sample);
+
+  Geo_g = m_geo_d;
+  num_cells = m_ncells;
+  
   
   // std::cout << "STDPAR GEO\n";
   // std::cout << "ncells: " << m_geo_d->ncells << "\n";

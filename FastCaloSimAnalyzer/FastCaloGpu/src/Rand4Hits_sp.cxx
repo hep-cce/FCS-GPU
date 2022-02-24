@@ -20,7 +20,7 @@ void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_
   m_hitparams = (HitParams*)std::malloc( MAX_SIMBINS * sizeof( HitParams ) );
 
   m_ct = new std::atomic<int>[MAX_SIM];
-  m_ct_h = m_ct;
+  m_ct_h = new int[MAX_SIM];
 
   printf(" R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
