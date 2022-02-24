@@ -30,8 +30,8 @@ echo $A | grep -q DNDEBUG
 DBG=$?
 
 ## ubsan needed for Debug
-if [[ $DBG -eq 1 ]]; then
-    DBGOPTS=" -lubsan -lHistPainter"
+if [[ $DBG -eq 1 ]]; then    
+    DBGOPTS=" -lubsan"
 fi
 
 echo $A | grep -q USE_STDPAR
