@@ -30,7 +30,6 @@ DBG=$?
 
 ## ubsan needed for Debug
 if [[ $DBG -eq 1 ]]; then
-    echo "is debug"
     DBGOPTS=" -lubsan -lHistPainter"
 fi
 
