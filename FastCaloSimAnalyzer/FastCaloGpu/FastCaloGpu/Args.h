@@ -40,32 +40,32 @@ namespace CaloGpuGeneral {
 } // namespace CaloGpuGeneral
 
 typedef struct Sim_Args {
-  
-  int     count {0};
-  
-  int     debug;
-  void*   rd4h;
-  GeoGpu* geo;
 
-  CELL_ENE_T* cells_energy; // big, all cells, ~ 200K array
-  Cell_E*     hitcells_E;   // array with only hit cells (Mem maxhitct )
-  Cell_E*     hitcells_E_h; // array with only hit cells (Mem maxhitct )
+  int count{0};
+
+  int     debug{0};
+  void*   rd4h{nullptr};
+  GeoGpu* geo{nullptr};
+
+  CELL_ENE_T* cells_energy{nullptr}; // big, all cells, ~ 200K array
+  Cell_E*     hitcells_E{nullptr};   // array with only hit cells (Mem maxhitct )
+  Cell_E*     hitcells_E_h{nullptr}; // array with only hit cells (Mem maxhitct )
 
 #ifdef USE_STDPAR
-  std::atomic<int>* ct;
+  std::atomic<int>* ct{nullptr};
 #else
-  int* ct; // GPU pointer for number of uniq hit cells
+  int* ct{nullptr}; // GPU pointer for number of uniq hit cells
 #endif
-  int* ct_h;
+  int* ct_h{nullptr};
 
-  HitParams*    hitparams;
-  long*         simbins;
-  int           nbins;
-  int           nsims;
-  long          nhits;
-  unsigned long ncells;
-  unsigned int  maxhitct;
-  float*        rand;
+  HitParams*    hitparams{nullptr};
+  long*         simbins{nullptr};
+  int           nbins{0};
+  int           nsims{0};
+  long          nhits{0};
+  unsigned long ncells{0};
+  unsigned int  maxhitct{0};
+  float*        rand{nullptr};
 
 } Sim_Args;
 

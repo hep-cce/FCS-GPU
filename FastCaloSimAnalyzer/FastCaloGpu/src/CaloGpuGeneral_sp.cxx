@@ -20,12 +20,26 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_clean(Sim_Args args) {
 
+    std::cout << "args.nsims: " << args.nsims << " args.ncells: " << args.ncells
+              << "  MAX_SIM: "<< MAX_SIM
+              << " ct: " << (void*)args.ct
+              << " ene: " << (void*) args.cells_energy
+              << std::endl;
+    
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells*args.nsims,
                     [=](unsigned int tid) {
+                      printf("-> %u %p\n",tid,&args.cells_energy[tid]);
                       args.cells_energy[tid] = 0.0;
-                      if ( tid < args.nsims ) args.ct[tid] = 0;
+                      //                      if ( tid < args.nsims ) args.ct[tid] = 0;
+                    }
+                    );
+    std::cout << "done cells_energy\n";
+    std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.nsims,
+                    [=](unsigned int tid) {
+                      args.ct[tid] = 0;
                     }
                     );     
+
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -93,15 +107,19 @@ namespace CaloGpuGeneral_stdpar {
 
     auto t0 = std::chrono::system_clock::now();
     simulate_clean( args );
+    std::cout << "done clean\n";
 
     auto t1 = std::chrono::system_clock::now();
     simulate_hits_de( args );
+    std::cout << "done sim_de\n";
 
     auto t2 = std::chrono::system_clock::now();
     simulate_hits_ct( args );
 
     auto t3 = std::chrono::system_clock::now();
 
+    std::cout << "args.ct: " << args.ct << std::endl;
+    
     // pass result back
     //    std::memcpy( args.ct_h, args.ct, args.nsims * sizeof(int));
     for (int i=0; i<args.nsims; ++i) {
