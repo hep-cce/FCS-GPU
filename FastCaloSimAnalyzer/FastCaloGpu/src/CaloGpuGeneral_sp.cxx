@@ -157,16 +157,7 @@ namespace CaloGpuGeneral_stdpar {
 
     if (timing.count > 0) {
       std::cout << "kernel timing\n";
-      printf("%12s %15s %15s\n","kernel","total /s","avg launch /us");
-      printf("%12s %15.8f %15.1f\n","sim_clean",timing.t_sim_clean.count(),
-             timing.t_sim_clean.count() * 1000000 /timing.count);
-      printf("%12s %15.8f %15.1f\n","sim_A",timing.t_sim_A.count(),
-             timing.t_sim_A.count() * 1000000 /timing.count);
-      printf("%12s %15.8f %15.1f\n","sim_ct",timing.t_sim_ct.count(),
-             timing.t_sim_ct.count() * 1000000 /timing.count);
-      printf("%12s %15.8f %15.1f\n","sim_cp",timing.t_sim_cp.count(),
-             timing.t_sim_cp.count() * 1000000 /timing.count);
-      printf("%12s %15d\n","launch count",timing.count);
+      std::cout << timing;
     } else {
       std::cout << "no kernel timing available" << std::endl;
     }
