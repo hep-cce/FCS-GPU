@@ -8,13 +8,7 @@
 #include "Rand4Hits.h"
 #include "Args.h"
 
-#if defined( USE_STDPAR )
-#  define __DEVICE__
-#  define __HOST__
-#else
-#  define __DEVICE__ __device__
-#  define __HOST__ __host__
-#endif
+#include "HostDevDef.h"
 
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {

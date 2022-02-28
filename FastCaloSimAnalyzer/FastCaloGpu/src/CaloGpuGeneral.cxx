@@ -111,9 +111,6 @@ void CaloGpuGeneral::load_hitsim_params( void* rd4h, HitParams* hp, long* simbin
     exit( 2 );
   }
   
-  HitParams* hp_g      = ( (Rand4Hits*)rd4h )->get_hitparams();
-  long*      simbins_g = ( (Rand4Hits*)rd4h )->get_simbins();
-  
 #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::load_hitsim_params( rd4h, hp, simbins, bins );
 #else

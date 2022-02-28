@@ -171,18 +171,6 @@ namespace CaloGpuGeneral_cu {
       }
     }
 #endif
-
-    
-// #ifdef DUMP_HITCELLS
-//     std::cout << "hitcells: " << args.ct_h << "  nhits: " << nhits << "\n";
-//     std::map<unsigned int,float> cm;
-//     for (int i=0; i<args.ct; ++i) {
-//       cm[args.hitcells_E_h[i].cellid] = args.hitcells_E_h[i].energy;
-//     }
-//     for (auto &em: cm) {
-//       std::cout << "  cell: " << em.first << "  " << em.second << std::endl;
-//     }
-// #endif
     
     CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     if (first) {
