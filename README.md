@@ -14,7 +14,8 @@ module load cmake gcc/6.4.0 cuda/9.0 root/v6.14.08-gcc-6.4.0
 ```
 or
 ```
-module load cmake gcc/8.2.0 cuda/10.1 root/6.18.02-gcc-8.2.0
+## module load cmake gcc/8.2.0 cuda/10.1 root/6.18.02-gcc-8.2.0
+module load cmake gcc/8.2.0 llvm/13.0.0 root/v6.20.04-gcc-8.2.0
 ```
 
 then
@@ -22,13 +23,15 @@ then
 ```
 mkdir build 
 cd build
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+## cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
 make -j 8
 ```
 
 load the runtime environment:
 ```
-. x86_64-slc7-gcc8-opt/setup.sh
+## . x86_64-slc7-gcc8-opt/setup.sh
+. x86_64-slc7-clang130-opt/setup.sh
 ```
 run the simulation
 
