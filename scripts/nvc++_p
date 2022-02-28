@@ -9,22 +9,39 @@ A=$*
 ## > makelocalrc -gcc PATH_TO_GCC -gpp PATH_TO_G++ -x -d PATH_TO_LOCALRC_DIR
 #
 LOCALRC=""
-which gcc | grep -q 10.1.0
-if [[ $? -eq 0 ]]; then
-   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
-fi
-which gcc | grep -q 10.2.0
-if [[ $? -eq 0 ]]; then
-   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
-fi
-which gcc | grep -q 9.3.0
-if [[ $? -eq 0 ]]; then
-   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
+GCCVER=$( gcc --version | head -1 | awk '{print $NF}' )
+case $GCCVER in
+    11.2.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc112"
+        ;;
+    10.2.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
+        ;;
+    10.1.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
+        ;;
+    9.3.0)    
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
+        ;;
+esac
+
+if [[ ! -f $LOCALRC ]]; then
+    echo "nvc++_p ERROR: no local rc file \"$LOCALRC\" found"
+    exit 1
 fi
 
+LOCALRC="-rc=${LOCALRC}"
+
+STDPAROPTS="-cudalib=curand"
+
+# CMAKE_BUILD_TYPE == RelWithDebInfo or Release uses -DNDEBUG
+echo $A | grep -q DNDEBUG
+DBG=$?
 
 ## ubsan needed for Debug
-STDPAROPTS="-cudalib=curand -lubsan"
+if [[ $DBG -eq 1 ]]; then    
+    DBGOPTS=" -lubsan"
+fi
 
 echo $A | grep -q USE_STDPAR
 SP=$?
@@ -43,6 +60,7 @@ if [[ $FC -eq 0 || $RT -eq 0 || $FORCE_NVCPP -eq 1 ]]; then
     X=$( echo $* | sed s/-pipe// )
     X=$( echo $X | sed s/-Wno-unused-local-typedefs// )
     X=$( echo $X | sed s/-Woverloaded-virtual// )
+    X=$( echo $X | sed s/-fdiagnostics-color=always// )
     X=$( echo $X | sed s/gnu++17/c++17/ )
 
     ## needed for CMAKE_RELEASE_TYPE=Debug
@@ -60,6 +78,8 @@ else
 
     CXXARGS=$A
 fi
+
+CXXARGS+=$DBGOPTS
 
 if [[ ! -z ${NVCPP_VERBOSE+set} ]]; then
     echo "==> $CXX $CXXARGS"
