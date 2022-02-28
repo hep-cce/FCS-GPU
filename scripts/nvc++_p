@@ -9,13 +9,17 @@ A=$*
 ## > makelocalrc -gcc PATH_TO_GCC -gpp PATH_TO_G++ -x -d PATH_TO_LOCALRC_DIR
 #
 LOCALRC=""
-which gcc | grep -q 10.1.0
+which gcc | grep -q 11.2.0
 if [[ $? -eq 0 ]]; then
-   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc112"
 fi
 which gcc | grep -q 10.2.0
 if [[ $? -eq 0 ]]; then
    LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
+fi
+which gcc | grep -q 10.1.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
 fi
 which gcc | grep -q 9.3.0
 if [[ $? -eq 0 ]]; then
