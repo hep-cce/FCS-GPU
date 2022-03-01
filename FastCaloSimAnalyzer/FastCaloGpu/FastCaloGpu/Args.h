@@ -38,6 +38,34 @@ namespace CaloGpuGeneral {
       count ++;
       return *this;
     }
+    
+    std::string print() const {
+      std::string out;
+      char buf[100];
+      sprintf(buf,"%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_clean",this->t_sim_clean.count(),
+              this->t_sim_clean.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_A",this->t_sim_A.count(),
+              this->t_sim_A.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_ct",this->t_sim_ct.count(),
+              this->t_sim_ct.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_cp",this->t_sim_cp.count(),
+              this->t_sim_cp.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15d\n","launch count",this->count);
+      out += buf;
+      
+      return out;
+    }
+    
+    friend std::ostream& operator<< (std::ostream& ost, const KernelTime& k) {
+      return ost << k.print();
+    }
+    
   };
 } // namespace CaloGpuGeneral
 
