@@ -46,7 +46,8 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCS
                                                                   const TFCSTruthState*         truth,
                                                                   const TFCSExtrapolationState* /*extrapol*/ ) {
   if ( !simulstate.randomEngine() ) { return FCSFatal; }
-  
+
+  //std::cout << "sssim hit " << std::endl; 
   const int    pdgId  = truth->pdgid();
   const double charge = HepPDT::ParticleID( pdgId ).charge();
 
@@ -100,7 +101,9 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCS
   if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
 
   const float dist000    = TMath::Sqrt( center_r * center_r + center_z * center_z );
-  const float eta_jakobi = TMath::Abs( 2.0 * TMath::Exp( -center_eta ) / ( 1.0 + TMath::Exp( -2 * center_eta ) ) );
+  //const float eta_jakobi = TMath::Abs( 2.0 * TMath::Exp( -center_eta ) / ( 1.0 + TMath::Exp( -2 * center_eta ) ) );
+  const float exp_ctreta = TMath::Exp( -center_eta );
+  const float eta_jakobi = TMath::Abs( 2.0 * exp_ctreta / ( 1.0 + exp_ctreta * exp_ctreta ) );
 
   const float delta_eta = delta_eta_mm / eta_jakobi / dist000;
   const float delta_phi = delta_phi_mm / center_r;

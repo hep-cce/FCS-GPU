@@ -87,7 +87,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     return FCSFatal;
   }
 
- 
   float Ehit = simulstate.E( cs ) / nhit;
 
   bool debug = msgLvl( MSG::DEBUG );

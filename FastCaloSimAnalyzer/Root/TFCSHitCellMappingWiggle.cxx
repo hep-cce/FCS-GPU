@@ -96,6 +96,7 @@ FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit( Hit& hit, TFCSSimulationSt
                                                       const TFCSExtrapolationState* extrapol ) {
   if ( !simulstate.randomEngine() ) { return FCSFatal; }
 
+  //std::cout << "wwwigle " << std::endl;
   float eta = fabs( hit.eta() );
   if ( eta < m_bin_low_edge[0] || eta >= m_bin_low_edge[get_number_of_bins()] ) {
     return TFCSHitCellMapping::simulate_hit( hit, simulstate, truth, extrapol );
