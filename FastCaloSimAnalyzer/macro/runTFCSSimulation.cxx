@@ -159,25 +159,41 @@ void set_prefix( int analyze_layer, int analyze_pcabin ) {
 int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, int analyze_layer = 2,
                        const std::string& plotfilename = "Simulation.root", long seed = 42, int nEvents = -1,
                        int firstEvent = 0, int selectPCAbin = -1, int debug = 0, bool png = false ) {
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0 = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
   TFCSParametrizationBase* fullchain     = nullptr;
   std::string              paramName     = TFCSSampleDiscovery::getParametrizationName();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                     t00_A         = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                     fullchainfile = std::unique_ptr<TFile>( TFile::Open( paramName.c_str() ) );
   std::cout << "Parametrization File: '" << paramName << "'" << std::endl;
   if ( !fullchainfile ) {
     std::cerr << "Error: Could not open file '" << paramName << "'" << std::endl;
     return 1;
   }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0_A = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
 #ifdef FCS_DEBUG
   fullchainfile->ls();
 #endif
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01  = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   fullchain = dynamic_cast<TFCSParametrizationBase*>( fullchainfile->Get( "SelPDGID" ) );
   fullchainfile->Close();
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto   t1            = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   double etamax        = etamin + 0.05;
   init_eta             = etamin + 0.025;
   std::string particle = "";
@@ -197,7 +213,11 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   std::cout << " eta_label = " << eta_label << std::endl;
   std::string     etamin_label = eta_label.substr( 0, eta_label.find( "_" ) );
   std::string     etamax_label = eta_label.substr( 4, eta_label.find( "_" ) );
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto            t01_A        = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   auto            sample       = std::make_unique<TFCSSampleDiscovery>();
   int             dsid         = sample->findDSID( pdgid, int_E, etamin * 100, 0 ).dsid;
   FCS::SampleInfo sampleInfo   = sample->findSample( dsid );
@@ -207,7 +227,11 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   TString         pcaSample    = sample->getFirstPCAAppName( dsid );
   TString         avgSample    = sample->getAvgSimShapeName( dsid );
   set_prefix( analyze_layer, -1 );
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01_B = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
 #if defined( __linux__ )
   std::cout << "* Running on linux system " << std::endl;
 #endif
@@ -235,12 +259,19 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   std::cout << " *   1stPCA file: " << pcaSample << std::endl;
   std::cout << " *   AvgShape file: " << avgSample << std::endl;
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01_C = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   //////////////////////////////////////////////////////////
   ///// Creat validation steering
   //////////////////////////////////////////////////////////
   TFCSShapeValidation* analyze = new TFCSShapeValidation( inputChain, analyze_layer, seed );
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                 t2A     = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   analyze->set_IsNewSample( true );
   analyze->set_Nentries( nEvents );
   analyze->set_Debug( debug );
@@ -255,14 +286,18 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
     std::cout << "=============================" << std::endl;
   }
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t2 = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
   //////////////////////////////////////////////////////////
   ///// Run over events
   //////////////////////////////////////////////////////////
   analyze->LoopEvents( -1 );
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t3 = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
   if ( plotfilename != "" ) {
     fout = TFile::Open( plotfilename.c_str(), "recreate" );
@@ -293,7 +328,11 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
     }
     ++ibin;
   }
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                          t4   = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   std::chrono::duration<double> diff = t2 - t0;
   std::cout << "Time before loop:" << diff.count() << " s" << std::endl;
   diff = t00_A - t0;
@@ -325,6 +364,10 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
 
 int main( int argc, char** argv ) {
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+  auto t_main_bgn = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
   std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
 
   int         pdgId        = args["--pdgId"].asLong();
@@ -347,5 +390,12 @@ int main( int argc, char** argv ) {
 #ifdef USE_KOKKOS
   Kokkos::finalize();
 #endif
-  return ret;
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+  auto t_main_end = std::chrono::system_clock::now();
+/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+  std::chrono::duration<double> diff = t_main_end - t_main_bgn;
+  std::cout << "Time in main: " << diff.count() << " s" << std::endl;
+ 
+ return ret;
 }

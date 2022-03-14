@@ -45,6 +45,9 @@ std::chrono::duration<double> TFCSShapeValidation::time_g2;
 std::chrono::duration<double> TFCSShapeValidation::time_o1;
 std::chrono::duration<double> TFCSShapeValidation::time_o2;
 std::chrono::duration<double> TFCSShapeValidation::time_h;
+std::chrono::duration<double> TFCSShapeValidation::time_nhits;
+std::chrono::duration<double> TFCSShapeValidation::time_mchain;
+std::chrono::duration<double> TFCSShapeValidation::time_hitsim;
 
 TFCSShapeValidation::TFCSShapeValidation( long seed ) {
   m_debug      = 0;
@@ -100,14 +103,19 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   LoadGeo();
   auto                          t_01 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff;
-
+  //std::cout << "starting in looooooop " << std::endl;
   time_o1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o2 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_h  = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_nhits = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_mchain = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_hitsim = std::chrono::duration<double, std::ratio<1>>::zero();
 
   std::chrono::duration<double> t_c[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
+  std::chrono::duration<double> t_c1[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
+  std::chrono::duration<double> t_c2[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
   std::chrono::duration<double> t_bc   = std::chrono::duration<double, std::ratio<1>>::zero();
   std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
 
@@ -374,6 +382,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
                     << " Pointer: " << &validation << " Title: " << validation.GetTitle() << std::endl;
         }
         validation.simul().emplace_back( m_randEngine );
+        
+        auto m = std::chrono::system_clock::now();
         TFCSSimulationState& chain_simul = validation.simul().back();
 #ifdef USE_GPU
         chain_simul.set_gpu_rand( m_rd4h );
@@ -390,6 +400,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         }
         auto e = std::chrono::system_clock::now();
         t_c[ii++] += e - s;
+        t_c1[ii]  += m - s;
+        t_c2[ii]  += e - m;
       }
     } // end loop over particles
   }   // end loop over events
@@ -402,6 +414,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::chrono::duration<double> diff1 = t3 - t2;
   diff                                = t_01 - start;
   std::cout << "Time of  LoadGeo cpu IO:" << diff.count() << " s" << std::endl;
+  diff                                = t2 - t_01;
+  std::cout << "Time of InitInputTree, Truth, Extrapol., Valid. :" << diff.count() << " s" << std::endl;
 #ifdef USE_GPU
   diff = t1 - t_01;
   std::cout << "Time of  GPU GeoLg() :" << diff.count() << " s" << std::endl;
@@ -411,17 +425,22 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::cout << "Time of  resizeTruth :" << diff.count() << " s" << std::endl;
   std::cout << "Time of  eventloop GPU load FH  :" << time_o1.count() << " s" << std::endl;
 #endif
-  std::cout << "Time of  eventloop  LateralShapeParamHitChain  :" << time_o2.count() << " s" << std::endl;
   std::cout << "Time of  eventloop  :" << diff1.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  GPU ChainA:" << time_g1.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  GPU ChainB:" << time_g2.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  host Chain0:" << time_h.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  before chain simul:" << t_bc.count() << " s" << std::endl;
+  //std::cout << "Time of  eventloop  GPU ChainA:" << time_g1.count() << " s" << std::endl;
+  //std::cout << "Time of  eventloop  GPU ChainB:" << time_g2.count() << " s" << std::endl;
+  //std::cout << "Time of  eventloop  host Chain0:" << time_h.count() << " s" << std::endl;
   std::cout << "Time of  eventloop  I/O read from tree:" << t_io.count() << " s" << std::endl;
+  std::cout << "Time of  eventloop  before chain simul:" << t_bc.count() << " s" << std::endl;
 
-  for ( int ii = 0; ii < 5; ii++ )
-    std::cout << "Time for Chain " << ii << " is " << t_c[ii].count() << " s" << std::endl;
-
+  for ( int ii = 0; ii < 5; ii++ ) {
+    std::cout << "Time for Chain " << ii << " is " << t_c[ii].count()  << " s" << std::endl;
+    std::cout << "-- Time for emplace_back is " << t_c1[ii].count() << " s" << std::endl;
+    std::cout << "-- Time for simulate is     " << t_c2[ii].count() << " s" << std::endl;
+  }
+  std::cout << "Time of eventloop LateralShapeParamHitChain :" << time_o2.count() << " s" << std::endl;
+  std::cout << "Time of get_number_of_hits :" << time_nhits.count() << " s" << std::endl;
+  std::cout << "Time of mchain loop :" << time_mchain.count() << " s" << std::endl;
+  std::cout << "Time of hitsim->simulate_hit :" << time_hitsim.count() << " s" << std::endl;
 #ifdef FCS_DEBUG
   m_chain->GetTree()->PrintCacheStats();
 #endif

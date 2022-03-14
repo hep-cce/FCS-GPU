@@ -77,7 +77,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
   auto ss0 = simulstate.cells().size();
   bool onGPU=false;
-  
   auto start = std::chrono::system_clock::now();
 
   int cs = calosample();
@@ -88,6 +87,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     return FCSFatal;
   }
 
+ 
   float Ehit = simulstate.E( cs ) / nhit;
 
   bool debug = msgLvl( MSG::DEBUG );
@@ -235,10 +235,21 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     //   TFCSShapeValidation::time_g += (t2-start) ;
   } else {
 #endif
+   auto end_nhits = std::chrono::system_clock::now();
+   TFCSShapeValidation::time_nhits += end_nhits - start;
+  
+    auto start_hit = std::chrono::system_clock::now();
+  
     for ( int i = 0; i < nhit; ++i ) {
+   
+      auto start_mchain = std::chrono::system_clock::now();
       TFCSLateralShapeParametrizationHitBase::Hit hit;
       hit.E() = Ehit;
+      
+      //This loop is time consuming
       for ( TFCSLateralShapeParametrizationHitBase* hitsim : m_chain ) {
+      //this for loop is probably loading data from ram to cache 
+        auto start_hitsim = std::chrono::system_clock::now();
         if ( debug ) {
           if ( i < 2 )
             hitsim->setLevel( MSG::DEBUG );
@@ -252,7 +263,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
                              << i << "/" << FCS_RETRY_COUNT );
 
           FCSReturnCode status = hitsim->simulate_hit( hit, simulstate, truth, extrapol );
-
+    
           if ( status == FCSSuccess )
             break;
           else if ( status == FCSFatal )
@@ -263,7 +274,12 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
                            << FCS_RETRY_COUNT << "retries" );
           }
         }
+        auto end_hitsim = std::chrono::system_clock::now();
+        TFCSShapeValidation::time_hitsim += end_hitsim - start_hitsim;
+
       }
+      auto end_mchain = std::chrono::system_clock::now();
+      TFCSShapeValidation::time_mchain += end_mchain - start_mchain; 
     }
     
 #ifdef USE_GPU
@@ -282,7 +298,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   }
   {
     auto t3 = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_o2 += ( t3 - start );
+    TFCSShapeValidation::time_o2 += ( t3 - start_hit );
   }
 
 

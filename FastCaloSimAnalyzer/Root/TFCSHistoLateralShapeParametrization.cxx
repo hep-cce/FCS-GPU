@@ -46,7 +46,7 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCS
                                                                   const TFCSTruthState*         truth,
                                                                   const TFCSExtrapolationState* /*extrapol*/ ) {
   if ( !simulstate.randomEngine() ) { return FCSFatal; }
-
+  
   const int    pdgId  = truth->pdgid();
   const double charge = HepPDT::ParticleID( pdgId ).charge();
 
