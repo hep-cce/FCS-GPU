@@ -15,7 +15,7 @@ module load cmake gcc/6.4.0 cuda/9.0 root/v6.14.08-gcc-6.4.0
 or
 ```
 ## module load cmake gcc/8.2.0 cuda/10.1 root/6.18.02-gcc-8.2.0
-module load cmake gcc/8.2.0 llvm/13.0.0 root/v6.20.04-gcc-8.2.0
+module load cmake gcc/8.2.0 llvm/13.0.1 root/v6.20.04-gcc-8.2.0
 ```
 
 then
