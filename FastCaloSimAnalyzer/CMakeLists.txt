@@ -1,6 +1,6 @@
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.14 FATAL_ERROR)
 
 # Add additional CMake macros and definitions
 set(CMAKE_MODULE_PATH
@@ -20,6 +20,15 @@ endif()
 include(FastCaloSim)
 include(XRootD)
 
+# Add OpenMP
+find_package(OpenMP)
+if(OPENMP_FOUND)
+  set(OpenMP_FLAGS "-Xopenmp-target -march=sm_60 -fopenmp -fopenmp-targets=nvptx64")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS}")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS}")
+else()
+  message(WARNING "Configuring without OpenMP!")
+endif()
 
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)

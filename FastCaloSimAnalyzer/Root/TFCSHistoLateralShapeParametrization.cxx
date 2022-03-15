@@ -101,12 +101,15 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCS
   if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
 
   const float dist000    = TMath::Sqrt( center_r * center_r + center_z * center_z );
-  //const float eta_jakobi = TMath::Abs( 2.0 * TMath::Exp( -center_eta ) / ( 1.0 + TMath::Exp( -2 * center_eta ) ) );
-  const float exp_ctreta = TMath::Exp( -center_eta );
-  const float eta_jakobi = TMath::Abs( 2.0 * exp_ctreta / ( 1.0 + exp_ctreta * exp_ctreta ) );
+  const float eta_jakobi = TMath::Abs( 2.0 * TMath::Exp( -center_eta ) / ( 1.0 + TMath::Exp( -2 * center_eta ) ) );
 
   const float delta_eta = delta_eta_mm / eta_jakobi / dist000;
   const float delta_phi = delta_phi_mm / center_r;
+
+  //const float exp_ctreta = TMath::Exp( -center_eta );
+  //const float eta_jakobi = TMath::Abs( exp_ctreta + 1.0/exp_ctreta );//Abs required? 
+  //const float delta_eta  = 0.5 * delta_eta_mm * eta_jakobi / dist000;
+
 
   hit.setEtaPhiZE( center_eta + delta_eta, center_phi + delta_phi, center_z, hit.E() );
 

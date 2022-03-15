@@ -37,7 +37,7 @@ run the simulation
 
 ```
 cd $your_work_directy
-salloc --nodes=1 --ntasks=2 --time=00:30:00
+salloc --nodes=1 --ntasks=2 --constraint=tesla --gres=gpu:4 --time=00:30:00
 srun -A cce -p long -N1 -n1 runTFCSSimulation
 ```
 
