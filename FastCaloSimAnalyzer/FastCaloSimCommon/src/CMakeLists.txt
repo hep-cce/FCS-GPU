@@ -6,7 +6,7 @@ set(FastCaloSimCommon_Srcs
   ../dependencies/atlasrootstyle/AtlasLabels.C
   ../dependencies/atlasrootstyle/AtlasStyle.C
   ../dependencies/atlasrootstyle/AtlasUtils.C
-  ../dependencies/docopt/docopt.cxx
+  ../dependencies/docopt/docopt.cpp
 
   # CLHEP
   ../CLHEP/Random/RandFlat.cxx

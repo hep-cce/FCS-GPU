@@ -6,9 +6,9 @@
 
 #include "GaudiKernel/MsgStream.h"
 
-
 /*
-ISF_FCS_Parametrization::FCS_StepInfo::FCS_StepInfo(const FCS_StepInfo& first, const FCS_StepInfo& second)
+ISF_FCS_Parametrization::FCS_StepInfo::FCS_StepInfo(const FCS_StepInfo& first,
+const FCS_StepInfo& second)
 {
   double esum = first.m_energy + second.m_energy;
   double w1 = 0;
@@ -23,57 +23,50 @@ ISF_FCS_Parametrization::FCS_StepInfo::FCS_StepInfo(const FCS_StepInfo& first, c
   m_time = w1*first.m_time + w2*second.m_time;
   m_energy = esum;
   m_valid = true;
-  m_detector = first.m_detector;  //need to make sure that it's not merging hits from different detector parts..
+  m_detector = first.m_detector;  //need to make sure that it's not merging hits
+from different detector parts..
   m_ID = first.m_ID; //dtto
 }
 */
-double ISF_FCS_Parametrization::FCS_StepInfo::diff2(const FCS_StepInfo& other) const
-  {
-    return (this->position().diff2(other.position()));
+double ISF_FCS_Parametrization::FCS_StepInfo::diff2(const FCS_StepInfo& other)
+    const {
+  return (this->position().diff2(other.position()));
+}
+
+ISF_FCS_Parametrization::FCS_StepInfo& ISF_FCS_Parametrization::FCS_StepInfo::
+operator+=(const ISF_FCS_Parametrization::FCS_StepInfo& other) {
+  if (identify() != other.identify()) {
+    std::cout << "Warning: Not merging hits from different cells!!! "
+              << identify() << " / " << other.identify() << std::endl;
+    return *this;
   }
 
+  if ((fabs(energy()) > 1e-9) && (fabs(other.energy()) > 1e-9)) {
+    // both !=0
+    // Use absolute energies for weighting
+    double eabssum = fabs(energy()) + fabs(other.energy());
+    double esum = energy() + other.energy();
+    double w1 = fabs(energy()) / eabssum;
+    double w2 = fabs(other.energy()) / eabssum;
+    // Average position, time, energy sum
+    m_pos = w1 * m_pos + w2 * other.m_pos;
+    setEnergy(esum);
+    setTime(w1 * time() + w2 * other.time());
 
-ISF_FCS_Parametrization::FCS_StepInfo& ISF_FCS_Parametrization::FCS_StepInfo::operator+=(const ISF_FCS_Parametrization::FCS_StepInfo& other)
-{
-  if (identify() != other.identify())
-    {
-      std::cout <<"Warning: Not merging hits from different cells!!! "<<identify()<<" / "<<other.identify()<<std::endl;
-      return *this;
-    }
-
-  if ( (fabs( energy() ) > 1e-9) && (fabs( other.energy() ) > 1e-9))
-    {
-      //both !=0
-      //Use absolute energies for weighting
-      double eabssum = fabs(energy())+fabs(other.energy());
-      double esum = energy()+other.energy();
-      double w1 =  fabs(energy())/eabssum;
-      double w2 =  fabs(other.energy())/eabssum;
-      //Average position, time, energy sum
-      m_pos = w1*m_pos + w2*other.m_pos;
-      setEnergy(esum);
-      setTime(w1* time()+ w2 * other.time());
-
-
-    }
-  else if (fabs( energy() ) < 1e-9)
-      {
-        //original is 0, use other
-        setEnergy(other.energy());
-        setP(other.position());
-        setTime(other.time());
-      }
-  else if (fabs( other.energy() ) < 1e-9)
-    {
-      //other is 0, use original
-      //don't need to do anything...
-    }
-  else
-    {
-      std::cout <<"Warning: merging hits something weird: "<<std::endl;
-      std::cout <<"Original hit: "<<energy()<<" "<<position()<<std::endl;
-      std::cout <<"Second hit: "<<other.energy()<<" "<<other.position()<<std::endl;
-    }
+  } else if (fabs(energy()) < 1e-9) {
+    // original is 0, use other
+    setEnergy(other.energy());
+    setP(other.position());
+    setTime(other.time());
+  } else if (fabs(other.energy()) < 1e-9) {
+    // other is 0, use original
+    // don't need to do anything...
+  } else {
+    std::cout << "Warning: merging hits something weird: " << std::endl;
+    std::cout << "Original hit: " << energy() << " " << position() << std::endl;
+    std::cout << "Second hit: " << other.energy() << " " << other.position()
+              << std::endl;
+  }
 
   /*
   double esum = energy() + other.energy();

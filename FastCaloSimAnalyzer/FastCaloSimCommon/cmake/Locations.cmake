@@ -18,6 +18,8 @@ set(CMAKE_INSTALL_PYTHONDIR "python"
     CACHE STRING "Python installation directory" FORCE)
 set(CMAKE_INSTALL_DATADIR "data"
     CACHE STRING "Data installation directory" FORCE)
+set(CMAKE_INSTALL_TESTDIR "test"
+    CACHE STRING "Test installation directory" FORCE)
 
 # Setup output directories
 set(CMAKE_OUTPUT_DIRECTORY
@@ -41,3 +43,6 @@ set(CMAKE_PYTHON_OUTPUT_DIRECTORY
 set(CMAKE_DATA_OUTPUT_DIRECTORY
     "${CMAKE_BINARY_DIR}/${ATLAS_PLATFORM}/data" CACHE STRING
     "Directory collecting data in the build area" FORCE)
+set(CMAKE_TEST_OUTPUT_DIRECTORY
+    "${CMAKE_BINARY_DIR}/${ATLAS_PLATFORM}/test" CACHE STRING
+    "Directory used to store tests during compilation" FORCE)

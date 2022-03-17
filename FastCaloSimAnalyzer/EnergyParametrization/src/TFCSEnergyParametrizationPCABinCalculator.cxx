@@ -11,23 +11,24 @@
 //==== TFCSEnergyParametrizationPCABinCalculator ====
 //===================================================
 
-TFCSEnergyParametrizationPCABinCalculator::TFCSEnergyParametrizationPCABinCalculator( TFCSApplyFirstPCA applyfirstPCA,
-                                                                                      const char*       name,
-                                                                                      const char*       title )
-    : TFCSEnergyParametrization( name, title ) {
+TFCSEnergyParametrizationPCABinCalculator::
+    TFCSEnergyParametrizationPCABinCalculator(TFCSApplyFirstPCA applyfirstPCA,
+                                              const char* name,
+                                              const char* title)
+    : TFCSEnergyParametrization(name, title) {
 
   m_applyfirstPCA = applyfirstPCA;
-  m_PCAbin        = -1;
+  m_PCAbin = -1;
 }
 
-FCSReturnCode TFCSEnergyParametrizationPCABinCalculator::simulate( TFCSSimulationState& simulstate,
-                                                                   const TFCSTruthState* /*truth*/,
-                                                                   const TFCSExtrapolationState* /*extrapol*/ ) {
+FCSReturnCode TFCSEnergyParametrizationPCABinCalculator::simulate(
+    TFCSSimulationState& simulstate, const TFCSTruthState* /*truth*/,
+    const TFCSExtrapolationState* /*extrapol*/) {
 
-  m_PCAbin = m_applyfirstPCA.get_PCAbin_from_simstate( simulstate );
+  m_PCAbin = m_applyfirstPCA.get_PCAbin_from_simstate(simulstate);
 
   // cout<<"PCA bin "<<m_PCAbin<<endl;
-  ATH_MSG( DEBUG ) << "PCA bin = " << m_PCAbin << std::endl;
+  ATH_MSG(DEBUG) << "PCA bin = " << m_PCAbin << std::endl;
 
   // simulstate.set_Ebin(m_PCAbin);
 

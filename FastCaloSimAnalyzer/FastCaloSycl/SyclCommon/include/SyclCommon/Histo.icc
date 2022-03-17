@@ -1,0 +1,251 @@
+// Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
+
+#include <SyclCommon/DeviceCommon.h>
+
+namespace fastcalosycl::syclcommon {
+
+inline bool Histo::Init() {
+  if (is_initialized_) {
+    return true;
+  }
+  // Catch asynchronous exceptions
+  exception_handler = [](cl::sycl::exception_list exceptions) {
+    for (std::exception_ptr const& e : exceptions) {
+      try {
+        std::rethrow_exception(e);
+      } catch (cl::sycl::exception const& e) {
+        std::cout << "Caught asynchronous SYCL exception:\n"
+                  << e.what() << std::endl;
+      }
+    }
+  };
+  // Initialize device, queue and context
+  // TODO: Why doesn't the SYCL_TARGET definition work here?
+  // device_ = fastcalosycl::syclcommon::GetTargetDevice();
+  if (!ctx_) {
+    device_ = fastcalosycl::syclcommon::GetTargetDevice();
+    queue_ = cl::sycl::queue(device_);
+    ctx_ = new cl::sycl::context(queue_.get_context());
+  } else {
+    device_ = ctx_->get_devices()[0];
+    queue_ = cl::sycl::queue(*ctx_, device_);
+  }
+
+  // Ensure device can handle USM device allocations.
+  if (!device_.get_info<cl::sycl::info::device::usm_device_allocations>()) {
+    std::cout << "ERROR :: device \""
+              << device_.get_info<cl::sycl::info::device::name>()
+              << "\" does not support usm_device_allocations!" << std::endl;
+    is_initialized_ = false;
+  }
+
+  // #if defined SYCL_DEBUG
+  // Name of the device running on
+  std::string dev_name = device_.get_info<cl::sycl::info::device::name>();
+  std::cout << "SyclCommon::Histo  Using device \"" << dev_name << "\""
+            << std::endl;
+  // #endif  // SYCL_DEBUG
+  is_initialized_ = true;
+  return is_initialized_;
+}
+
+template <class T, class T2>
+inline bool Histo::LoadH1DF(std::vector<const T*>& func_vec,
+                            std::vector<float>& low_edge_vec) {
+  if (h1df_ptr_) {
+    // Already loaded functions
+    return true;
+  }
+
+  h1df_ = {0, 0, nullptr, nullptr, nullptr, nullptr};
+  h1df_.max_value = T2::s_MaxValue;
+  h1df_.num_funcs = func_vec.size();
+  h1df_.low_edge = &(low_edge_vec[0]);
+  h1df_.sizes = (unsigned int*)malloc(h1df_.num_funcs * sizeof(unsigned int));
+  h1df_.contents = (uint32_t**)malloc(h1df_.num_funcs * sizeof(uint32_t*));
+  h1df_.borders = (float**)malloc((h1df_.num_funcs + 1) * sizeof(float*));
+
+  // Loop over functions and assign contents
+  for (unsigned int i = 0; i < h1df_.num_funcs; i++) {
+    h1df_.sizes[i] = ((T2*)func_vec[i])->get_HistoContents().size();
+    h1df_.contents[i] = &(((T2*)func_vec[i])->get_HistoContents()[0]);
+    h1df_.borders[i] = &(((T2*)func_vec[i])->get_HistoBordersx()[0]);
+  }
+
+  h1df_ptr_ = &h1df_;
+
+  return true;
+}
+
+inline bool Histo::LoadH1DFDevice() {
+  if (!is_initialized_) {
+    if (!Init()) {
+      return false;
+    }
+  }
+  // Ensure 1D functions were loaded on host
+  if (!h1df_ptr_) {
+    std::cout << "Histo::LoadH1DFDevice() Histo1DFunction is null!"
+              << std::endl;
+    return false;
+  }
+
+  // Prepare device histograms
+  Histo1DFunction h1df = {0, 0, nullptr, nullptr, nullptr, nullptr};
+  h1df.max_value = h1df_ptr_->max_value;
+  h1df.num_funcs = h1df_ptr_->num_funcs;
+
+  // Allocate device-side memory
+  h1df.low_edge = (float*)malloc_device((h1df.num_funcs + 1) * sizeof(float),
+                                        device_, *ctx_);
+  queue_
+      .memcpy(h1df.low_edge, &h1df_ptr_->low_edge[0],
+              (h1df.num_funcs + 1) * sizeof(float))
+      .wait_and_throw();
+  h1df.sizes = (unsigned int*)malloc_device(
+      h1df.num_funcs * sizeof(unsigned int), device_, *ctx_);
+  queue_
+      .memcpy(h1df.sizes, &h1df_ptr_->sizes[0],
+              h1df.num_funcs * sizeof(unsigned int))
+      .wait_and_throw();
+
+  // Contents and borders
+  h1df.contents = (uint32_t**)malloc_device(h1df.num_funcs * sizeof(uint32_t*),
+                                            device_, *ctx_);
+  h1df.borders =
+      (float**)malloc_device(h1df.num_funcs * sizeof(float*), device_, *ctx_);
+
+  // Some host-side allocations
+  uint32_t** contents_ptr =
+      (uint32_t**)malloc(h1df.num_funcs * sizeof(uint32_t*));
+  float** borders_ptr = (float**)malloc(h1df.num_funcs * sizeof(float*));
+
+  // Allocate memory for each content and border array
+  for (unsigned int i = 0; i < h1df.num_funcs; i++) {
+    contents_ptr[i] = (uint32_t*)malloc_device(
+        h1df_ptr_->sizes[i] * sizeof(uint32_t), device_, *ctx_);
+    queue_
+        .memcpy(contents_ptr[i], &h1df_ptr_->contents[i][0],
+                // h1df_ptr_->sizes[i] * sizeof(uint32_t))
+                h1df_ptr_->sizes[i] * sizeof(uint32_t))
+        .wait_and_throw();
+    borders_ptr[i] = (float*)malloc_device(
+        (h1df_ptr_->sizes[i] + 1) * sizeof(float), device_, *ctx_);
+    queue_
+        .memcpy(borders_ptr[i], &h1df_ptr_->borders[i][0],
+                (h1df_ptr_->sizes[i] + 1) * sizeof(float))
+        .wait_and_throw();
+  }
+
+  queue_
+      .memcpy(h1df.contents, &contents_ptr[0],
+              h1df_ptr_->num_funcs * sizeof(uint32_t*))
+      .wait_and_throw();
+  queue_
+      .memcpy(h1df.borders, &borders_ptr[0],
+              h1df_ptr_->num_funcs * sizeof(float*))
+      .wait_and_throw();
+
+  // Allocate memory and copy to device
+  h1df_dev_ = (Histo1DFunction*)malloc_device(sizeof(h1df), device_, *ctx_);
+  if (!h1df_dev_) {
+    std::cout << "Histo::LoadH1DFDevice() Error allocating device memory!";
+    return false;
+  }
+
+  // Copy the temporary h1df_dev to the member variable
+  queue_.memcpy(h1df_dev_, &h1df, sizeof(h1df)).wait_and_throw();
+
+  // Free memory used by temporary variables
+  free(contents_ptr);
+  free(borders_ptr);
+
+  return true;
+}
+
+template <class T>
+inline bool Histo::LoadH2DF(T& func) {
+  if (h2df_ptr_) {
+    // Already loaded functions
+    return true;
+  }
+
+  h2df_ = {0, 0, nullptr, nullptr, nullptr};
+  h2df_.num_binsx = func.get_HistoBordersx().size() - 1;
+  h2df_.num_binsy = func.get_HistoBordersy().size() - 1;
+  h2df_.bordersx = &(func.get_HistoBordersx()[0]);
+  h2df_.bordersy = &(func.get_HistoBordersy()[0]);
+  h2df_.contents = &(func.get_HistoContents()[0]);
+
+  // Set pointer
+  h2df_ptr_ = &h2df_;
+  return true;
+}
+
+inline bool Histo::LoadH2DFDevice() {
+  if (!is_initialized_) {
+    if (!Init()) {
+      return false;
+    }
+  }
+  // Ensure 2D functions were loaded on host
+  if (!h2df_ptr_) {
+    std::cout << "Histo::LoadH2DFDevice() Histo2DFunction is null!"
+              << std::endl;
+    return false;
+  }
+
+  Histo2DFunction h2df = {0, 0, nullptr, nullptr, nullptr};
+  h2df.num_binsx = h2df_ptr_->num_binsx;
+  h2df.num_binsy = h2df_ptr_->num_binsy;
+
+  // Allocate memory
+  h2df.bordersx = (float*)malloc_device((h2df.num_binsx + 1) * sizeof(float),
+                                        device_, *ctx_);
+  h2df.bordersy = (float*)malloc_device((h2df.num_binsy + 1) * sizeof(float),
+                                        device_, *ctx_);
+  h2df.contents = (float*)malloc_device(
+      (h2df.num_binsx * h2df.num_binsy) * sizeof(float), device_, *ctx_);
+
+  // Copy to device
+  queue_
+      .memcpy(h2df.bordersx, &h2df_ptr_->bordersx[0],
+              (h2df.num_binsx + 1) * sizeof(float))
+      .wait_and_throw();
+  queue_
+      .memcpy(h2df.bordersy, &h2df_ptr_->bordersy[0],
+              (h2df.num_binsy + 1) * sizeof(float))
+      .wait_and_throw();
+  queue_
+      .memcpy(h2df.contents, &h2df_ptr_->contents[0],
+              (h2df.num_binsx * h2df.num_binsy) * sizeof(float))
+      .wait_and_throw();
+
+  // Allocate memory for Histo2DFunction struct and copy to device
+  h2df_dev_ = (Histo2DFunction*)malloc_device(sizeof(h2df), device_, *ctx_);
+  if (!h2df_dev_) {
+    std::cout << "Histo::LoadH2DFDevice() Error allocating device memory!";
+    return false;
+  }
+  queue_.memcpy(h2df_dev_, &h2df, sizeof(h2df)).wait_and_throw();
+
+  return true;
+}
+
+inline void Histo::set_h1df(Histo1DFunction* h1df) { h1df_ptr_ = h1df; }
+
+inline void Histo::set_h1df_dev(Histo1DFunction* h1df) { h1df_dev_ = h1df; }
+
+inline void Histo::set_h2df(Histo2DFunction* h2df) { h2df_ptr_ = h2df; }
+
+inline void Histo::set_h2df_dev(Histo2DFunction* h2df) { h2df_dev_ = h2df; }
+
+inline Histo1DFunction* Histo::h1df() { return h1df_ptr_; }
+
+inline Histo1DFunction* Histo::h1df_dev() { return h1df_dev_; }
+
+inline Histo2DFunction* Histo::h2df() { return h2df_ptr_; }
+
+inline Histo2DFunction* Histo::h2df_dev() { return h2df_dev_; }
+
+}  // namespace fastcalosycl::syclcommon

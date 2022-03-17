@@ -8,33 +8,45 @@
 #include "ISF_FastCaloSimEvent/TFCSParametrization.h"
 
 class TFCSEnergyInterpolation : public TFCSParametrization {
-public:
-  TFCSEnergyInterpolation( const char* name = nullptr, const char* title = nullptr );
+ public:
+  TFCSEnergyInterpolation(const char* name = nullptr,
+                          const char* title = nullptr);
 
-  virtual bool is_match_Ekin_bin( int /*Ekin_bin*/ ) const override { return true; };
-  virtual bool is_match_calosample( int /*calosample*/ ) const override { return true; };
+  virtual bool is_match_Ekin_bin(int /*Ekin_bin*/) const override {
+    return true;
+  };
+  virtual bool is_match_calosample(int /*calosample*/) const override {
+    return true;
+  };
 
-  void set_slope( float slope ) { m_slope = slope; };
-  void set_offset( float offset ) { m_offset = offset; };
+  void set_slope(float slope) {
+    m_slope = slope;
+  };
+  void set_offset(float offset) {
+    m_offset = offset;
+  };
 
-  // Initialize simulstate with the mean reconstructed energy in the calorimater expeted from the true kinetic energy
-  virtual FCSReturnCode simulate( TFCSSimulationState& simulstate, const TFCSTruthState* truth,
-                                  const TFCSExtrapolationState* extrapol ) override;
+  // Initialize simulstate with the mean reconstructed energy in the calorimater
+  // expeted from the true kinetic energy
+  virtual FCSReturnCode simulate(
+      TFCSSimulationState& simulstate, const TFCSTruthState* truth,
+      const TFCSExtrapolationState* extrapol) override;
 
-  void Print( Option_t* option = "" ) const override;
+  void Print(Option_t* option = "") const override;
 
-  static void unit_test( TFCSSimulationState* simulstate = nullptr, TFCSTruthState* truth = nullptr,
-                         const TFCSExtrapolationState* extrapol = nullptr );
+  static void unit_test(TFCSSimulationState* simulstate = nullptr,
+                        TFCSTruthState* truth = nullptr,
+                        const TFCSExtrapolationState* extrapol = nullptr);
 
-private:
+ private:
   float m_slope;
   float m_offset;
 
-  ClassDefOverride( TFCSEnergyInterpolation, 1 ) // TFCSEnergyInterpolation
+  ClassDefOverride(TFCSEnergyInterpolation, 1)  // TFCSEnergyInterpolation
 };
 
-#if defined( __ROOTCLING__ ) && defined( __FastCaloSimStandAlone__ )
-#  pragma link C++ class TFCSEnergyInterpolation + ;
+#if defined(__ROOTCLING__) && defined(__FastCaloSimStandAlone__)
+#pragma link C++ class TFCSEnergyInterpolation + ;
 #endif
 
 #endif

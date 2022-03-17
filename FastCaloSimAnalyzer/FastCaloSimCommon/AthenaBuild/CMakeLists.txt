@@ -44,6 +44,7 @@ set(AthenaStandalone_Srcs
 
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimParametrization/src/CaloGeometry.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimParametrization/src/CaloGeometryLookup.cxx
+  ${ATHENA_FCS_PATH}/ISF_FastCaloSimParametrization/tools/CaloGeometryFromFile.cxx
   ${ATHENA_FCS_PATH}/ISF_FastCaloSimParametrization/tools/FCAL_ChannelMap.cxx
 )
 

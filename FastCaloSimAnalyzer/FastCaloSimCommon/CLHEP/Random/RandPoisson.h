@@ -9,10 +9,10 @@
 
 namespace CLHEP {
 
-  namespace RandPoisson {
-    double shoot( HepRandomEngine* engine, double mean );
-  }
+namespace RandPoisson {
+double shoot(HepRandomEngine *engine, double mean);
+}
 
-} // namespace CLHEP
+}  // namespace CLHEP
 
-#endif // RandPoisson_h
+#endif  // RandPoisson_h

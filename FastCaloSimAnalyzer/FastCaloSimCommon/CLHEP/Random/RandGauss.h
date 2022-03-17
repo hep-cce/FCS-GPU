@@ -9,10 +9,10 @@
 
 namespace CLHEP {
 
-  namespace RandGauss {
-    double shoot( HepRandomEngine* engine, double mean, double stdDev );
-  }
+namespace RandGauss {
+double shoot(HepRandomEngine *engine, double mean, double stdDev);
+}
 
-} // namespace CLHEP
+}  // namespace CLHEP
 
-#endif // RandGauss_h
+#endif  // RandGauss_h

@@ -6,6 +6,8 @@
 
 namespace CLHEP {
 
-  double RandPoisson::shoot( HepRandomEngine* engine, double mean ) { return engine->poisson( mean ); }
+double RandPoisson::shoot(HepRandomEngine *engine, double mean) {
+  return engine->poisson(mean);
+}
 
-} // namespace CLHEP
+}  // namespace CLHEP

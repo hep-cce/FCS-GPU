@@ -19,4 +19,4 @@ void SetAtlasStyle();
 
 TStyle* AtlasStyle();
 
-#endif // __ATLASSTYLE_H
+#endif  // __ATLASSTYLE_H

@@ -1,7 +1,3 @@
-/*
-  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
-*/
-
 #ifndef GEOGPU_STRUCTS_H
 #define GEOGPU_STRUCTS_H
 
@@ -13,12 +9,12 @@ struct Rg_Sample_Index {
 };
 
 struct GeoGpu {
-  unsigned long        ncells;
+  unsigned long ncells;
   CaloDetDescrElement* cells;
-  unsigned int         nregions;
-  GeoRegion*           regions;
-  int                  max_sample;
-  Rg_Sample_Index*     sample_index;
+  unsigned int nregions;
+  GeoRegion* regions;
+  int max_sample;
+  Rg_Sample_Index* sample_index;
 };
 
 #endif

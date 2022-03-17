@@ -23,15 +23,15 @@ include( CheckSymbolExists )
 
 # Set C++17 for GCC 7 and above
 # Can remove this logic when we stop supporting GCC 6
-#if( CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
-#  set( CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard used for the build" )
-#else()
-#  set( CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard used for the build" )
-#endif()
-#set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "(Dis)allow using GNU extensions" )
+if( CMAKE_COMPILER_IS_GNUCXX AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 7)
+  set( CMAKE_CXX_STANDARD 14 CACHE STRING "C++ standard used for the build" )
+else()
+  set( CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard used for the build" )
+endif()
+set( CMAKE_CXX_EXTENSIONS FALSE CACHE BOOL "(Dis)allow using GNU extensions" )
 
 # For CUDA code always use C++14.
-#set( CMAKE_CUDA_STANDARD 14 CACHE STRING "C++ standard to use for CUDA code" )
+set( CMAKE_CUDA_STANDARD 14 CACHE STRING "C++ standard to use for CUDA code" )
 
 # Set the definitions needed everywhere:
 add_definitions( -DHAVE_PRETTY_FUNCTION )

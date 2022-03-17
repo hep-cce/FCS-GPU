@@ -14,14 +14,14 @@
   gROOT->LoadMacro("../src/FCAL_ChannelMap.cxx+");
   gROOT->LoadMacro("../src/CaloGeometry.cxx+");
   gROOT->LoadMacro("CaloGeometryFromFile.cxx+");
-  
+
   gROOT->LoadMacro("wiggle_closure_inputs.cxx+");
-  //wiggle_closure_inputs("Sampling_0");
-  //wiggle_closure_inputs("Sampling_1");
-  //wiggle_closure_inputs("Sampling_2");
-  //wiggle_closure_inputs("Sampling_3");
-  //wiggle_closure_inputs("Sampling_12");
-  //wiggle_closure_inputs("Sampling_13");
-	//wiggle_closure_inputs("Sampling_14");
-		wiggle_closure_inputs("Sampling_21");
+  // wiggle_closure_inputs("Sampling_0");
+  // wiggle_closure_inputs("Sampling_1");
+  // wiggle_closure_inputs("Sampling_2");
+  // wiggle_closure_inputs("Sampling_3");
+  // wiggle_closure_inputs("Sampling_12");
+  // wiggle_closure_inputs("Sampling_13");
+  // wiggle_closure_inputs("Sampling_14");
+  wiggle_closure_inputs("Sampling_21");
 }

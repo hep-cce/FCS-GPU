@@ -12,126 +12,166 @@
 /******************************************
 This contains structure definition
 All structures are relatively simple
-each matched cell remembers - cell properties + vector of g4hits in this cell + vector of FCS hits in this cell
+each matched cell remembers - cell properties + vector of g4hits in this cell +
+vector of FCS hits in this cell
 
-Technicalities - needs a Linkdef.h file + makefile to create the dictionary for ROOT
+Technicalities - needs a Linkdef.h file + makefile to create the dictionary for
+ROOT
 then the last class could be saved in to the TTree
 
  ******************************************/
 
 struct FCS_cell {
   Long64_t cell_identifier;
-  int      sampling;
-  float    energy;
-  float    center_x;
-  float    center_y;
-  float    center_z; // to be updated later
-  bool     operator<( const FCS_cell& rhs ) const { return energy > rhs.energy; };
+  int sampling;
+  float energy;
+  float center_x;
+  float center_y;
+  float center_z;  // to be updated later
+  bool operator<(const FCS_cell &rhs) const {
+    return energy > rhs.energy;
+  };
 };
 
-struct FCS_hit // this is the FCS detailed hit
-{
-  Long64_t identifier; // hit in the same tile cell can have two identifiers (for two PMTs)
+struct FCS_hit  // this is the FCS detailed hit
+    {
+  Long64_t identifier;  // hit in the same tile cell can have two identifiers
+                        // (for two PMTs)
   Long64_t cell_identifier;
-  int      sampling;   // calorimeter layer
-  float    hit_energy; // energy is already scaled for the sampling fraction
-  float    hit_time;
-  float    hit_x;
-  float    hit_y;
-  float    hit_z;
-  bool     operator<( const FCS_hit& rhs ) const { return hit_energy > rhs.hit_energy; };
+  int sampling;  // calorimeter layer
+  float hit_energy;  // energy is already scaled for the sampling fraction
+  float hit_time;
+  float hit_x;
+  float hit_y;
+  float hit_z;
+  bool operator<(const FCS_hit &rhs) const {
+    return hit_energy > rhs.hit_energy;
+  };
   // float  hit_sampfrac;
 };
 
-struct FCS_g4hit // this is the standard G4Hit
-{
+struct FCS_g4hit  // this is the standard G4Hit
+    {
   Long64_t identifier;
   Long64_t cell_identifier;
-  int      sampling;
-  float    hit_energy;
-  float    hit_time;
+  int sampling;
+  float hit_energy;
+  float hit_time;
   // float  hit_sampfrac;
-  bool operator<( const FCS_g4hit& rhs ) const { return hit_energy > rhs.hit_energy; };
+  bool operator<(const FCS_g4hit &rhs) const {
+    return hit_energy > rhs.hit_energy;
+  };
 };
 
-struct FCS_matchedcell // this is the matched structure for a single cell
-{
-  FCS_cell               cell;
+struct FCS_matchedcell  // this is the matched structure for a single cell
+    {
+  FCS_cell cell;
   std::vector<FCS_g4hit> g4hit;
-  std::vector<FCS_hit>   hit;
-  inline void            clear() {
+  std::vector<FCS_hit> hit;
+  inline void clear() {
     g4hit.clear();
     hit.clear();
   };
   inline float scalingfactor() {
     float hitsum = 0.;
-    for ( unsigned int i = 0; i < hit.size(); i++ ) { hitsum += hit[i].hit_energy; };
+    for (unsigned int i = 0; i < hit.size(); i++) {
+      hitsum += hit[i].hit_energy;
+    };
     float sf = 1;
-    if ( hitsum == 0 ) {
+    if (hitsum == 0) {
       sf = 1;
-      std::cout << "WARNING::Sum of hit energy is 0!, setting SF = 1 and cell energy = " << cell.energy << std::endl;
+      std::cout << "WARNING::Sum of hit energy is 0!, setting SF = 1 and cell "
+                   "energy = " << cell.energy << std::endl;
     } else {
       sf = cell.energy / hitsum;
     }
     return sf;
-  }; // doesn't check for 0!
-  bool        operator<( const FCS_matchedcell& rhs ) const { return cell.energy > rhs.cell.energy; };
-  inline void sorthit() { std::sort( hit.begin(), hit.end() ); };
-  inline void sortg4hit() { std::sort( g4hit.begin(), g4hit.end() ); };
+  };  // doesn't check for 0!
+  bool operator<(const FCS_matchedcell &rhs) const {
+    return cell.energy > rhs.cell.energy;
+  };
+  inline void sorthit() {
+    std::sort(hit.begin(), hit.end());
+  };
+  inline void sortg4hit() {
+    std::sort(g4hit.begin(), g4hit.end());
+  };
   inline void sort() {
     sorthit();
     sortg4hit();
   };
-  inline void time_trim( float timing_cut ) { /*std::cout <<"Cutting: "<<timing_cut<<" from: "<<hit.size()<<"
-                                                 "<<g4hit.size()<<std::endl;*/
-    hit.erase( std::remove_if( hit.begin(), hit.end(),
-                               [&timing_cut]( const FCS_hit& rhs ) { return rhs.hit_time > timing_cut; } ),
-               hit.end() );
-    g4hit.erase( std::remove_if( g4hit.begin(), g4hit.end(),
-                                 [&timing_cut]( const FCS_g4hit& rhs ) { return rhs.hit_time > timing_cut; } ),
-                 g4hit.end() ); /*std::cout <<"remaining: "<<hit.size()<<" "<<g4hit.size()<<std::endl;*/
+  inline void time_trim(float timing_cut) {/*std::cout <<"Cutting:
+                                              "<<timing_cut<<" from:
+                                              "<<hit.size()<<"
+                                              "<<g4hit.size()<<std::endl;*/
+    hit.erase(std::remove_if(hit.begin(), hit.end(),
+                             [&timing_cut](const FCS_hit &rhs) {
+                return rhs.hit_time > timing_cut;
+              }),
+              hit.end());
+    g4hit.erase(std::remove_if(g4hit.begin(), g4hit.end(),
+                               [&timing_cut](const FCS_g4hit &rhs) {
+                  return rhs.hit_time > timing_cut;
+                }),
+                g4hit.end()); /*std::cout <<"remaining: "<<hit.size()<<"
+                                 "<<g4hit.size()<<std::endl;*/
   };
 };
 
-struct FCS_matchedcellvector // this is the matched structure for the whole event (or single layer) - vector of
-                             // FCS_matchedcell
-{
+struct FCS_matchedcellvector  // this is the matched structure for the whole
+                              // event (or single layer) - vector of
+                              // FCS_matchedcell
+    {
   // Note that struct can have methods
   // Note the overloaded operator(s) to access the underlying vector
-  std::vector<FCS_matchedcell>        m_vector;
-  inline std::vector<FCS_matchedcell> GetLayer( int layer ) {
+  std::vector<FCS_matchedcell> m_vector;
+  inline std::vector<FCS_matchedcell> GetLayer(int layer) {
     std::vector<FCS_matchedcell> ret;
-    for ( unsigned i = 0; i < m_vector.size(); i++ ) {
-      if ( m_vector[i].cell.sampling == layer ) ret.push_back( m_vector[i] );
+    for (unsigned i = 0; i < m_vector.size(); i++) {
+      if (m_vector[i].cell.sampling == layer) ret.push_back(m_vector[i]);
     };
     return ret;
   };
-  inline FCS_matchedcell operator[]( unsigned int place ) { return m_vector[place]; };
-  inline unsigned int    size() { return m_vector.size(); };
-  inline void            push_back( FCS_matchedcell cell ) { m_vector.push_back( cell ); };
-  inline void            sort_cells() { std::sort( m_vector.begin(), m_vector.end() ); };
-  inline void            sort() {
-    std::sort( m_vector.begin(), m_vector.end() );
-    for ( unsigned int i = 0; i < m_vector.size(); i++ ) { m_vector[i].sort(); };
+  inline FCS_matchedcell operator[](unsigned int place) {
+    return m_vector[place];
   };
-  inline void time_trim( float timing_cut ) {
-    for ( unsigned int i = 0; i < m_vector.size(); i++ ) { m_vector[i].time_trim( timing_cut ); };
-    m_vector.erase( std::remove_if( m_vector.begin(), m_vector.end(),
-                                    []( const FCS_matchedcell& rhs ) {
-                                      return ( rhs.hit.size() == 0 && rhs.g4hit.size() == 0 &&
-                                               fabs( rhs.cell.energy ) < 1e-3 );
-                                    } ),
-                    m_vector.end() );
+  inline unsigned int size() {
+    return m_vector.size();
+  };
+  inline void push_back(FCS_matchedcell cell) {
+    m_vector.push_back(cell);
+  };
+  inline void sort_cells() {
+    std::sort(m_vector.begin(), m_vector.end());
+  };
+  inline void sort() {
+    std::sort(m_vector.begin(), m_vector.end());
+    for (unsigned int i = 0; i < m_vector.size(); i++) {
+      m_vector[i].sort();
+    };
+  };
+  inline void time_trim(float timing_cut) {
+    for (unsigned int i = 0; i < m_vector.size(); i++) {
+      m_vector[i].time_trim(timing_cut);
+    };
+    m_vector.erase(std::remove_if(m_vector.begin(), m_vector.end(),
+                                  [](const FCS_matchedcell &rhs) {
+                     return (rhs.hit.size() == 0 && rhs.g4hit.size() == 0 &&
+                             fabs(rhs.cell.energy) < 1e-3);
+                   }),
+                   m_vector.end());
   };
   inline float scalingfactor() {
     float cellsum = 0.;
-    float hitsum  = 0.;
-    for ( unsigned int i = 0; i < m_vector.size(); i++ ) {
+    float hitsum = 0.;
+    for (unsigned int i = 0; i < m_vector.size(); i++) {
       cellsum += m_vector[i].cell.energy;
-      for ( unsigned int j = 0; j < m_vector[i].hit.size(); j++ ) { hitsum += m_vector[i].hit[j].hit_energy; };
+      for (unsigned int j = 0; j < m_vector[i].hit.size(); j++) {
+        hitsum += m_vector[i].hit[j].hit_energy;
+      };
     };
     return cellsum / hitsum;
-  }; // doesn't check for 0!
+  };  // doesn't check for 0!
 };
 
 struct FCS_truth : public TLorentzVector {
@@ -143,30 +183,30 @@ struct FCS_truth : public TLorentzVector {
   std::vector<double> TTC_back_phi;
   std::vector<double> TTC_back_r;
   std::vector<double> TTC_back_z;
-  double              TTC_IDCaloBoundary_eta;
-  double              TTC_IDCaloBoundary_phi;
-  double              TTC_IDCaloBoundary_r;
-  double              TTC_IDCaloBoundary_z;
-  double              TTC_Angle3D;
-  double              TTC_AngleEta;
-  int                 barcode;
-  int                 vtxbarcode;
-  int                 pdgid;
-  ClassDef( FCS_truth, 1 )
+  double TTC_IDCaloBoundary_eta;
+  double TTC_IDCaloBoundary_phi;
+  double TTC_IDCaloBoundary_r;
+  double TTC_IDCaloBoundary_z;
+  double TTC_Angle3D;
+  double TTC_AngleEta;
+  int barcode;
+  int vtxbarcode;
+  int pdgid;
+  ClassDef(FCS_truth, 1)
 };
 
-#if defined( __CINT__ ) && defined( __FastCaloSimStandAlone__ )
-#  pragma link C++ struct FCS_cell + ;
-#  pragma link C++ struct FCS_hit + ;
-#  pragma link C++ struct FCS_g4hit + ;
-#  pragma link C++ struct std::vector < FCS_hit> + ;
-#  pragma link C++ struct std::vector < FCS_g4hit> + ;
-#  pragma link C++ struct FCS_matchedcell + ;
-#  pragma link C++ struct std::vector < FCS_matchedcell> + ;
-#  pragma link C++ struct FCS_matchedcellvector + ;
-#  pragma link C++ class std::vector < Float_t> + ;
-#  pragma link C++ struct FCS_truth + ;
-#  pragma link C++ struct std::vector < FCS_truth> + ;
+#if defined(__CINT__) && defined(__FastCaloSimStandAlone__)
+#pragma link C++ struct FCS_cell + ;
+#pragma link C++ struct FCS_hit + ;
+#pragma link C++ struct FCS_g4hit + ;
+#pragma link C++ struct std::vector < FCS_hit > +;
+#pragma link C++ struct std::vector < FCS_g4hit > +;
+#pragma link C++ struct FCS_matchedcell + ;
+#pragma link C++ struct std::vector < FCS_matchedcell > +;
+#pragma link C++ struct FCS_matchedcellvector + ;
+#pragma link C++ class std::vector < Float_t > +;
+#pragma link C++ struct FCS_truth + ;
+#pragma link C++ struct std::vector < FCS_truth > +;
 #endif
 
 #endif

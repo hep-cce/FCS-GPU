@@ -6,39 +6,39 @@
 #define CALODETDESCRELEMENT_G_H
 
 #ifndef ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
-#  define ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
+#define ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
 
-#  include "Identifier_g.h"
+#include "Identifier_g.h"
 
 class CaloDetDescrElement {
-public:
+ public:
   CUDA_HOSTDEV CaloDetDescrElement() {
-    m_identify   = 0;
-    m_hash_id    = 0;
+    m_identify = 0;
+    m_hash_id = 0;
     m_calosample = 0;
-    m_eta        = 0;
-    m_phi        = 0;
-    m_deta       = 0;
-    m_dphi       = 0;
-    m_r          = 0;
-    m_eta_raw    = 0;
-    m_phi_raw    = 0;
-    m_r_raw      = 0;
-    m_dr         = 0;
-    m_x          = 0;
-    m_y          = 0;
-    m_z          = 0;
-    m_x_raw      = 0;
-    m_y_raw      = 0;
-    m_z_raw      = 0;
-    m_dx         = 0;
-    m_dy         = 0;
-    m_dz         = 0;
+    m_eta = 0;
+    m_phi = 0;
+    m_deta = 0;
+    m_dphi = 0;
+    m_r = 0;
+    m_eta_raw = 0;
+    m_phi_raw = 0;
+    m_r_raw = 0;
+    m_dr = 0;
+    m_x = 0;
+    m_y = 0;
+    m_z = 0;
+    m_x_raw = 0;
+    m_y_raw = 0;
+    m_z_raw = 0;
+    m_dx = 0;
+    m_dy = 0;
+    m_dz = 0;
   };
 
   /** @brief virtual destructor
    */
-  CUDA_HOSTDEV ~CaloDetDescrElement(){};
+  CUDA_HOSTDEV virtual ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */
@@ -119,10 +119,10 @@ public:
   float m_phi;
 
   /** @brief this one is cached for algorithm working in transverse Energy
-   */
+     */
   float m_sinTh;
   /** @brief this one is cached for algorithm working in transverse Energy
-   */
+  */
   float m_cosTh;
 
   /** @brief cylindric coordinates : delta eta
@@ -142,7 +142,7 @@ public:
   float m_sinPhi;
 
   /** @brief cache to allow fast px py pz computation
-   */
+  */
   float m_cosPhi;
 
   /** @brief cylindric coordinates : r
@@ -191,18 +191,26 @@ public:
 };
 
 CUDA_HOSTDEV inline Identifier CaloDetDescrElement::identify() const {
-  Identifier id( (unsigned long long)m_identify );
+  Identifier id((unsigned long long)m_identify);
   return id;
 }
 
-CUDA_HOSTDEV inline unsigned long long CaloDetDescrElement::calo_hash() const { return m_hash_id; }
+CUDA_HOSTDEV inline unsigned long long CaloDetDescrElement::calo_hash() const {
+  return m_hash_id;
+}
 
-CUDA_HOSTDEV inline int   CaloDetDescrElement::getSampling() const { return m_calosample; }
+CUDA_HOSTDEV inline int CaloDetDescrElement::getSampling() const {
+  return m_calosample;
+}
 CUDA_HOSTDEV inline float CaloDetDescrElement::eta() const { return m_eta; }
 CUDA_HOSTDEV inline float CaloDetDescrElement::phi() const { return m_phi; }
 CUDA_HOSTDEV inline float CaloDetDescrElement::r() const { return m_r; }
-CUDA_HOSTDEV inline float CaloDetDescrElement::eta_raw() const { return m_eta_raw; }
-CUDA_HOSTDEV inline float CaloDetDescrElement::phi_raw() const { return m_phi_raw; }
+CUDA_HOSTDEV inline float CaloDetDescrElement::eta_raw() const {
+  return m_eta_raw;
+}
+CUDA_HOSTDEV inline float CaloDetDescrElement::phi_raw() const {
+  return m_phi_raw;
+}
 CUDA_HOSTDEV inline float CaloDetDescrElement::r_raw() const { return m_r_raw; }
 CUDA_HOSTDEV inline float CaloDetDescrElement::deta() const { return m_deta; }
 CUDA_HOSTDEV inline float CaloDetDescrElement::dphi() const { return m_dphi; }

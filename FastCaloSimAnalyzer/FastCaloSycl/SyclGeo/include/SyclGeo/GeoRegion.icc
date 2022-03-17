@@ -1,0 +1,207 @@
+// Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
+
+inline void GeoRegion::set_cells(CaloDetDescrElement* dde) { cells_ = dde; }
+inline void GeoRegion::set_cells_device(CaloDetDescrElement* dde) {
+  cells_device_ = dde;
+}
+inline void GeoRegion::set_cell_grid(long long* cells) { cell_grid_ = cells; }
+inline void GeoRegion::set_cell_grid_device(long long* cells) {
+  cell_grid_device_ = cells;
+}
+inline void GeoRegion::set_index(int i) { index_ = i; }
+inline void GeoRegion::set_cell_grid_eta(int eta) { cell_grid_eta_ = eta; }
+inline void GeoRegion::set_cell_grid_phi(int phi) { cell_grid_phi_ = phi; }
+inline void GeoRegion::set_xy_grid_adjust(float adjust) {
+  xy_grid_adjust_ = adjust;
+}
+inline void GeoRegion::set_deta(float deta) { deta_ = deta; }
+inline void GeoRegion::set_dphi(float dphi) { dphi_ = dphi; }
+inline void GeoRegion::set_min_eta(float min_eta) { min_eta_ = min_eta; }
+inline void GeoRegion::set_min_phi(float min_phi) { min_phi_ = min_phi; }
+inline void GeoRegion::set_max_eta(float max_eta) { max_eta_ = max_eta; }
+inline void GeoRegion::set_max_phi(float max_phi) { max_phi_ = max_phi; }
+inline void GeoRegion::set_min_eta_raw(float min_eta) {
+  min_eta_raw_ = min_eta;
+}
+inline void GeoRegion::set_min_phi_raw(float min_phi) {
+  min_phi_raw_ = min_phi;
+}
+inline void GeoRegion::set_max_eta_raw(float max_eta) {
+  max_eta_raw_ = max_eta;
+}
+inline void GeoRegion::set_max_phi_raw(float max_phi) {
+  max_phi_raw_ = max_phi;
+}
+inline void GeoRegion::set_eta_corr(float eta_corr) { eta_corr_ = eta_corr; }
+inline void GeoRegion::set_phi_corr(float phi_corr) { phi_corr_ = phi_corr; }
+inline void GeoRegion::set_min_eta_corr(float eta_corr) {
+  min_eta_corr_ = eta_corr;
+}
+inline void GeoRegion::set_min_phi_corr(float phi_corr) {
+  min_phi_corr_ = phi_corr;
+}
+inline void GeoRegion::set_max_eta_corr(float eta_corr) {
+  max_eta_corr_ = eta_corr;
+}
+inline void GeoRegion::set_max_phi_corr(float phi_corr) {
+  max_phi_corr_ = phi_corr;
+}
+
+inline void GeoRegion::set_deta_double(float deta) { deta_double_ = deta; }
+inline void GeoRegion::set_dphi_double(float dphi) { dphi_double_ = dphi; }
+
+inline long long* GeoRegion::cell_grid() { return cell_grid_; }
+inline long long* GeoRegion::cell_grid_device() { return cell_grid_device_; }
+inline CaloDetDescrElement* GeoRegion::cells() { return cells_; }
+inline int GeoRegion::index() { return index_; }
+inline int GeoRegion::cell_grid_eta() { return cell_grid_eta_; }
+inline int GeoRegion::cell_grid_phi() { return cell_grid_phi_; }
+inline float GeoRegion::min_eta() const { return min_eta_; };
+inline float GeoRegion::min_phi() const { return min_phi_; };
+inline float GeoRegion::max_eta() const { return max_eta_; };
+inline float GeoRegion::max_phi() const { return max_phi_; };
+inline float GeoRegion::deta() const { return deta_; };
+inline float GeoRegion::dphi() const { return dphi_; };
+inline int GeoRegion::raw_eta_pos_to_index(float eta_raw) const {
+  return cl::sycl::floor((eta_raw - min_eta_raw_) / deta_double_);
+}
+
+inline int GeoRegion::raw_phi_pos_to_index(float phi_raw) const {
+  return cl::sycl::floor((phi_raw - min_phi_raw_) / dphi_double_);
+}
+
+inline bool GeoRegion::index_range_adjust(int& ieta, int& iphi) const {
+  while (iphi < 0) {
+    iphi += cell_grid_phi_;
+  }
+  while (iphi >= cell_grid_phi_) {
+    iphi -= cell_grid_phi_;
+  }
+  // iphi = (int)cl::sycl::fmod(cell_grid_phi_ + (int)fmod(iphi,
+  // cell_grid_phi_),
+  //                            cell_grid_phi_);
+  if (ieta < 0) {
+    ieta = 0;
+    return false;
+  }
+  if (ieta > cell_grid_eta_) {
+    ieta = cell_grid_eta_ - 1;
+    return false;
+  }
+  return true;
+}
+
+inline float GeoRegion::calc_distance_eta_phi(const long long dde, float eta,
+                                              float phi, float& dist_eta0,
+                                              float& dist_phi0) const {
+  dist_eta0 = (eta - cells_device_[dde].eta()) / deta_double_;
+  dist_phi0 = (phi_mpi_pi(phi - cells_device_[dde].phi())) / dphi_double_;
+  float abs_dist_eta0 = cl::sycl::abs(dist_eta0);
+  float abs_dist_phi0 = cl::sycl::abs(dist_phi0);
+  return cl::sycl::max(abs_dist_eta0, abs_dist_phi0) - 0.5;
+}
+
+inline long long GeoRegion::get_cell(float eta, float phi, float* distance,
+                                     unsigned int* steps) const {
+  float dist = 0.0;
+  long long best_dde = -1;
+  if (!distance) {
+    distance = &dist;
+  }
+  (*distance) = +10000000;
+
+  unsigned int intsteps = 0;
+  if (!steps) {
+    steps = &intsteps;
+  }
+
+  float best_eta_corr = eta_corr_;
+  float best_phi_corr = phi_corr_;
+
+  float raw_eta = eta + best_eta_corr;
+  float raw_phi = phi + best_phi_corr;
+
+  int ieta = raw_eta_pos_to_index(raw_eta);
+  int iphi = raw_phi_pos_to_index(raw_phi);
+  index_range_adjust(ieta, iphi);
+
+  long long new_dde = cell_grid_device_[ieta * cell_grid_phi_ + iphi];
+  float best_dist = +10000000;
+  ++(*steps);
+  unsigned int num_search = 0;
+  while ((new_dde >= 0) && num_search < 3) {
+    float dist_eta0 = 0.0;
+    float dist_phi0 = 0.0;
+    (*distance) =
+        calc_distance_eta_phi(new_dde, eta, phi, dist_eta0, dist_phi0);
+    best_dde = new_dde;
+    best_dist = (*distance);
+
+    if ((*distance) < 0) {
+      return new_dde;
+    }
+
+    // Correct eta and phi indices by the observed difference to the cell that
+    // was hit.
+    ieta += cl::sycl::round(dist_eta0);
+    iphi += cl::sycl::round(dist_phi0);
+    index_range_adjust(ieta, iphi);
+    long long old_dde = new_dde;
+    new_dde = cell_grid_device_[ieta * cell_grid_phi_ + iphi];
+    ++(*steps);
+    ++num_search;
+    if (old_dde == new_dde) {
+      break;
+    }
+  }
+  float min_ieta = ieta + cl::sycl::floor(min_eta_corr_ / cell_grid_eta_);
+  float min_iphi = iphi + cl::sycl::floor(min_phi_corr_ / cell_grid_phi_);
+  float max_ieta = ieta + cl::sycl::ceil(max_eta_corr_ / cell_grid_eta_);
+  float max_iphi = iphi + cl::sycl::ceil(max_phi_corr_ / cell_grid_phi_);
+
+  if (min_ieta < 0) {
+    min_ieta = 0.0;
+  }
+  if (max_ieta > cell_grid_eta_) {
+    max_ieta = cell_grid_eta_ - 1;
+  }
+  for (int iieta = min_ieta; iieta <= max_ieta; ++iieta) {
+    for (int iiphi = min_iphi; iiphi <= max_iphi; ++iiphi) {
+      ieta = iieta;
+      iphi = iiphi;
+      index_range_adjust(ieta, iphi);
+      new_dde = cell_grid_device_[ieta * cell_grid_phi_ + iphi];
+      // if (new_dde > 187652) {
+      //   continue;
+      // }
+      ++(*steps);
+
+      if (new_dde >= 0) {
+        float dist_eta0 = 0.0;
+        float dist_phi0 = 0.0;
+        (*distance) =
+            calc_distance_eta_phi(new_dde, eta, phi, dist_eta0, dist_phi0);
+
+        if ((*distance) < 0) {
+          return new_dde;
+        } else if ((*distance) < best_dist) {
+          best_dde = new_dde;
+          best_dist = (*distance);
+        }
+      } else {
+        // exception
+      }
+    }
+  }
+  (*distance) = best_dist;
+  return best_dde;
+}
+
+inline float GeoRegion::phi_mpi_pi(float x) const {
+  if (x > PI)
+    return x - TWOPI;
+  else if (x < -PI)
+    return x + TWOPI;
+  else
+    return x;
+}

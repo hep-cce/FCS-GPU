@@ -52,6 +52,13 @@ fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB})
 
 if(ENABLE_GPU)
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloGpu_LIB})
+elseif(ENABLE_SYCL)
+  set(CMAKE_C_COMPILER "clang")
+  set(CMAKE_CXX_COMPILER "clang++")
+  set(CMAKE_CXX_FLAGS "-g -O2 -fsycl -std=c++17 -Wno-unknown-cuda-version")
+  fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloSycl_LIB})
+  fcs_add_dependency(${FastCaloSimAnalyzer_LIB} SyclRng)
+  fcs_add_dependency(${FastCaloSimAnalyzer_LIB} SyclGeo)
 endif()
 # Install library
 install(TARGETS ${FastCaloSimAnalyzer_LIB}

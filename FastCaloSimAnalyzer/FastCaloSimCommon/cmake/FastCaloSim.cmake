@@ -1,4 +1,4 @@
-# Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
+# Copyright (C) 2002-2020 CERN for the benefit of the ATLAS collaboration
 
 # Set a default build type if none was specified
 set(FCS_default_build_type "RelWithDebInfo")
@@ -37,6 +37,8 @@ set(EnergyParametrization_LIB EnergyParametrization)
 
 if(ENABLE_GPU) 
   set(FastCaloGpu_LIB FastCaloGpu)
+elseif(ENABLE_SYCL)
+  set(FastCaloSycl_LIB FastCaloSycl)
 endif() 
 
 # Common definitions
@@ -52,15 +54,9 @@ endif()
 
 if(ENABLE_GPU) 
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
+elseif(ENABLE_SYCL)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_SYCL )
 endif() 
-
-if(USE_KOKKOS)
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
-endif()
-
-if(RNDGEN_CPU)
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DRNDGEN_CPU )
-endif()
 
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes
@@ -73,6 +69,7 @@ set(${AthenaStandalone_LIB}_Includes
   ${ATHENA_PATH}/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimEvent
   ${ATHENA_PATH}/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization
   ${ATHENA_PATH}/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tools
+  ${ATHENA_PATH}/Simulation/ISF/ISF_FastCaloSim/ISF_FastCaloSimParametrization/tools/CaloDetDescr
 )
 set(${EnergyParametrization_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/EnergyParametrization/src
@@ -84,6 +81,10 @@ set(${FastCaloSimAnalyzer_LIB}_Includes
 if(ENABLE_GPU)
   set(${FastCaloGpu_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloGpu
+)
+elseif(ENABLE_SYCL)
+  set(${FastCaloSycl_LIB}_Includes
+  ${CMAKE_SOURCE_DIR}/FastCaloSycl
 )
 endif() 
 

@@ -7,18 +7,18 @@
 
 namespace CLHEP {
 
-  class HepRandomEngine {
-  public:
-    HepRandomEngine();
-    virtual ~HepRandomEngine();
+class HepRandomEngine {
+ public:
+  HepRandomEngine();
+  virtual ~HepRandomEngine();
 
-    virtual void setSeed( long seed, int extra = 0 ) = 0;
+  virtual void setSeed(long seed, int extra = 0) = 0;
 
-    virtual double random()                            = 0;
-    virtual double gauss( double mean, double stdDev ) = 0;
-    virtual double poisson( double mean )              = 0;
-  };
+  virtual double random() = 0;
+  virtual double gauss(double mean, double stdDev) = 0;
+  virtual double poisson(double mean) = 0;
+};
 
-} // namespace CLHEP
+}  // namespace CLHEP
 
-#endif // HepRandomEngine_h
+#endif  // HepRandomEngine_h

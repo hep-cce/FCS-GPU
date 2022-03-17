@@ -2,7 +2,7 @@
   Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
 */
 
-//void run(TString sampling="Sampling_0"){
+// void run(TString sampling="Sampling_0"){
 {
   gStyle->SetOptStat(0);
   gStyle->SetPalette(1);
@@ -16,10 +16,8 @@
   gROOT->LoadMacro("../src/FCAL_ChannelMap.cxx+");
   gROOT->LoadMacro("../src/CaloGeometry.cxx+");
   gROOT->LoadMacro("CaloGeometryFromFile.cxx+");
-    
-  gROOT->LoadMacro("wiggleClosureAndComparison.cxx+");
- 
-  wiggleClosureAndComparison("Sampling_1");
- 
 
+  gROOT->LoadMacro("wiggleClosureAndComparison.cxx+");
+
+  wiggleClosureAndComparison("Sampling_1");
 }

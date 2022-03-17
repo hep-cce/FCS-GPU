@@ -14,9 +14,7 @@
   gROOT->LoadMacro("../src/CaloGeometry.cxx+");
   gROOT->LoadMacro("../src/FCAL_ChannelMap.cxx+");
   gROOT->LoadMacro("CaloGeometryFromFile.cxx+");
-  
+
   gROOT->LoadMacro("TestFCalIdentifiers.cxx+");
   TestFCalIdentifiers("Sampling_21");
- 
-
 }

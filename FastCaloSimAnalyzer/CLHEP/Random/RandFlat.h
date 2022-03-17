@@ -9,12 +9,12 @@
 
 namespace CLHEP {
 
-  namespace RandFlat {
-    double shoot( HepRandomEngine* engine );
-    double shoot( HepRandomEngine* engine, double a, double b );
-    double shoot( HepRandomEngine* engine, double width );
-  } // namespace RandFlat
+namespace RandFlat {
+double shoot(HepRandomEngine *engine);
+double shoot(HepRandomEngine *engine, double a, double b);
+double shoot(HepRandomEngine *engine, double width);
+}
 
-} // namespace CLHEP
+}  // namespace CLHEP
 
-#endif // RandFlat_h
+#endif  // RandFlat_h

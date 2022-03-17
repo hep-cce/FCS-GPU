@@ -15,38 +15,43 @@
 //======= TFCSEnergyInterpolationLinear =========
 //=============================================
 
-TFCSEnergyInterpolationLinear::TFCSEnergyInterpolationLinear(const char* name, const char* title):TFCSParametrization(name,title),m_slope(1),m_offset(0)
-{
-}
+TFCSEnergyInterpolationLinear::TFCSEnergyInterpolationLinear(const char* name,
+                                                             const char* title)
+    : TFCSParametrization(name, title), m_slope(1), m_offset(0) {}
 
-FCSReturnCode TFCSEnergyInterpolationLinear::simulate(TFCSSimulationState& simulstate,const TFCSTruthState* truth, const TFCSExtrapolationState*)
-{
-  float Emean=m_slope*truth->Ekin()+m_offset;
+FCSReturnCode TFCSEnergyInterpolationLinear::simulate(
+    TFCSSimulationState& simulstate, const TFCSTruthState* truth,
+    const TFCSExtrapolationState*) {
+  float Emean = m_slope * truth->Ekin() + m_offset;
 
-  ATH_MSG_DEBUG("set E="<<Emean<<" for true Ekin="<<truth->Ekin());
+  ATH_MSG_DEBUG("set E=" << Emean << " for true Ekin=" << truth->Ekin());
   simulstate.set_E(Emean);
 
   return FCSSuccess;
 }
 
-void TFCSEnergyInterpolationLinear::Print(Option_t *option) const
-{
+void TFCSEnergyInterpolationLinear::Print(Option_t* option) const {
   TString opt(option);
-  bool shortprint=opt.Index("short")>=0;
-  bool longprint=msgLvl(MSG::DEBUG) || (msgLvl(MSG::INFO) && !shortprint);
-  TString optprint=opt;optprint.ReplaceAll("short","");
+  bool shortprint = opt.Index("short") >= 0;
+  bool longprint = msgLvl(MSG::DEBUG) || (msgLvl(MSG::INFO) && !shortprint);
+  TString optprint = opt;
+  optprint.ReplaceAll("short", "");
   TFCSParametrization::Print(option);
 
-  if(longprint) ATH_MSG_INFO(optprint <<"  Emean="<<m_slope<<"*Ekin(true) + "<<m_offset);
+  if (longprint)
+    ATH_MSG_INFO(optprint << "  Emean=" << m_slope << "*Ekin(true) + "
+                          << m_offset);
 }
 
-void TFCSEnergyInterpolationLinear::unit_test(TFCSSimulationState* simulstate,TFCSTruthState* truth, const TFCSExtrapolationState* extrapol)
-{
-  if(!simulstate) simulstate=new TFCSSimulationState();
-  if(!truth) truth=new TFCSTruthState();
-  if(!extrapol) extrapol=new TFCSExtrapolationState();
-  
-  TFCSEnergyInterpolationLinear test("testTFCSEnergyInterpolation","test linear TFCSEnergyInterpolation");
+void TFCSEnergyInterpolationLinear::unit_test(
+    TFCSSimulationState* simulstate, TFCSTruthState* truth,
+    const TFCSExtrapolationState* extrapol) {
+  if (!simulstate) simulstate = new TFCSSimulationState();
+  if (!truth) truth = new TFCSTruthState();
+  if (!extrapol) extrapol = new TFCSExtrapolationState();
+
+  TFCSEnergyInterpolationLinear test("testTFCSEnergyInterpolation",
+                                     "test linear TFCSEnergyInterpolation");
   test.set_pdgid(22);
   test.set_Ekin_nominal(1000);
   test.set_Ekin_min(1000);
@@ -57,29 +62,32 @@ void TFCSEnergyInterpolationLinear::unit_test(TFCSSimulationState* simulstate,TF
   test.set_slope(0.95);
   test.set_offset(-50);
   test.Print();
-  
+
   truth->set_pdgid(22);
-  
-  TGraph* gr=new TGraph();
-  gr->SetNameTitle("testTFCSEnergyInterpolation","test linear TFCSEnergyInterpolation");
+
+  TGraph* gr = new TGraph();
+  gr->SetNameTitle("testTFCSEnergyInterpolation",
+                   "test linear TFCSEnergyInterpolation");
   gr->GetXaxis()->SetTitle("Ekin [MeV]");
   gr->GetYaxis()->SetTitle("<E(reco)>/Ekin(true)");
-  
-  int ip=0;
-  for(float Ekin=1000;Ekin<=100000;Ekin*=1.1) {
-    //Init LorentzVector for truth. For photon Ekin=E
-    truth->SetPxPyPzE(Ekin,0,0,Ekin);
-    if (test.simulate(*simulstate,truth,extrapol) != FCSSuccess) {
+
+  int ip = 0;
+  for (float Ekin = 1000; Ekin <= 100000; Ekin *= 1.1) {
+    // Init LorentzVector for truth. For photon Ekin=E
+    truth->SetPxPyPzE(Ekin, 0, 0, Ekin);
+    if (test.simulate(*simulstate, truth, extrapol) != FCSSuccess) {
       return;
     }
-    gr->SetPoint(ip,Ekin,simulstate->E()/Ekin);
+    gr->SetPoint(ip, Ekin, simulstate->E() / Ekin);
     ++ip;
-  }  
+  }
 
-  //Drawing doesn't make sense inside athena and necessary libraries not linked by default
-  #if defined(__FastCaloSimStandAlone__)
-  TCanvas* c=new TCanvas("testTFCSEnergyInterpolation","test linear TFCSEnergyInterpolation");
+// Drawing doesn't make sense inside athena and necessary libraries not linked
+// by default
+#if defined(__FastCaloSimStandAlone__)
+  TCanvas* c = new TCanvas("testTFCSEnergyInterpolation",
+                           "test linear TFCSEnergyInterpolation");
   gr->Draw("APL");
   c->SetLogx();
-  #endif
+#endif
 }

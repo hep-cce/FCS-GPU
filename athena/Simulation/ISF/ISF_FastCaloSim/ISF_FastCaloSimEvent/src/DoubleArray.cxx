@@ -10,15 +10,8 @@
 //======= DoubleArray =========
 //==========================
 
-DoubleArray::DoubleArray(int n):TArrayD(n)
-{
-}
+DoubleArray::DoubleArray(int n) : TArrayD(n) {}
 
-DoubleArray::DoubleArray()
-{
-}
+DoubleArray::DoubleArray() {}
 
-DoubleArray::~DoubleArray()
-{
-}
-
+DoubleArray::~DoubleArray() {}

@@ -8,7 +8,6 @@
 //======= TFCS2DFunction =========
 //=============================================
 
-void TFCS2DFunction::rnd_to_fct(float value[],const float rnd[]) const
-{
-  rnd_to_fct(value[0],value[1],rnd[0],rnd[1]);
+void TFCS2DFunction::rnd_to_fct(float value[], const float rnd[]) const {
+  rnd_to_fct(value[0], value[1], rnd[0], rnd[1]);
 }
