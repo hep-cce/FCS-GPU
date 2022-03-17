@@ -96,8 +96,8 @@ inline float GeoRegion::calc_distance_eta_phi(const long long dde, float eta,
                                               float& dist_phi0) const {
   dist_eta0 = (eta - cells_device_[dde].eta()) / deta_double_;
   dist_phi0 = (phi_mpi_pi(phi - cells_device_[dde].phi())) / dphi_double_;
-  float abs_dist_eta0 = cl::sycl::abs(dist_eta0);
-  float abs_dist_phi0 = cl::sycl::abs(dist_phi0);
+  float abs_dist_eta0 = cl::sycl::fabs(dist_eta0);
+  float abs_dist_phi0 = cl::sycl::fabs(dist_phi0);
   return cl::sycl::max(abs_dist_eta0, abs_dist_phi0) - 0.5;
 }
 
@@ -159,7 +159,7 @@ inline long long GeoRegion::get_cell(float eta, float phi, float* distance,
   float max_ieta = ieta + cl::sycl::ceil(max_eta_corr_ / cell_grid_eta_);
   float max_iphi = iphi + cl::sycl::ceil(max_phi_corr_ / cell_grid_phi_);
 
-  if (min_ieta < 0) {
+  if (min_ieta < 0.0) {
     min_ieta = 0.0;
   }
   if (max_ieta > cell_grid_eta_) {
@@ -198,10 +198,7 @@ inline long long GeoRegion::get_cell(float eta, float phi, float* distance,
 }
 
 inline float GeoRegion::phi_mpi_pi(float x) const {
-  if (x > PI)
-    return x - TWOPI;
-  else if (x < -PI)
-    return x + TWOPI;
-  else
-    return x;
+  while (x >= PI) x -= TWOPI;
+  while (x < -PI) x += TWOPI;
+  return x;
 }

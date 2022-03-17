@@ -6,7 +6,7 @@
 
 #ifndef FASTCALOSYCL_SYCLCOMMON_HISTO_H_
 #define FASTCALOSYCL_SYCLCOMMON_HISTO_H_
-
+#define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 
 namespace fastcalosycl::syclcommon {
@@ -63,11 +63,11 @@ class Histo {
   bool LoadH1DFDevice();
   bool LoadH2DFDevice();
 
-  SYCL_EXTERNAL float RandomToH1DF(float rand, unsigned int bin);
-  SYCL_EXTERNAL float RandomToH1DF(float rand, uint32_t* contents,
+  float RandomToH1DF(float rand, unsigned int bin);
+  float RandomToH1DF(float rand, uint32_t* contents,
                                    float* borders, unsigned int num_bins,
                                    uint32_t max_value);
-  SYCL_EXTERNAL void RandomToH2DF(float& val_x, float& val_y, float rand_x,
+  void RandomToH2DF(float& val_x, float& val_y, float rand_x,
                                   float rand_y);
 
   inline cl::sycl::queue GetDeviceQueue() { return queue_; }
@@ -83,8 +83,8 @@ class Histo {
 
  private:
   // Finds the first index of contents whose element has value > rand_x.
-  SYCL_EXTERNAL unsigned int FindIndexH1DF(uint32_t rand, unsigned int bin);
-  SYCL_EXTERNAL unsigned int FindIndexH2DF(float* contents, unsigned int size,
+  unsigned int FindIndexH1DF(uint32_t rand, unsigned int bin);
+  unsigned int FindIndexH2DF(float* contents, unsigned int size,
                                            float rand_x);
   bool is_initialized_;
   cl::sycl::async_handler exception_handler;
@@ -103,6 +103,6 @@ class Histo {
 
 }  // namespace fastcalosycl::syclcommon
 
-#include "SyclCommon/Histo.icc"
+#include "Histo.icc"
 
 #endif  // FASTCALOSYCL_SYCLCOMMON_HISTO_H_

@@ -147,13 +147,16 @@ bool Geo::LoadDeviceGeo() {
     queue_ = cl::sycl::queue(*ctx_, dev);
   }
 
+#ifndef SYCL_TARGET_HIP
   // Ensure device can handle USM device allocations.
+  // N.B. Not supported by syclcc (Mar. 22, 2021)
   if (!dev.get_info<cl::sycl::info::device::usm_device_allocations>()) {
     std::cout << "ERROR :: device \""
               << dev.get_info<cl::sycl::info::device::name>()
               << "\" does not support usm_device_allocations!" << std::endl;
     return false;
   }
+#endif
 
   // Name of the device running on
   std::string dev_name = dev.get_info<cl::sycl::info::device::name>();
@@ -184,8 +187,7 @@ bool Geo::LoadDeviceGeo() {
   auto geo_cpy_start = std::chrono::system_clock::now();
   queue_
       .memcpy(cells_device_, &cells_[0],
-              num_cells_ * sizeof(CaloDetDescrElement))
-      .wait_and_throw();
+              num_cells_ * sizeof(CaloDetDescrElement));
   // End timer.
   auto geo_cpy_end = std::chrono::system_clock::now();
   // Time to copy geometry host->device.
@@ -205,8 +207,7 @@ bool Geo::LoadDeviceGeo() {
   // Copy sampling array to device
   queue_
       .memcpy(device_si, &sample_index_[0],
-              max_sample_ * sizeof(*sample_index_))
-      .wait_and_throw();
+              max_sample_ * sizeof(*sample_index_));
 
   for (unsigned int iregion = 0; iregion < num_regions_; ++iregion) {
     int num_cells_eta = regions_[iregion].cell_grid_eta();
@@ -218,8 +219,7 @@ bool Geo::LoadDeviceGeo() {
     // Copy region cells to device
     queue_
         .memcpy(region_cells, &regions_[iregion].cell_grid()[0],
-                num_cells_eta * num_cells_phi * sizeof(long long))
-        .wait_and_throw();
+                num_cells_eta * num_cells_phi * sizeof(long long));
 
     // Set cells in this region.
     regions_[iregion].set_cell_grid_device(region_cells);
@@ -231,8 +231,7 @@ bool Geo::LoadDeviceGeo() {
   // Allocate region data memory and copy to device
   regions_device_ =
       (GeoRegion*)malloc_device(num_regions_ * sizeof(*regions_), dev, *ctx_);
-  queue_.memcpy(regions_device_, &regions_[0], num_regions_ * sizeof(*regions_))
-      .wait_and_throw();
+  queue_.memcpy(regions_device_, &regions_[0], num_regions_ * sizeof(*regions_));
 
   // Device geometry
   DeviceGeo device_geo{nullptr, nullptr, 0, 0, 0, nullptr};
@@ -247,8 +246,7 @@ bool Geo::LoadDeviceGeo() {
   // corresponding pointer.
   DeviceGeo* device_geo_ptr =
       (DeviceGeo*)malloc_device(sizeof(device_geo), dev, *ctx_);
-  queue_.memcpy(device_geo_ptr, &device_geo, sizeof(device_geo))
-      .wait_and_throw();
+  queue_.memcpy(device_geo_ptr, &device_geo, sizeof(device_geo)).wait();
   DevGeo = device_geo_ptr;
 
   return true;

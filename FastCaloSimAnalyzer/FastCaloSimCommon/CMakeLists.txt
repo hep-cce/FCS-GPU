@@ -17,3 +17,10 @@ add_subdirectory(src)
 
 # Standalone Athena FCS build
 add_subdirectory(AthenaBuild)
+
+if(SYCL_TARGET_HIP)
+  find_package(hipSYCL CONFIG REQUIRED)
+#   add_compile_options("-Wno-ignored-attributes") # Silence HIP warnings
+#   list(APPEND CMAKE_CXX_FLAGS "--hipsycl-targets=hip:gfx900")
+#   add_definitions(-DSYCL_TARGET_HIP)
+endif()

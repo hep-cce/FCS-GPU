@@ -9,6 +9,9 @@
 #include <SyclGeo/Geo.h>
 #include <SyclRng/SimHitRng.h>
 
+#define HIPSYCL_EXT_FP_ATOMICS
+#include <CL/sycl.hpp>
+
 #define PI 3.14159265358979323846
 #define TWOPI 2 * 3.14159265358979323846
 
@@ -99,11 +102,8 @@ class SimResetKernel {
     cells_energy_ = rng->get_cells_energy();
   }
 
-  void operator()(cl::sycl::nd_item<1> item) {
-    unsigned int wid = item.get_global_linear_id();
-    // cl::sycl::intel::experimental::printf(fastcalosycl::syclcommon::kWid,
-    // wid);
-
+  void operator()(cl::sycl::id<1> id) const {
+    unsigned int wid = id.get(0);
     if (wid < num_cells_) {
       cells_energy_[wid] = 0.0;
     }
@@ -140,18 +140,15 @@ class SimShapeKernel {
         h2df_(props->h2df_dev),
         geo_((DeviceGeo*)props->devgeo),
         calo_sampling_(props->calo_sampling) {
-    // Assign RNG variables
     SimHitRng* rng = (SimHitRng*)props->rng;
     float* rn = rng->random_nums_ptr(num_hits_);
     rng->add_current_hits(num_hits_);
     cells_energy_ = rng->get_cells_energy();
     random_nums_ = rn;
-    // Assign DeviceGeo variables
-    const static DeviceGeo* devgeo = (DeviceGeo*)props->devgeo;
   }
 
-  void operator()(cl::sycl::nd_item<1> item) {
-    unsigned int wid = item.get_global_linear_id();
+  void operator()(cl::sycl::id<1> id) const {
+    unsigned int wid = id.get(0);
 
     if (wid < num_hits_) {
       SimHit hit;
@@ -167,7 +164,7 @@ class SimShapeKernel {
   }
 
  private:
-  SYCL_EXTERNAL void CalcHitCenterPosition(SimHit& hit) {
+  void CalcHitCenterPosition(SimHit& hit) const {
     hit.set_center_r((1.0 - extrap_weight_) * extrap_r_ent_ +
                      (extrap_weight_ * extrap_r_exit_));
     hit.set_center_z((1.0 - extrap_weight_) * extrap_z_ent_ +
@@ -178,7 +175,8 @@ class SimShapeKernel {
                        (extrap_weight_ * extrap_phi_exit_));
   }
 
-  SYCL_EXTERNAL void HistoLateralShapeParam(SimHit& hit, unsigned long wid) {
+  void HistoLateralShapeParam(SimHit& hit,
+                                            unsigned long wid) const {
     float charge = charge_;
     float center_r = hit.center_r();
     float center_z = hit.center_z();
@@ -186,7 +184,7 @@ class SimShapeKernel {
     float center_phi = hit.center_phi();
 
     float rnd1 = random_nums_[wid];
-    float rnd2 = random_nums_[wid + num_hits_];
+    float rnd2 = random_nums_[wid];
     float alpha = 0.0;
     float r = 0.0;
     if (is_phi_symmetric_) {
@@ -219,7 +217,7 @@ class SimShapeKernel {
     }
 
     float dist0 = cl::sycl::sqrt(center_r * center_r + center_z * center_z);
-    float jacobian_eta = cl::sycl::abs(2.0 * cl::sycl::abs(-center_eta) /
+    float jacobian_eta = cl::sycl::fabs(2.0 * cl::sycl::fabs(-center_eta) /
                                        (1.0 + cl::sycl::exp(-2 * center_eta)));
     float deta = deta_mm / jacobian_eta / dist0;
     float dphi = dphi_mm / center_r;
@@ -231,7 +229,7 @@ class SimShapeKernel {
     // }
   }
 
-  SYCL_EXTERNAL void RandomToH2DF(float& val_x, float& val_y, float rand_x,
+  void RandomToH2DF(float& val_x, float& val_y, float rand_x,
                                   float rand_y) const {
     int ibin = FindIndexH2DF(h2df_->num_binsx * h2df_->num_binsy, rand_x);
     int biny = ibin / h2df_->num_binsx;
@@ -255,7 +253,7 @@ class SimShapeKernel {
             (h2df_->bordersy[biny + 1] - h2df_->bordersy[biny]) * rand_y;
   }
 
-  SYCL_EXTERNAL unsigned int FindIndexH2DF(unsigned int size,
+  unsigned int FindIndexH2DF(unsigned int size,
                                            float rand_x) const {
     unsigned int lo = 0;
     unsigned int hi = size - 1;
@@ -271,7 +269,7 @@ class SimShapeKernel {
     return index;
   }
 
-  SYCL_EXTERNAL void HitCellMappingWiggle(SimHit& hit,
+  void HitCellMappingWiggle(SimHit& hit,
                                           unsigned long wid) const {
     unsigned int num_funcs = h1df_->num_funcs;
     float eta = cl::sycl::fabs(hit.eta());
@@ -286,48 +284,53 @@ class SimShapeKernel {
       }
     }
     bin -= 1;
-    float rand = random_nums_[wid + (2 * num_hits_)];
+    float rand = random_nums_[wid + (2 * 1)];
     float wiggle = RandomToH1DF(rand, bin);
     float phi_shift = hit.phi() + wiggle;
     hit.set_phi(phi_mpi_pi(phi_shift));
     HitCellMapping(wid, hit);
   }
 
-  SYCL_EXTERNAL void HitCellMapping(unsigned long wid, SimHit& hit) const {
+  void HitCellMapping(unsigned long wid, SimHit& hit) const {
     float eta = hit.eta();
     float phi = hit.phi();
-    // long long dde = GetDDE(hit.eta(), hit.phi());
-    long long dde = wid;
+    //! TODO
+    long long dde = GetDDE(hit.eta(), hit.phi());
+    // long long dde = wid;
     if (dde < 0) {
-      cl::sycl::intel::experimental::printf(
-          fastcalosycl::syclcommon::kString,
-          "SimShapeKernel::HitCellMapping()    Cell DDE not found (DDE < 0)!");
-      cl::sycl::intel::experimental::printf(
-          fastcalosycl::syclcommon::kPrintIdEtaPhi, wid, hit.eta(), hit.phi());
+// #if not defined SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+      // cl::sycl::ONEAPI::experimental::printf(
+      //     fastcalosycl::syclcommon::kString,
+      //     "SimShapeKernel::HitCellMapping()    Cell DDE not found (DDE < 0) !");
+      // cl::sycl::ONEAPI::experimental::printf(
+      //     fastcalosycl::syclcommon::kPrintIdEtaPhi, wid, hit.eta(), hit.phi());
+// #endif
       return;
     }
-    // auto cells_energy =
-    //     sycl::intel::atomic_ref<float, sycl::intel::memory_order::relaxed,
-    //                             sycl::intel::memory_scope::device,
-    //                             sycl::access::address_space::global_space>{
-    //         cells_energy_[dde]};
-    // cells_energy.fetch_add(hit.E());
+#ifdef SYCL_DEVICE_ONLY
+    cl::sycl::atomic<float> cells_energy{cl::sycl::multi_ptr<float, cl::sycl::access::address_space::global_space>{&cells_energy_[dde]}};
+    cells_energy.fetch_add(hit.E());
+#endif
   }
 
-  SYCL_EXTERNAL long long GetDDE(float eta, float phi) const {
+  long long GetDDE(float eta, float phi) const {
     if (calo_sampling_ < 0 || calo_sampling_ >= geo_->sample_max) {
-      cl::sycl::intel::experimental::printf(
-          fastcalosycl::syclcommon::kString,
-          "SimShapeKernel::GetDDe()    calo_sampling_ out of range!");
+// #if not defined SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+      // cl::sycl::ONEAPI::experimental::printf(
+      //     fastcalosycl::syclcommon::kString,
+      //     "SimShapeKernel::GetDDe()    calo_sampling_ out of range!");
+// #endif
       return -1L;
     }
     SampleIndex* sindex_ = geo_->sample_index;
     unsigned int sindex_size = sindex_->size;
     int isindex = sindex_->index;
     if (sindex_size == 0) {
-      cl::sycl::intel::experimental::printf(
-          fastcalosycl::syclcommon::kString,
-          "SimShapeKernel::GetDDe()    isindex == 0!");
+// #if not defined SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+      // cl::sycl::ONEAPI::experimental::printf(
+      //     fastcalosycl::syclcommon::kString,
+      //     "SimShapeKernel::GetDDe()    isindex == 0!");
+// #endif
       return -2L;
     }
     float dist = 0.0;
@@ -366,15 +369,17 @@ class SimShapeKernel {
         }
       }
     } else {
-      cl::sycl::intel::experimental::printf(
-          fastcalosycl::syclcommon::kString,
-          "SimShapeKernel::GetDDE()    calo_sampling_ >= 21!");
+// #if not defined SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+      // cl::sycl::ONEAPI::experimental::printf(
+      //     fastcalosycl::syclcommon::kString,
+      //     "SimShapeKernel::GetDDE()    calo_sampling_ >= 21!");
+// #endif
       return -3L;
     }
     return best_dde;
   }
 
-  SYCL_EXTERNAL float RandomToH1DF(float rand, unsigned int bin) const {
+  float RandomToH1DF(float rand, unsigned int bin) const {
     uint32_t uint_rand = h1df_->max_value * rand;
     unsigned int ibin = FindIndexH1DF(uint_rand, bin);
     unsigned int binx = ibin;
@@ -394,7 +399,7 @@ class SimShapeKernel {
     }
   }
 
-  SYCL_EXTERNAL unsigned int FindIndexH1DF(uint32_t rand,
+  unsigned int FindIndexH1DF(uint32_t rand,
                                            unsigned int bin) const {
     unsigned int lo = 0;
     unsigned int hi = h1df_->num_funcs - 1;
@@ -410,7 +415,7 @@ class SimShapeKernel {
     return index;
   }
 
-  SYCL_EXTERNAL inline float phi_mpi_pi(float x) const {
+  inline float phi_mpi_pi(float x) const {
     if (x > PI)
       return x - TWOPI;
     else if (x < -PI)
@@ -437,7 +442,6 @@ class SimShapeKernel {
   const fastcalosycl::syclcommon::Histo1DFunction* h1df_;
   const fastcalosycl::syclcommon::Histo2DFunction* h2df_;
   int calo_sampling_;
-  // DeviceGeo
   const DeviceGeo* geo_;
 };
 

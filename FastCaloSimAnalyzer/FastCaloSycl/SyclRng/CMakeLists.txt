@@ -6,8 +6,13 @@ add_library(SyclRng SHARED)
 
 include(SyclRng)
 
-set(LINK_LIBS
-  mkl_sycl mkl_intel_ilp64 mkl_tbb_thread mkl_core tbb)
+if (SYCL_RNG_CPU)
+  set(MKL_RNG_LIB onemkl)
+elseif (SYCL_RNG_GPU)
+  set(MKL_RNG_LIB onemkl)
+endif()
+
+set(LINK_LIBS onemkl)
 
 target_sources(
   SyclRng

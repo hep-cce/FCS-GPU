@@ -2,7 +2,7 @@
 
 #ifndef FASTCALOSYCL_SYCLCOMMON_DEVICECOMMON_H_
 #define FASTCALOSYCL_SYCLCOMMON_DEVICECOMMON_H_
-
+#define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 
 namespace fastcalosycl::syclcommon {
@@ -11,7 +11,7 @@ namespace fastcalosycl::syclcommon {
 class CUDASelector : public cl::sycl::device_selector {
  public:
   int operator()(const cl::sycl::device& device) const override {
-    const std::string device_vendor = device.get_info<device::vendor>();
+    const std::string device_vendor = device.get_info<cl::sycl::info::device::vendor>();
     const std::string device_driver =
         device.get_info<cl::sycl::info::device::driver_version>();
 
@@ -20,6 +20,22 @@ class CUDASelector : public cl::sycl::device_selector {
         (device_driver.find("CUDA") != std::string::npos)) {
       return 1;
     };
+    return -1;
+  }
+};
+#endif
+#ifdef SYCL_TARGET_HIP
+class AMDSelector : public cl::sycl::device_selector {
+ public:
+  int operator()(const cl::sycl::device& device) const override {
+    const std::string device_vendor = device.get_info<cl::sycl::info::device::vendor>();
+    const std::string device_driver =
+        device.get_info<cl::sycl::info::device::driver_version>();
+    const std::string device_name = device.get_info<cl::sycl::info::device::name>();
+
+    if (device.is_gpu() && (device_vendor.find("AMD") != std::string::npos)) {
+      return 1;
+    }
     return -1;
   }
 };
@@ -88,6 +104,12 @@ static inline cl::sycl::device GetTargetDevice() {
   CUDASelector cuda_selector;
   try {
     dev = cl::sycl::device(cuda_selector);
+  } catch (...) {
+  }
+#elif defined SYCL_TARGET_HIP
+  AMDSelector selector;
+  try {
+    dev = cl::sycl::device(selector);
   } catch (...) {
   }
 #elif defined SYCL_TARGET_DEFAULT

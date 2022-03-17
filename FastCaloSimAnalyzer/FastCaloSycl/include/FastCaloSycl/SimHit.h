@@ -4,7 +4,7 @@
 #define FASTCALOSYCL_SIMHIT_H_
 
 #include <FastCaloSycl/SimHit.h>
-
+#define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 
 class SimHit {
@@ -43,7 +43,7 @@ class SimHit {
 
   ~SimHit() {}
 
-  SYCL_EXTERNAL inline void set_be_hit(float eta, float phi, float z,
+  inline void set_be_hit(float eta, float phi, float z,
                                        float energy) {
     eta_x_ = eta;
     phi_y_ = phi;
@@ -51,7 +51,8 @@ class SimHit {
     energy_ = energy;
     is_fcal_ = false;
   }
-  SYCL_EXTERNAL inline void set_fcal_hit(float x, float y, float z,
+  
+  inline void set_fcal_hit(float x, float y, float z,
                                          float energy) {
     eta_x_ = x;
     phi_y_ = y;
@@ -70,29 +71,29 @@ class SimHit {
     center_eta_ = 0.0;
     center_phi_ = 0.0;
   }
-  SYCL_EXTERNAL inline float eta() { return eta_x_; }
-  SYCL_EXTERNAL inline float phi() { return phi_y_; }
-  SYCL_EXTERNAL inline float x() { return eta_x_; }
-  SYCL_EXTERNAL inline float y() { return phi_y_; }
-  SYCL_EXTERNAL inline float z() { return z_; }
-  SYCL_EXTERNAL inline float E() { return energy_; }
-  SYCL_EXTERNAL inline float r() {
+  inline float eta() { return eta_x_; }
+  inline float phi() { return phi_y_; }
+  inline float x() { return eta_x_; }
+  inline float y() { return phi_y_; }
+  inline float z() { return z_; }
+  inline float E() { return energy_; }
+  inline float r() {
     if (is_fcal_) {
       return cl::sycl::sqrt(eta_x_ * eta_x_ + phi_y_ * phi_y_);
     } else {
       return z_ / cl::sycl::sinh(eta_x_);
     }
   }
-  SYCL_EXTERNAL inline void set_E(float energy) { energy_ = energy; }
-  SYCL_EXTERNAL inline void set_phi(float phi) { phi_y_ = phi; }
-  SYCL_EXTERNAL inline void set_center_r(float r) { center_r_ = r; }
-  SYCL_EXTERNAL inline void set_center_z(float z) { center_z_ = z; }
-  SYCL_EXTERNAL inline void set_center_eta(float eta) { center_eta_ = eta; }
-  SYCL_EXTERNAL inline void set_center_phi(float phi) { center_phi_ = phi; }
-  SYCL_EXTERNAL inline float center_r() { return center_r_; }
-  SYCL_EXTERNAL inline float center_z() { return center_z_; }
-  SYCL_EXTERNAL inline float center_eta() { return center_eta_; }
-  SYCL_EXTERNAL inline float center_phi() { return center_phi_; }
+  inline void set_E(float energy) { energy_ = energy; }
+  inline void set_phi(float phi) { phi_y_ = phi; }
+  inline void set_center_r(float r) { center_r_ = r; }
+  inline void set_center_z(float z) { center_z_ = z; }
+  inline void set_center_eta(float eta) { center_eta_ = eta; }
+  inline void set_center_phi(float phi) { center_phi_ = phi; }
+  inline float center_r() { return center_r_; }
+  inline float center_z() { return center_z_; }
+  inline float center_eta() { return center_eta_; }
+  inline float center_phi() { return center_phi_; }
 
  private:
   float eta_x_;  // eta in barrel and end-caps; x in FCal

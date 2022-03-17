@@ -17,9 +17,11 @@ target_sources(
   PUBLIC ${CMAKE_CURRENT_LIST_DIR}/include/FastCaloSycl/SimEvent.h
          ${CMAKE_CURRENT_LIST_DIR}/include/FastCaloSycl/SimHit.h)
 
-target_sources(
-  ${FastCaloSycl_LIB}
-  PRIVATE src/SimEvent.cxx)
+# target_sources(
+#   ${FastCaloSycl_LIB}
+#   PRIVATE src/SimEvent.cxx)
+
+set_target_properties(FastCaloSycl PROPERTIES LINKER_LANGUAGE CXX)
 
 target_link_libraries(
   ${FastCaloSycl_LIB}

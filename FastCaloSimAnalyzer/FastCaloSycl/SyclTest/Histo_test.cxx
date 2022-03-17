@@ -101,28 +101,26 @@ int main() {
   }
   cl::sycl::queue q = histo->GetDeviceQueue();
 
-#ifndef SYCL_TARGET_CUDA
+#if not defined SYCL_TARGET_HIP and not defined SYCL_TARGET_CUDA
   std::cout << "Test device histogram data..." << std::endl;
   q.submit([&](cl::sycl::handler& cgh) {
      cgh.parallel_for<class Dummy>(
          cl::sycl::range<1>(histo->h1df()->num_funcs),
          [=, dev_funcs = histo->h1df_dev()](cl::sycl::id<1> idx) {
            unsigned int id = (int)idx[0];
-           cl::sycl::intel::experimental::printf(
+           cl::sycl::ONEAPI::experimental::printf(
                fastcalosycl::syclcommon::kHistoPrintFuncNum, id);
            unsigned int size = dev_funcs->sizes[id];
            uint32_t* contents = dev_funcs->contents[id];
            for (unsigned int i = 0; i < size; ++i) {
-             cl::sycl::intel::experimental::printf(
+             cl::sycl::ONEAPI::experimental::printf(
                  fastcalosycl::syclcommon::kHistoPrintContents, id, i,
                  (unsigned long)contents[i]);
            }
          });
    }).wait_and_throw();
 #else
-  std::cout << "CUDA does not support experimental::printf(). Cannot call
-               "
-               "test_cells()."
+  std::cout << "CUDA does not support experimental::printf(). Cannot call test_cells()."
             << std::endl;
 #endif
 

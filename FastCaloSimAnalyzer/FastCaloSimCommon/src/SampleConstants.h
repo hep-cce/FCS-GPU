@@ -26,7 +26,7 @@ static const std::string path_ahasib_legacy(
 
 namespace FCS {
 
-static const std::string VERSION_PARAMETRIZATION = "v010";
+static const std::string VERSION_PARAMETRIZATION = "v013b";
 static const std::string VERSION_DSID = "ver07";
 static const std::string VERSION_FIRSTPCA = "ver07";
 static const std::string VERSION_WIGGLE = "ver06";

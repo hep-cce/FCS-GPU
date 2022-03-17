@@ -1,7 +1,7 @@
 if (ENABLE_SYCL)
-  set( CMAKE_C_COMPILER "clang" )
-  set( CMAKE_CXX_COMPILER "clang++" )
-  set( CMAKE_CXX_FLAGS "-g -O2 -fsycl -std=c++17 -Wno-unknown-cuda-version" )
+  # set( CMAKE_C_COMPILER "clang" )
+  # set( CMAKE_CXX_COMPILER "clang++" )
+  # set( CMAKE_CXX_FLAGS "-g -O2 -fsycl -Wno-unknown-cuda-version" )
   
   fcs_make_task(runTFCS2DParametrizationHistogram
     SOURCE runTFCS2DParametrizationHistogram.cxx

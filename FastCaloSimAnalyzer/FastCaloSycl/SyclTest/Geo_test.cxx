@@ -47,12 +47,14 @@ class RegionKernel {
  public:
   RegionKernel() = delete;
   RegionKernel(DeviceGeo* devgeo) : devgeo_(devgeo) {}
-  void operator()(cl::sycl::id<1> idx) {
+  void operator()(cl::sycl::id<1> idx) const {
     unsigned int id = (int)idx[0];
     unsigned int neta = devgeo_->regions[id].cell_grid_eta();
     unsigned int nphi = devgeo_->regions[id].cell_grid_phi();
-    cl::sycl::intel::experimental::printf(
-        fastcalosycl::syclcommon::kPrintNEtaNPhi, neta, nphi);
+// #ifndef SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+//     cl::sycl::ONEAPI::experimental::printf(
+//         fastcalosycl::syclcommon::kPrintNEtaNPhi, neta, nphi);
+// #endif
   }
 
  private:
@@ -63,51 +65,51 @@ class RegionKernel {
 void test_device_cells(cl::sycl::queue* q, const DeviceGeo* dev_geo,
                        const unsigned long ncells) {
 // CUDA does not support experimental::printf()
-#ifndef SYCL_TARGET_CUDA
-  std::cout << "Test device cells..." << std::endl;
-  auto ev_cellinfo = q->submit([&](cl::sycl::handler& cgh) {
-    cgh.parallel_for<class Dummy>(
-        cl::sycl::range<1>(ncells), [=](cl::sycl::id<1> idx) {
-          // cl::sycl::range<1>(ncells),
-          // [=, dev_cells_local = dev_geo->cells](cl::sycl::id<1> idx) {
-          unsigned int id = (int)idx[0];
-          if ((id + 1) % 10000 == 0) {
-            long long cell_id = dev_geo->cells[id].identify();
-            unsigned long long hash = dev_geo->cells[id].calo_hash();
-            cl::sycl::intel::experimental::printf(
-                fastcalosycl::syclcommon::kCellInfo, cell_id, hash);
-          }
-        });
-  });
-  ev_cellinfo.wait_and_throw();
-#else
-  std::cout << "CUDA does not support experimental::printf(). Cannot call "
-               "test_cells()."
-            << std::endl;
-#endif
+// #ifndef SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+//   std::cout << "Test device cells..." << std::endl;
+//   auto ev_cellinfo = q->submit([&](cl::sycl::handler& cgh) {
+//     cgh.parallel_for<class Dummy>(
+//         cl::sycl::range<1>(ncells), [=](cl::sycl::id<1> idx) {
+//           // cl::sycl::range<1>(ncells),
+//           // [=, dev_cells_local = dev_geo->cells](cl::sycl::id<1> idx) {
+//           unsigned int id = (int)idx[0];
+//           if ((id + 1) % 10000 == 0) {
+//             long long cell_id = dev_geo->cells[id].identify();
+//             unsigned long long hash = dev_geo->cells[id].calo_hash();
+//             cl::sycl::ONEAPI::experimental::printf(
+//                 fastcalosycl::syclcommon::kCellInfo, cell_id, hash);
+//           }
+//         });
+//   });
+//   ev_cellinfo.wait_and_throw();
+// #else
+//   std::cout << "CUDA does not support experimental::printf(). Cannot call "
+//                "test_cells()."
+//             << std::endl;
+// #endif
 }
 
 // Test regions.
 void test_regions(cl::sycl::queue* q, const DeviceGeo* dev_geo) {
   // CUDA does not support experimental::printf()
-#ifndef SYCL_TARGET_CUDA
-  std::cout << "Test device region..." << std::endl;
-  auto ev_region_info = q->submit([&](cl::sycl::handler& cgh) {
-    cgh.parallel_for<class RegionInfo>(
-        cl::sycl::range<1>(dev_geo->num_regions), [=](cl::sycl::id<1> idx) {
-          unsigned int id = (int)idx[0];
-          unsigned int neta = dev_geo->regions[id].cell_grid_eta();
-          unsigned int nphi = dev_geo->regions[id].cell_grid_phi();
-          cl::sycl::intel::experimental::printf(
-              fastcalosycl::syclcommon::kPrintNEtaNPhi, neta, nphi);
-        });
-  });
-  ev_region_info.wait_and_throw();
-#else
-  std::cout << "CUDA does not support experimental::printf(). Cannot call "
-               "test_regions()."
-            << std::endl;
-#endif
+// #ifndef SYCL_TARGET_CUDA and not defined SYCL_TARGET_HIP
+//   std::cout << "Test device region..." << std::endl;
+//   auto ev_region_info = q->submit([&](cl::sycl::handler& cgh) {
+//     cgh.parallel_for<class RegionInfo>(
+//         cl::sycl::range<1>(dev_geo->num_regions), [=](cl::sycl::id<1> idx) {
+//           unsigned int id = (int)idx[0];
+//           unsigned int neta = dev_geo->regions[id].cell_grid_eta();
+//           unsigned int nphi = dev_geo->regions[id].cell_grid_phi();
+//           cl::sycl::ONEAPI::experimental::printf(
+//               fastcalosycl::syclcommon::kPrintNEtaNPhi, neta, nphi);
+//         });
+//   });
+//   ev_region_info.wait_and_throw();
+// #else
+//   std::cout << "CUDA does not support experimental::printf(). Cannot call "
+//                "test_regions()."
+//             << std::endl;
+// #endif
 }
 
 // Copy device cell data back to host.

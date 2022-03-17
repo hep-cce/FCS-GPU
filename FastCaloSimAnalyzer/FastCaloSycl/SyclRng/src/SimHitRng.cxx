@@ -75,7 +75,7 @@ cl::sycl::context* SimHitRng::GetContext() { return ctx_; }
 cl::sycl::queue& SimHitRng::GetQueue() { return queue_; }
 
 void SimHitRng::Generate(unsigned int nhits) {
-  mkl::rng::generate(*dist_, *engine_, nhits, random_nums_).wait_and_throw();
+  oneapi::mkl::rng::generate(*dist_, *engine_, nhits, random_nums_).wait();
 }
 
 bool SimHitRng::Alloc(unsigned long ncells, unsigned short max_unique_hits) {
@@ -142,13 +142,13 @@ void SimHitRng::Dealloc() {
   }
 }
 
-void SimHitRng::add_current_hits(unsigned int nhits) {
-  if (over_alloc(nhits)) {
-    current_num_hits_ = nhits;
-  } else {
-    current_num_hits_ += nhits;
-  }
-}
+// void SimHitRng::add_current_hits(unsigned int nhits) {
+//   if (over_alloc(nhits)) {
+//     current_num_hits_ = nhits;
+//   } else {
+//     current_num_hits_ += nhits;
+//   }
+// }
 
 void SimHitRng::set_genevent(genevent_t /*gen*/) {}
 

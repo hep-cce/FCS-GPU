@@ -301,8 +301,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(
       if (ichain == 0) {
         simprops.extrap_weight =
             ((TFCSCenterPositionCalculation*)simhit)->getExtrapWeight();
-      }
-      if (ichain == 1) {
+      } else if (ichain == 1) {
         auto tt1 = std::chrono::system_clock::now();
 
         if (!((TFCSHistoLateralShapeParametrization*)simhit)->InitHisto(ctx)) {
@@ -321,8 +320,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(
         simprops.h2df_dev = ((TFCSHistoLateralShapeParametrization*)simhit)
                                 ->GetHisto()
                                 ->h2df_dev();
-      }
-      if (ichain == 2) {
+      } else if (ichain == 2) {
         auto tt1 = std::chrono::system_clock::now();
         if (!((TFCSHitCellMappingWiggle*)simhit)->InitHisto(ctx)) {
           ATH_MSG_ERROR(
@@ -339,16 +337,17 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(
       ichain++;
     }
 
-    cl::sycl::range<1> range_ncell{simprops.num_cells};
-    simprops.queue->submit([&](cl::sycl::handler& cgh) {
+    cl::sycl::range<1> range_ncell(simprops.num_cells);
+    auto event_reset = simprops.queue->submit([&](cl::sycl::handler& cgh) {
       SimResetKernel kernel(&simprops);
       cgh.parallel_for(range_ncell, kernel);
     });
     cl::sycl::range<1> range_nhit{nhit};
+    event_reset.wait();
     simprops.queue->submit([&](cl::sycl::handler& cgh) {
       SimShapeKernel kernel(&simprops, Ehit);
       cgh.parallel_for(range_nhit, kernel);
-    });
+    }).wait();
 
     // for (int ii = 0; ii < args.ct; ++ii) {
     //   const CaloDetDescrElement* cellele =

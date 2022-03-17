@@ -11,7 +11,7 @@
 
 namespace fastcalosycl::syclcommon {
 
-static const unsigned int kMinHits = 1000;
+static const unsigned int kMinHits = 256;
 static const unsigned int kMaxHits = 200000;
 static const unsigned int kMaxBins = 1024;
 static const unsigned int kMaxUniqueHits = 2000;

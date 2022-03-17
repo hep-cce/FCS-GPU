@@ -76,3 +76,11 @@ target_link_libraries(${AthenaStandalone_LIB} ${FastCaloSimCommon_LIB} ROOT::Cor
 install(TARGETS ${AthenaStandalone_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+
+# if(SYCL_TARGET_HIP)
+#   find_package(hipSYCL CONFIG REQUIRED)
+#   add_compile_options("-v -Wno-ignored-attributes --hipsycl-targets=hip:gfx900") # Silence HIP warnings
+  # list(APPEND CMAKE_CXX_FLAGS "--hipsycl-targets=hip:gfx900")
+  # add_definitions(-DSYCL_TARGET_HIP)
+# endif()

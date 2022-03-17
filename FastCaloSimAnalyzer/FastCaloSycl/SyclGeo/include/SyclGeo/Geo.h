@@ -5,7 +5,7 @@
 
 #include <SyclCommon/DeviceCommon.h>
 #include <SyclGeo/GeoRegion.h>
-
+#define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 #include <map>
 

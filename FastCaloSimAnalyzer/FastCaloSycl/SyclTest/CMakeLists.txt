@@ -18,6 +18,7 @@ target_include_directories(
 target_link_libraries(
   Histo_test
   PRIVATE SyclCommon
+          ${FastCaloSycl_LIB}
           ${AthenaStandalone_LIB})
 
 add_executable(GeoRegion_test)
@@ -34,19 +35,19 @@ target_link_libraries(
           ${AthenaStandalone_LIB}
           ${FastCaloSimCommon_LIB})
 
-add_executable(Geo_test)
-target_sources(
-  Geo_test
-  PRIVATE Geo_test.cxx)
-target_include_directories(
-  Geo_test
-  PRIVATE ${${AthenaStandalone_LIB}_Includes}
-          ${${FastCaloSimCommon_LIB}_Includes})
-target_link_libraries(
-  Geo_test
-  PRIVATE SyclGeo
-          ${AthenaStandalone_LIB}
-          ${FastCaloSimCommon_LIB})
+#add_executable(Geo_test)
+#target_sources(
+#  Geo_test
+#  PRIVATE Geo_test.cxx)
+#target_include_directories(
+#  Geo_test
+#  PRIVATE ${${AthenaStandalone_LIB}_Includes}
+#          ${${FastCaloSimCommon_LIB}_Includes})
+#target_link_libraries(
+#  Geo_test
+#  PRIVATE SyclGeo
+#          ${AthenaStandalone_LIB}
+#          ${FastCaloSimCommon_LIB})
 
 include(SyclRng)
 add_executable(SimHitRng_test)
@@ -57,4 +58,5 @@ target_link_libraries(
   SimHitRng_test
   PRIVATE SyclRng
           SyclCommon
-          ${FastCaloSycl_LIB})
+          ${FastCaloSycl_LIB}
+          onemkl)

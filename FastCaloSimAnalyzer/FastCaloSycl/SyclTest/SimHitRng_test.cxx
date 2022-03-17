@@ -14,7 +14,7 @@ static const unsigned long long SEED = 12345678987654321LLU;
 // Print random numbers.
 void print_random_nums(cl::sycl::queue* q, SimHitRng* rng) {
 // CUDA does not support experimental::printf()
-#ifndef SYCL_TARGET_CUDA
+#if not defined SYCL_TARGET_HIP and not defined SYCL_TARGET_CUDA
   std::cout << "Generated random numbers..." << std::endl;
   auto ev_print = q->submit([&](cl::sycl::handler& cgh) {
     cgh.parallel_for<class Dummy>(
@@ -22,7 +22,7 @@ void print_random_nums(cl::sycl::queue* q, SimHitRng* rng) {
                                               MAX_HITS)](cl::sycl::id<1> idx) {
           unsigned int id = (int)idx[0];
           float rnd_num = rnd_nums_local[id];
-          cl::sycl::intel::experimental::printf(
+          cl::sycl::ONEAPI::experimental::printf(
               fastcalosycl::syclcommon::kTestRandomNum, id, rnd_num);
         });
   });

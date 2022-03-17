@@ -4,6 +4,8 @@ add_definitions(-DUSE_SYCL)
 
 set(SYCL_DEBUG_INFO
   OFF CACHE BOOL "Enable debugging information output")
+set(ENABLE_SYCL_TESTS
+  OFF CACHE BOOL "Add tests to build")
 set(SYCL_PROFILING_INFO
   OFF CACHE BOOL "Enable profiling information output")
 
@@ -23,14 +25,26 @@ set(SYCL_TARGET_GPU
   OFF CACHE BOOL "Use the GPU device for simulation")
 set(SYCL_TARGET_CUDA
   OFF CACHE BOOL "Enable CUDA backend for simulation")
+set(SYCL_TARGET_HIP
+  OFF CACHE BOOL "Enable HIP backend for simulation")
 
 if (SYCL_TARGET_CUDA)
+  set(INTERFACE_COMPILE_OPTIONS -fsycl -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -fsycl-unnamed-lambda)
+  set(INTERFACE_LINK_OPTIONS -fsycl -fsycl-targets=nvptx64-nvidia-cuda-sycldevice)
   set(CMAKE_CXX_FLAGS
-    "-g -O2 -fsycl -std=c++17 -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -Wno-unknown-cuda-version")
+    "-O2 -fsycl -fsycl-targets=nvptx64-nvidia-cuda-sycldevice -fsycl-unnamed-lambda -Wno-unknown-cuda-version")
+  set_target_properties(${FastCaloSycl_LIB} PROPERTIES
+  INTERFACE_COMPILE_OPTIONS "${INTERFACE_COMPILE_OPTIONS}"
+  INTERFACE_LINK_OPTIONS "${INTERFACE_LINK_OPTIONS}")
   add_definitions(-DSYCL_TARGET_CUDA)
+elseif(SYCL_TARGET_HIP)
+  find_package(hipSYCL CONFIG REQUIRED)
+  add_compile_options("-Wno-ignored-attributes --hipsycl-targets=hip:gfx900") # Silence HIP warnings
+  # list(APPEND CMAKE_CXX_FLAGS "--hipsycl-targets=hip:gfx900")
+  add_definitions(-DSYCL_TARGET_HIP)
 else()
   set(CMAKE_CXX_FLAGS
-  "-g -O2 -fsycl -std=c++17 -Wno-unknown-cuda-version")
+  "-g -O2 -fsycl -Wno-unknown-cuda-version -fno-sycl-early-optimizations")
   if (SYCL_TARGET_DEFAULT)
     add_definitions(-DSYCL_TARGET_DEFAULT)
     message(STATUS " ${PROJECT_NAME} targeting default SYCL device for Geo")

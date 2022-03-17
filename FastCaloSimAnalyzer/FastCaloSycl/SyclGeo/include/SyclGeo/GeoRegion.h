@@ -2,7 +2,7 @@
 
 #ifndef FASTCALOSYCL_SYCLGEO_GEOREGION_H_
 #define FASTCALOSYCL_SYCLGEO_GEOREGION_H_
-
+#define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 #include <memory>
 
@@ -51,25 +51,25 @@ class GeoRegion {
   long long* cell_grid_device();
   CaloDetDescrElement* cells();
   int index();
-  SYCL_EXTERNAL int cell_grid_eta();
-  SYCL_EXTERNAL int cell_grid_phi();
+  int cell_grid_eta();
+  int cell_grid_phi();
   int raw_eta_pos_to_index(float eta_raw) const;
   int raw_phi_pos_to_index(float phi_raw) const;
   float min_eta() const;
-  SYCL_EXTERNAL float min_phi() const;
-  SYCL_EXTERNAL float max_eta() const;
-  SYCL_EXTERNAL float max_phi() const;
-  SYCL_EXTERNAL float deta() const;
-  SYCL_EXTERNAL float dphi() const;
-  SYCL_EXTERNAL bool index_range_adjust(int& ieta, int& iphi) const;
-  SYCL_EXTERNAL float calc_distance_eta_phi(const long long dde, float eta,
+  float min_phi() const;
+  float max_eta() const;
+  float max_phi() const;
+  float deta() const;
+  float dphi() const;
+  bool index_range_adjust(int& ieta, int& iphi) const;
+  float calc_distance_eta_phi(const long long dde, float eta,
                                             float phi, float& dist_eta0,
                                             float& dist_phi0) const;
-  SYCL_EXTERNAL long long get_cell(float eta, float phi, float* distance,
+  long long get_cell(float eta, float phi, float* distance,
                                    unsigned int* steps) const;
 
  private:
-  SYCL_EXTERNAL float phi_mpi_pi(float x) const;
+  float phi_mpi_pi(float x) const;
 
   long long* cell_grid_;         // Array for calorimeter cells
   long long* cell_grid_device_;  // Array for calorimeter cells on device
