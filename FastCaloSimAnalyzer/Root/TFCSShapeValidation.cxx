@@ -31,7 +31,7 @@
 #include <chrono>
 #include <typeinfo>
 
-#ifdef USE_GPU
+#ifdef USE_OMPGPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #  include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
@@ -82,6 +82,16 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   auto                          t1   = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1 - t0;
   std::cout << "Time of Rand4Hit_init: " << diff.count() << " s" << std::endl;
+#elif defined USE_OMPGPU
+ ////////////////////////////////
+ // random number generated in m_randEngine 
+ // need to be shipped to GPU using OMP
+ ////////////////////////////////
+  auto                          t0   = std::chrono::system_clock::now();
+  
+  auto                          t1   = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff = t1 - t0;
+  std::cout << "Time to copy m_randEngine to GPU: " << diff.count() << " s" << std::endl;
 #endif
 }
 
@@ -99,11 +109,13 @@ void TFCSShapeValidation::LoadGeo() {
 }
 
 void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
+
   auto start = std::chrono::system_clock::now();
+
   LoadGeo();
+
   auto                          t_01 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff;
-  //std::cout << "starting in looooooop " << std::endl;
   time_o1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o2 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
@@ -120,7 +132,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
 
 #ifdef USE_GPU
-
   GeoLg();
 
   if ( m_gl->LoadGpu() ) std::cout << "GPU Geometry loaded!!!" << std::endl;
@@ -151,6 +162,13 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     }
     std::cout << "Total cells for all regions and samples: " << t_cells << std::endl;
   }
+#elif defined USE_OMPGPU
+  ////////////////////////////////
+  // Load geometry on GPU using OMP
+  ////////////////////////////////
+  std::cout << "Loading geometry on GPU using OMP" << std::endl;
+  GeoLg();
+  //if ( m_gl->LoadGpu() ) std::cout << "Success!!!" << std::endl;
 #endif
 
   int nentries = m_nentries;
@@ -198,6 +216,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   TFCSSimulationState::EventStatus es = {-1, false, false};
 #endif
   auto t2 = std::chrono::system_clock::now();
+
+  ///////////////////////////////////
+  //// Event loop
+  ///////////////////////////////////
   for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
 #ifdef USE_GPU
@@ -566,5 +588,34 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
     }
   }
 }
+#elif defined USE_OMPGPU
+void TFCSShapeValidation::GeoLg() {
+  std::cout << "----- GeoLg ----- " << std::endl;
+  m_gl = new GeoLoadGpu();
+  m_gl->set_ncells( m_geo->get_cells()->size() );
+  m_gl->set_max_sample( CaloGeometry::MAX_SAMPLING );
+  int nrgns = m_geo->get_tot_regions();
 
+  std::cout << "Total GeoRegions= " << nrgns << std::endl;
+  std::cout << "Total cells= " << m_geo->get_cells()->size() << std::endl;
+
+  m_gl->set_nregions( nrgns );
+  m_gl->set_cellmap( m_geo->get_cells() );
+
+  GeoRegion* GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
+  m_gl->set_regions( GR_ptr );
+
+  Rg_Sample_Index* si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
+
+  m_gl->set_sample_index_h( si );
+
+  int i = 0;
+  for ( int is = 0; is < CaloGeometry::MAX_SAMPLING; ++is ) {
+    si[is].index = i;
+    int nr       = m_geo->get_n_regions( is );
+    si[is].size  = nr;
+    for ( int ir = 0; ir < nr; ++ir ) region_data_cpy( m_geo->get_region( is, ir ), &GR_ptr[i++] );
+    //    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
+  }
+}
 #endif

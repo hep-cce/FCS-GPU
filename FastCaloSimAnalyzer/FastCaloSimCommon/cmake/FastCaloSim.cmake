@@ -52,6 +52,8 @@ endif()
 
 if(ENABLE_GPU) 
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
+elseif(ENABLE_OMPGPU)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_OMPGPU )
 endif() 
 
 if(USE_KOKKOS)

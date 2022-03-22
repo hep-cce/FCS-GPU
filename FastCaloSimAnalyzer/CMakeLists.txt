@@ -11,6 +11,7 @@ set(CMAKE_MODULE_PATH
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
+set(ENABLE_OMPGPU OFF CACHE BOOL "Enable OMP GPU")
 set(RNDGEN_CPU OFF CACHE BOOL "Generate Random Numbers on CPU")
 
 if(USE_KOKKOS)
@@ -20,6 +21,7 @@ endif()
 include(FastCaloSim)
 include(XRootD)
 
+##add_definitions(-DUSE_OMPGPU) 
 # Add OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)

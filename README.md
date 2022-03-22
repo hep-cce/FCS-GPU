@@ -24,7 +24,7 @@ then
 mkdir build 
 cd build
 ## cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
 make -j 8
 ```
 
