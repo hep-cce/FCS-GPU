@@ -83,12 +83,20 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   std::chrono::duration<double> diff = t1 - t0;
   std::cout << "Time of Rand4Hit_init: " << diff.count() << " s" << std::endl;
 #elif defined USE_OMPGPU
- ////////////////////////////////
- // random number generated in m_randEngine 
- // need to be shipped to GPU using OMP
- ////////////////////////////////
+  ////////////////////////////////
+  // random number generated in m_randEngine 
+  // need to be shipped to GPU using OMP
+  ////////////////////////////////
   auto                          t0   = std::chrono::system_clock::now();
-  
+  #pragma omp declare mapper(class CLHEP::TRandomEngine m)\
+     map(m)  
+  #pragma omp target enter data map(alloc:m_randEngine)
+
+  ////////////////////////////////
+  // If map-type is from or alloc, the initial value of the 
+  // list item in the device data environment is undefined
+  ////////////////////////////////
+  m_randEngine->setSeed( seed );
   auto                          t1   = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1 - t0;
   std::cout << "Time to copy m_randEngine to GPU: " << diff.count() << " s" << std::endl;
@@ -591,31 +599,31 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
 #elif defined USE_OMPGPU
 void TFCSShapeValidation::GeoLg() {
   std::cout << "----- GeoLg ----- " << std::endl;
-  m_gl = new GeoLoadGpu();
-  m_gl->set_ncells( m_geo->get_cells()->size() );
-  m_gl->set_max_sample( CaloGeometry::MAX_SAMPLING );
-  int nrgns = m_geo->get_tot_regions();
-
-  std::cout << "Total GeoRegions= " << nrgns << std::endl;
-  std::cout << "Total cells= " << m_geo->get_cells()->size() << std::endl;
-
-  m_gl->set_nregions( nrgns );
-  m_gl->set_cellmap( m_geo->get_cells() );
-
-  GeoRegion* GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
-  m_gl->set_regions( GR_ptr );
-
-  Rg_Sample_Index* si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
-
-  m_gl->set_sample_index_h( si );
-
-  int i = 0;
-  for ( int is = 0; is < CaloGeometry::MAX_SAMPLING; ++is ) {
-    si[is].index = i;
-    int nr       = m_geo->get_n_regions( is );
-    si[is].size  = nr;
-    for ( int ir = 0; ir < nr; ++ir ) region_data_cpy( m_geo->get_region( is, ir ), &GR_ptr[i++] );
-    //    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
-  }
+//  m_gl = new GeoLoadGpu();
+//  m_gl->set_ncells( m_geo->get_cells()->size() );
+//  m_gl->set_max_sample( CaloGeometry::MAX_SAMPLING );
+//  int nrgns = m_geo->get_tot_regions();
+//
+//  std::cout << "Total GeoRegions= " << nrgns << std::endl;
+//  std::cout << "Total cells= " << m_geo->get_cells()->size() << std::endl;
+//
+//  m_gl->set_nregions( nrgns );
+//  m_gl->set_cellmap( m_geo->get_cells() );
+//
+//  GeoRegion* GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
+//  m_gl->set_regions( GR_ptr );
+//
+//  Rg_Sample_Index* si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
+//
+//  m_gl->set_sample_index_h( si );
+//
+//  int i = 0;
+//  for ( int is = 0; is < CaloGeometry::MAX_SAMPLING; ++is ) {
+//    si[is].index = i;
+//    int nr       = m_geo->get_n_regions( is );
+//    si[is].size  = nr;
+//    for ( int ir = 0; ir < nr; ++ir ) region_data_cpy( m_geo->get_region( is, ir ), &GR_ptr[i++] );
+//    //    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
+//  }
 }
 #endif
