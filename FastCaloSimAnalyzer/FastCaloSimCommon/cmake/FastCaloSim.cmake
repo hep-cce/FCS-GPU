@@ -37,6 +37,8 @@ set(EnergyParametrization_LIB EnergyParametrization)
 
 if(ENABLE_GPU) 
   set(FastCaloGpu_LIB FastCaloGpu)
+elseif(ENABLE_OMPGPU)
+  set(FastCaloGpu_LIB FastCaloGpu)
 endif() 
 
 # Common definitions
@@ -84,6 +86,10 @@ set(${FastCaloSimAnalyzer_LIB}_Includes
 )
 
 if(ENABLE_GPU)
+  set(${FastCaloGpu_LIB}_Includes
+  ${CMAKE_SOURCE_DIR}/FastCaloGpu
+)
+elseif(ENABLE_OMPGPU)
   set(${FastCaloGpu_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloGpu
 )

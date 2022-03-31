@@ -31,7 +31,7 @@
 #include <chrono>
 #include <typeinfo>
 
-#ifdef USE_OMPGPU
+#if defined USE_GPU || defined USE_OMPGPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #  include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #  include <omp.h>
@@ -40,8 +40,6 @@
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
 #endif
-
-//#pragma omp requires unified_shared_memory
 
 std::chrono::duration<double> TFCSShapeValidation::time_g1;
 std::chrono::duration<double> TFCSShapeValidation::time_g2;
@@ -61,7 +59,7 @@ TFCSShapeValidation::TFCSShapeValidation( long seed ) {
   m_randEngine = new CLHEP::TRandomEngine();
   m_randEngine->setSeed( seed );
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   m_gl   = 0;
   m_rd4h = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
 #endif
@@ -82,31 +80,13 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   auto                          t_end = std::chrono::system_clock::now();
   std::chrono::duration<double> diff1 = t_end - t_bgn;
   std::cout << "Time to seed rands on CPU: " << diff1.count() << " s" << std::endl;
-#ifdef USE_GPU
-  auto t0                            = std::chrono::system_clock::now();
+#if defined USE_GPU || defined USE_OMPGPU
+  auto                            t0 = std::chrono::system_clock::now();
   m_gl                               = 0;
   m_rd4h                             = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
-  auto                          t1   = std::chrono::system_clock::now();
+  auto                            t1 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1 - t0;
   std::cout << "Time of Rand4Hit_init: " << diff.count() << " s" << std::endl;
-#elif defined USE_OMPGPU
-  ////////////////////////////////
-  // random number generated in m_randEngine 
-  // need to be offloaded to GPU using OMP
-  ////////////////////////////////
-  auto                          t0   = std::chrono::system_clock::now();
-  #pragma omp declare mapper(class CLHEP::TRandomEngine m)\
-    map(m)
-  ////////////////////////////////
-  // If map-type is from or alloc, the initial value of the 
-  // list item in the device data environment is undefined
-  ////////////////////////////////
-  #pragma omp target enter data map(to:m_randEngine)\
-    map(to:seed)
-  m_randEngine->setSeed( seed );
-  auto                          t1   = std::chrono::system_clock::now();
-  std::chrono::duration<double> diff = t1 - t0;
-  std::cout << "Time to seed rands on GPU: " << diff.count() << " s" << std::endl;
 #endif
 }
 
@@ -514,7 +494,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   */
 }
 
-#ifdef USE_OMPGPU
+#if defined USE_GPU || defined USE_OMPGPU
 void TFCSShapeValidation::GeoLg() {
   m_gl = new GeoLoadGpu();
   m_gl->set_ncells( m_geo->get_cells()->size() );
@@ -607,6 +587,9 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
   }
 }
 
+#endif
+
+#ifdef USE_OMPGPU
 bool GeoLoadGpu::LoadGpu_omp() {
 
   if ( !m_cells || m_ncells == 0 ) {
@@ -748,7 +731,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
   // more test for region grids
   if ( 0 ) { return TestGeo(); }
-
+  // Free memory allocate on device?
   return true;
 }
 

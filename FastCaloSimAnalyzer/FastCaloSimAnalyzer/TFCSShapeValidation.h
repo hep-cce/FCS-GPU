@@ -56,7 +56,7 @@ public:
   static std::chrono::duration<double> time_mchain;
   static std::chrono::duration<double> time_hitsim;
 
-#ifdef USE_OMPGPU
+#if defined USE_GPU || defined USE_OMPGPU
   void GeoLg();
   void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr );
   // void copy_all_regions( ) ;
@@ -76,7 +76,7 @@ private:
 
   std::vector<TFCSSimulationRun> m_validations;
 
-#ifdef USE_OMPGPU
+#if defined USE_GPU || defined USE_OMPGPU
   GeoLoadGpu* m_gl;
   void*       m_rd4h;
 #endif

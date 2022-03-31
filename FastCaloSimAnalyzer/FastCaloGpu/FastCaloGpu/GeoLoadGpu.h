@@ -44,7 +44,6 @@ public:
 #ifdef USE_KOKKOS
     return LoadGpu_kk();
 #elif defined USE_OMPGPU
-    std::cout << "LoadGpu_omp " << std::endl;
     return LoadGpu_omp();
 #else
     return LoadGpu_cu();
