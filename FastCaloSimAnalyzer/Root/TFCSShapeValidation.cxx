@@ -34,11 +34,14 @@
 #ifdef USE_OMPGPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #  include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
+#  include <omp.h>
 #endif
 
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
 #endif
+
+//#pragma omp requires unified_shared_memory
 
 std::chrono::duration<double> TFCSShapeValidation::time_g1;
 std::chrono::duration<double> TFCSShapeValidation::time_g2;
@@ -74,7 +77,11 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   m_firstevent = 0;
 
   m_randEngine = new CLHEP::TRandomEngine();
+  auto                          t_bgn = std::chrono::system_clock::now();
   m_randEngine->setSeed( seed );
+  auto                          t_end = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff1 = t_end - t_bgn;
+  std::cout << "Time to seed rands on CPU: " << diff1.count() << " s" << std::endl;
 #ifdef USE_GPU
   auto t0                            = std::chrono::system_clock::now();
   m_gl                               = 0;
@@ -85,21 +92,21 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
 #elif defined USE_OMPGPU
   ////////////////////////////////
   // random number generated in m_randEngine 
-  // need to be shipped to GPU using OMP
+  // need to be offloaded to GPU using OMP
   ////////////////////////////////
   auto                          t0   = std::chrono::system_clock::now();
   #pragma omp declare mapper(class CLHEP::TRandomEngine m)\
-     map(m)  
-  #pragma omp target enter data map(alloc:m_randEngine)
-
+    map(m)
   ////////////////////////////////
   // If map-type is from or alloc, the initial value of the 
   // list item in the device data environment is undefined
   ////////////////////////////////
+  #pragma omp target enter data map(to:m_randEngine)\
+    map(to:seed)
   m_randEngine->setSeed( seed );
   auto                          t1   = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1 - t0;
-  std::cout << "Time to copy m_randEngine to GPU: " << diff.count() << " s" << std::endl;
+  std::cout << "Time to seed rands on GPU: " << diff.count() << " s" << std::endl;
 #endif
 }
 
@@ -107,7 +114,6 @@ TFCSShapeValidation::~TFCSShapeValidation() {}
 
 void TFCSShapeValidation::LoadGeo() {
   if ( m_geo ) return;
-
   m_geo = new CaloGeometryFromFile();
 
   // load geometry files
@@ -174,9 +180,13 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   ////////////////////////////////
   // Load geometry on GPU using OMP
   ////////////////////////////////
-  std::cout << "Loading geometry on GPU using OMP" << std::endl;
+  std::cout << "Loading geometry on GPU using OMP..." << std::endl;
+  auto               t_bgn_loadgeogpu = std::chrono::system_clock::now();
   GeoLg();
-  //if ( m_gl->LoadGpu() ) std::cout << "Success!!!" << std::endl;
+  if ( m_gl->LoadGpu() ) std::cout << "Success!!!" << std::endl;
+  auto               t_end_loadgeogpu = std::chrono::system_clock::now();
+  std::chrono::duration<double> diff2 = t_end_loadgeogpu - t_bgn_loadgeogpu;
+  std::cout << "Time to load geo on GPU: " << diff2.count() << " s" << std::endl;
 #endif
 
   int nentries = m_nentries;
@@ -504,7 +514,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   */
 }
 
-#ifdef USE_GPU
+#ifdef USE_OMPGPU
 void TFCSShapeValidation::GeoLg() {
   m_gl = new GeoLoadGpu();
   m_gl->set_ncells( m_geo->get_cells()->size() );
@@ -596,34 +606,151 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
     }
   }
 }
-#elif defined USE_OMPGPU
-void TFCSShapeValidation::GeoLg() {
-  std::cout << "----- GeoLg ----- " << std::endl;
-//  m_gl = new GeoLoadGpu();
-//  m_gl->set_ncells( m_geo->get_cells()->size() );
-//  m_gl->set_max_sample( CaloGeometry::MAX_SAMPLING );
-//  int nrgns = m_geo->get_tot_regions();
-//
-//  std::cout << "Total GeoRegions= " << nrgns << std::endl;
-//  std::cout << "Total cells= " << m_geo->get_cells()->size() << std::endl;
-//
-//  m_gl->set_nregions( nrgns );
-//  m_gl->set_cellmap( m_geo->get_cells() );
-//
-//  GeoRegion* GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
-//  m_gl->set_regions( GR_ptr );
-//
-//  Rg_Sample_Index* si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
-//
-//  m_gl->set_sample_index_h( si );
-//
-//  int i = 0;
-//  for ( int is = 0; is < CaloGeometry::MAX_SAMPLING; ++is ) {
-//    si[is].index = i;
-//    int nr       = m_geo->get_n_regions( is );
-//    si[is].size  = nr;
-//    for ( int ir = 0; ir < nr; ++ir ) region_data_cpy( m_geo->get_region( is, ir ), &GR_ptr[i++] );
-//    //    std::cout<<"Sample " << is << "regions: "<< nr << ", Region Index " << i << std::endl ;
+
+bool GeoLoadGpu::LoadGpu_omp() {
+
+  if ( !m_cells || m_ncells == 0 ) {
+    std::cout << "Geometry is empty " << std::endl;
+    return false;
+  }
+
+  int num_devices    = omp_get_num_devices();
+  int initial_device = omp_get_initial_device();
+  int default_device = omp_get_default_device();
+
+  if ( num_devices < 1 or default_device < 0) {
+    std::cout << " ERROR: No device found." << std::endl;
+    return false;
+  }
+
+  GeoGpu geo_gpu_h;
+  
+  // Allocate Device memory for cells and copy cells as array
+  // move cells on host to a array first
+  m_cells_d = (CaloDetDescrElement *) omp_target_alloc( sizeof( CaloDetDescrElement ) * m_ncells, default_device); 
+  if ( m_cells_d == NULL ) {
+    std::cout << " ERROR: No space left on device." << std::endl;
+    return false;
+  }
+
+  std::cout << "omp_target_alloc " << m_ncells << " cells" << std::endl;
+
+  CaloDetDescrElement* cells_Host = (CaloDetDescrElement*)malloc( m_ncells * sizeof( CaloDetDescrElement ) );
+  m_cellid_array                  = (Identifier*)malloc( m_ncells * sizeof( Identifier ) );
+
+  // create an array of cell identities, they are in order of hashids.
+  int ii = 0;
+  for ( t_cellmap::iterator ic = m_cells->begin(); ic != m_cells->end(); ++ic ) {
+     cells_Host[ii]     = *( *ic ).second;
+     Identifier id      = ( ( *ic ).second )->identify();
+     m_cellid_array[ii] = id;  
+     ii++;  
+  }
+  
+  std::size_t offset = 0;
+  ////////////////////////////////
+  // omp_target_memcpy returns zero on success and nonzero on failure.
+  ////////////////////////////////
+  if ( omp_target_memcpy( &m_cells_d[0], cells_Host, sizeof( CaloDetDescrElement ) * m_ncells, 
+                                                offset, offset, default_device, initial_device  ) ) {
+    std::cout << " ERROR: Unable to copy to device." << std::endl;
+    return false;
+  }
+  else {
+    std::cout << "Target device memcpy " << ii << "/" << m_ncells << " cells"
+            << " Total:" << ii * sizeof( CaloDetDescrElement ) << " Bytes" << std::endl;
+  }
+
+  free( cells_Host );
+
+//  if ( 0 ) {
+//    if ( !SanityCheck() ) { return false; }
 //  }
+
+  Rg_Sample_Index* SampleIndex_g;
+  SampleIndex_g = (Rg_Sample_Index *) omp_target_alloc( sizeof( Rg_Sample_Index ) * m_ncells, default_device); 
+  if ( SampleIndex_g == NULL ) {
+    std::cout << " ERROR: No space left on device." << std::endl;;
+    return false;
+  }
+
+  // copy sample_index array  to gpu
+  if ( omp_target_memcpy( SampleIndex_g, m_sample_index_h, sizeof( Rg_Sample_Index ) * m_max_sample, 
+                                                offset, offset, default_device, initial_device ) ) { 
+     std::cout << "ERROR: copy sample index. " << std::endl;
+     return false;
+  }  
+
+  // each Region allocate a grid (long Long) gpu array
+  //  copy array to GPU
+  //  save to regions m_cell_g ;
+  for ( unsigned int ir = 0; ir < m_nregions; ++ir ) {
+    //	std::cout << "debug m_regions_d[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
+    long long* ptr_g;
+    ptr_g = (long long *) omp_target_alloc( sizeof( long long ) * m_regions[ir].cell_grid_eta() *
+                                                        m_regions[ir].cell_grid_phi(), default_device); 
+    if ( ptr_g == NULL ) {
+      std::cout << " ERROR: No space left on device." << std::endl;;
+      return false;
+    }
+
+    //      std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
+    if ( omp_target_memcpy( ptr_g, m_regions[ir].cell_grid(), sizeof( long long ) * m_regions[ir].cell_grid_eta() 
+                              * m_regions[ir].cell_grid_phi(), offset, offset, default_device, initial_device ) ) { 
+      std::cout << "ERROR: copy m_regions. " << std::endl;
+      return false;
+    }  
+    //      std::cout<< "cpy grid "<<  ir  << std::endl;
+    m_regions[ir].set_cell_grid_g( ptr_g );
+    m_regions[ir].set_all_cells( m_cells_d ); // set this so all region instance know where the GPU cells are, before
+                                              // copy to GPU
+    //	std::cout<<"Gpu cell Pintor in region: " <<m_cells_d << " m_regions[ir].all_cells() " <<
+    // m_regions[ir].all_cells() << std::endl ;
+  }
+
+  // GPU allocate Regions data  and load them to GPU as array of regions
+  m_regions_d = (GeoRegion *) omp_target_alloc( sizeof( GeoRegion ) * m_nregions, default_device); 
+  if ( m_regions_d == NULL ) {
+    std::cout << " ERROR: No space left on device." << std::endl;;
+    return false;
+  }
+  if ( omp_target_memcpy( m_regions_d, m_regions, sizeof( GeoRegion ) * m_nregions,
+                                    offset, offset, default_device, initial_device ) ) { 
+    std::cout << "ERROR: copy m_regions. " << std::endl;
+    return false;
+  } 
+//        std::cout<< "Regions Array Copied , size (Byte) " <<  sizeof(GeoRegion)*m_nregions << "sizeof cell *" <<
+//        sizeof(CaloDetDescrElement *) << std::endl; std::cout<< "Region Pointer GPU print from host" <<  m_regions_d
+//        << std::endl;
+
+  geo_gpu_h.cells        = m_cells_d;
+  geo_gpu_h.ncells       = m_ncells;
+  geo_gpu_h.nregions     = m_nregions;
+  geo_gpu_h.regions      = m_regions_d;
+  geo_gpu_h.max_sample   = m_max_sample;
+  geo_gpu_h.sample_index = SampleIndex_g;
+
+  // Now copy this to GPU and set the static member to this pointer
+  GeoGpu* Gptr;
+  Gptr = (GeoGpu *) omp_target_alloc( sizeof( GeoGpu ), default_device); 
+  if ( Gptr == NULL ) {
+    std::cout << " ERROR: No space left on device." << std::endl;;
+    return false;
+  }
+  if ( omp_target_memcpy( Gptr, &geo_gpu_h, sizeof( GeoGpu ),
+               offset, offset, default_device, initial_device ) ) { 
+    std::cout << "ERROR: copy Gptr. " << std::endl;
+    return false;
+  } 
+
+  //  Geo_g = Gptr;
+  m_geo_d = Gptr;
+
+  // more test for region grids
+  if ( 0 ) { return TestGeo(); }
+
+  return true;
 }
+
+
 #endif

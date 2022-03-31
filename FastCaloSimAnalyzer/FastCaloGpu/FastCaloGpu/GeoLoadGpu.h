@@ -45,13 +45,13 @@ public:
     return LoadGpu_kk();
 #elif defined USE_OMPGPU
     std::cout << "LoadGpu_omp " << std::endl;
-    //return LoadGpu_omp();
+    return LoadGpu_omp();
 #else
     return LoadGpu_cu();
 #endif
   }
   bool LoadGpu_kk();
-  //bool LoadGpu_omp();
+  bool LoadGpu_omp();
   bool LoadGpu_cu();
 
   void    set_geoPtr( GeoGpu* ptr ) { m_geo_d = ptr; }

@@ -21,7 +21,6 @@ endif()
 include(FastCaloSim)
 include(XRootD)
 
-##add_definitions(-DUSE_OMPGPU) 
 # Add OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)
@@ -42,4 +41,8 @@ add_subdirectory(Root)
 if(ENABLE_GPU) 
   add_subdirectory(FastCaloGpu/src FastCaloGpu)
 endif() 
+##if(ENABLE_OMPGPU) 
+##  add_subdirectory(FastCaloGpu/src FastCaloGpu)
+##endif() 
+
 add_subdirectory(macro)
