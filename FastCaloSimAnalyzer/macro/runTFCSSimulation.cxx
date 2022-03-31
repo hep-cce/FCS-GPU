@@ -160,8 +160,10 @@ void set_prefix( int analyze_layer, int analyze_pcabin ) {
 int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, int analyze_layer = 2,
                        const std::string& plotfilename = "Simulation.root", long seed = 42, int nEvents = -1,
                        int firstEvent = 0, int selectPCAbin = -1, int debug = 0, bool png = false ) {
-
-  std::cout << "OpenMP Num Devices = " << omp_get_num_devices() << std::endl;
+  
+  printf ( "Host device ID is %d \n", omp_get_initial_device() );
+  printf ( "OpenMP num devices are %d \n", omp_get_num_devices() );
+  printf ( "OpenMP default device is %d \n", omp_get_default_device() );
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0 = std::chrono::system_clock::now();

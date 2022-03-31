@@ -13,6 +13,8 @@ enable_language( CUDA )
 
 if(USE_KOKKOS)
   set(FastCaloGpu_Srcs KokkosWrapper.cxx)
+##elseif(USE_OMPGPU)
+##  set(FastCaloGpu_Srcs CaloGpuGeneral.cxx)
 else()
   set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
 endif()

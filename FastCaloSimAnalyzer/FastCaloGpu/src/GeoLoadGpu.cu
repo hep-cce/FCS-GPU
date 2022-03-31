@@ -234,3 +234,5 @@ bool GeoLoadGpu::LoadGpu_cu() {
   if ( 0 ) { return TestGeo(); }
   return true;
 }
+
+
