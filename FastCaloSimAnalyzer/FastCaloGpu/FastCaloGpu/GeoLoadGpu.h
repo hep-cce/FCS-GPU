@@ -51,6 +51,7 @@ public:
   }
   bool LoadGpu_kk();
   bool LoadGpu_omp();
+  bool UnloadGpu_omp();
   bool LoadGpu_cu();
 
   void    set_geoPtr( GeoGpu* ptr ) { m_geo_d = ptr; }

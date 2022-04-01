@@ -7,6 +7,8 @@
 
 #include "CaloDetDescrElement_g.h"
 
+#include <cmath>
+
 // #ifndef CUDA_HOSTDEV
 // #  ifdef __CUDACC__
 // #    define CUDA_HOSTDEV __host__ __device__
@@ -107,10 +109,10 @@ public:
   __HOSTDEV__ float                minphi() const { return m_minphi; };
 
   __HOSTDEV__ int raw_eta_position_to_index( float eta_raw ) const {
-    return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
+    return std::floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
   };
   __HOSTDEV__ int raw_phi_position_to_index( float phi_raw ) const {
-    return floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
+    return std::floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
   };
 
   __HOSTDEV__ bool  index_range_adjust( int& ieta, int& iphi ) const;
