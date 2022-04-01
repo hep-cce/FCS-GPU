@@ -137,7 +137,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
   GeoGpu* Gptr;
   Gptr = (GeoGpu *) omp_target_alloc( sizeof( GeoGpu ), default_device); 
   if ( Gptr == NULL ) {
-    std::cout << " ERROR: No space left on device." << std::endl;;
+    std::cout << " ERROR: No space left on device." << std::endl;
     return false;
   }
   if ( omp_target_memcpy( Gptr, &geo_gpu_h, sizeof( GeoGpu ),
@@ -151,7 +151,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
   // more test for region grids
   if ( 0 ) { return TestGeo(); }
-  // Free memory allocate on device?
+  
   return true;
 }
 

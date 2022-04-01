@@ -13,6 +13,10 @@
 #  include <Kokkos_Random.hpp>
 #endif
 
+//#ifdef USE_OMPGPU
+#  include <omp.h>
+//#endif
+
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
@@ -93,6 +97,13 @@ private:
   Kokkos::View<int>     m_ct_v;
   Kokkos::View<float*>  m_rand_ptr_v;
 #endif
+
+ //#ifdef USE_OMPGPU
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  std::size_t m_offset = 0;
+ //#endif
+
 };
 
 #endif

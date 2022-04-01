@@ -80,8 +80,8 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   auto                          t_end = std::chrono::system_clock::now();
   std::chrono::duration<double> diff1 = t_end - t_bgn;
   std::cout << "Time to seed rands on CPU: " << diff1.count() << " s" << std::endl;
-#if defined USE_GPU
-//#if defined USE_GPU || defined USE_OMPGPU
+//#if defined USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   auto                            t0 = std::chrono::system_clock::now();
   m_gl                               = 0;
   m_rd4h                             = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
