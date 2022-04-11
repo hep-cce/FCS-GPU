@@ -13,7 +13,7 @@
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
-#ifdef USE_OMPGPU
+#if defined USE_GPU || defined USE_OMPGPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #endif
 #include <chrono>

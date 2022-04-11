@@ -29,8 +29,8 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
   // use CPU rand num gen to be able to compare GPU implementations
   rd4h->create_gen( seed, 3 * maxhits, genOnCPU );
   auto t3 = std::chrono::system_clock::now();
-//  rd4h->set_t_a_hits( maxhits );
-//  rd4h->set_c_hits( 0 );
+  rd4h->set_t_a_hits( maxhits );
+  rd4h->set_c_hits( 0 );
   auto t4 = std::chrono::system_clock::now();
 
   rd4h->allocate_simulation( maxhits, maxbin, 2000, 200000 );
@@ -53,21 +53,21 @@ void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
 
 void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
-//  Rand4Hits* rd4h = (Rand4Hits*)args.rd4h;
-//
-//  float* r = rd4h->rand_ptr( nhits );
-//
-//  rd4h->add_a_hits( nhits );
-//  args.rand = r;
-//
-//  args.maxhitct = MAXHITCT;
-//
-//  args.cells_energy = rd4h->get_cells_energy(); // Hit cell energy map , size of ncells(~200k float)
-//  args.hitcells_E   = rd4h->get_cell_e();       // Hit cell energy map, moved together
-//  args.hitcells_E_h = rd4h->get_cell_e_h();     // Host array
-//
-//  args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
-//
+  Rand4Hits* rd4h = (Rand4Hits*)args.rd4h;
+
+  float* r = rd4h->rand_ptr( nhits );
+
+  rd4h->add_a_hits( nhits );
+  args.rand = r;
+
+  args.maxhitct = MAXHITCT;
+
+  args.cells_energy = rd4h->get_cells_energy(); // Hit cell energy map , size of ncells(~200k float)
+  args.hitcells_E   = rd4h->get_cell_e();       // Hit cell energy map, moved together
+  args.hitcells_E_h = rd4h->get_cell_e_h();     // Host array
+
+  args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
+
 //#ifndef USE_KOKKOS
 //  CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 //#else

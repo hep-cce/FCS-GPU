@@ -4,6 +4,7 @@
 
 #include "Rand4Hits.h"
 #include <iostream>
+#include <curand.h>
 
 #include "Rand4Hits_cpu.cxx"
 
@@ -15,7 +16,7 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
 //  gpuQ( cudaMalloc( (void**)&Cells_Energy, n_cells * sizeof( float ) ) );
   Cells_Energy = (float *) omp_target_alloc( n_cells * sizeof( float ), m_default_device);
   if ( Cells_Energy == NULL ) {
-    std::cout << " ERROR: No space left on devicei for Cells_Energy." << std::endl;
+    std::cout << " ERROR: No space left on device for Cells_Energy." << std::endl;
   }
   m_cells_energy = Cells_Energy;
 

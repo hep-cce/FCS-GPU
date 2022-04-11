@@ -80,7 +80,6 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   auto                          t_end = std::chrono::system_clock::now();
   std::chrono::duration<double> diff1 = t_end - t_bgn;
   std::cout << "Time to seed rands on CPU: " << diff1.count() << " s" << std::endl;
-//#if defined USE_GPU
 #if defined USE_GPU || defined USE_OMPGPU
   auto                            t0 = std::chrono::system_clock::now();
   m_gl                               = 0;
@@ -157,17 +156,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     }
     std::cout << "Total cells for all regions and samples: " << t_cells << std::endl;
   }
-//#elif defined USE_OMPGPU
-//  ////////////////////////////////
-//  // Load geometry on GPU using OMP
-//  ////////////////////////////////
-//  std::cout << "Loading geometry on GPU using OMP..." << std::endl;
-//  auto               t_bgn_loadgeogpu = std::chrono::system_clock::now();
-//  GeoLg();
-//  if ( m_gl->LoadGpu() ) std::cout << "Success!!!" << std::endl;
-//  auto               t_end_loadgeogpu = std::chrono::system_clock::now();
-//  std::chrono::duration<double> diff2 = t_end_loadgeogpu - t_bgn_loadgeogpu;
-//  std::cout << "Time to load geo on GPU: " << diff2.count() << " s" << std::endl;
 #endif
 
   int nentries = m_nentries;
@@ -200,9 +188,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     std::cout << "========================================================" << std::endl << std::endl;
   }
 
-  ///////////////////////////////////
-  //// Event loop
-  ///////////////////////////////////
   if ( m_nprint < 0 ) {
     m_nprint = 250;
     if ( nentries < 5000 ) m_nprint = 100;
@@ -243,6 +228,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 
     size_t particles = m_truthPDGID->size();
     // std::cout << std::endl << "Event: " << ievent <<"Number of Particles: "<< particles << std::endl;
+
+    ///////////////////////////////////
+    //// Particle loop
+    ///////////////////////////////////
     for ( size_t p = 0; p < particles; p++ ) {
 
       auto t4 = std::chrono::system_clock::now();
