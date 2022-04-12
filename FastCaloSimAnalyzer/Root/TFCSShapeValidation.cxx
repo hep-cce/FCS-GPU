@@ -196,7 +196,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     if ( nentries < 100 ) m_nprint = 1;
   }
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   TFCSSimulationState::EventStatus es = {-1, false, false};
 #endif
   auto t2 = std::chrono::system_clock::now();
@@ -206,7 +206,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   ///////////////////////////////////
   for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
     es.ievent = ievent;
 
     bool first  = ( ievent == m_firstevent ) ? true : false;
@@ -395,7 +395,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         
         auto m = std::chrono::system_clock::now();
         TFCSSimulationState& chain_simul = validation.simul().back();
-#ifdef USE_GPU
+//#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
         chain_simul.set_gpu_rand( m_rd4h );
         chain_simul.set_geold( m_gl );
         chain_simul.set_es( &es );
@@ -416,7 +417,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     } // end loop over particles
   }   // end loop over events
   // auto t_04 = std::chrono::system_clock::now();
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   if ( m_rd4h ) CaloGpuGeneral::Rand4Hits_finish( m_rd4h );
 #endif
 

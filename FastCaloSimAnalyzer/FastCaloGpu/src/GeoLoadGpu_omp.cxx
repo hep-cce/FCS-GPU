@@ -20,6 +20,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
   int num_devices    = omp_get_num_devices();
   int initial_device = omp_get_initial_device();
   int default_device = omp_get_default_device();
+  std::size_t offset = 0;
 
   if ( num_devices < 1 or default_device < 0) {
     std::cout << " ERROR: No device found." << std::endl;
@@ -50,7 +51,6 @@ bool GeoLoadGpu::LoadGpu_omp() {
      ii++;  
   }
   
-  std::size_t offset = 0;
   ////////////////////////////////
   // omp_target_memcpy returns zero on success and nonzero on failure.
   ////////////////////////////////

@@ -4,7 +4,7 @@
 
 #include "Rand4Hits.h"
 #include <iostream>
-#include <curand.h>
+//#include <curand.h>
 
 #include "Rand4Hits_cpu.cxx"
 

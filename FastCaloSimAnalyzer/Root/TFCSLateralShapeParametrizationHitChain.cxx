@@ -10,7 +10,7 @@
 
 #include <mutex>
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
 #  include <typeinfo>
 #  include "ISF_FastCaloSimEvent/TFCS1DFunction.h"
 #  include "ISF_FastCaloSimEvent/TFCSCenterPositionCalculation.h"
@@ -92,7 +92,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   bool debug = msgLvl( MSG::DEBUG );
   if ( debug ) { ATH_MSG_DEBUG( "E(" << cs << ")=" << simulstate.E( cs ) << " #hits=" << nhit ); }
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   /*
     std::string sA[5]={"TFCSCenterPositionCalculation","TFCSValidationHitSpy","TFCSHistoLateralShapeParametrization",
            "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" } ;
@@ -217,7 +217,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
     //  auto t1 = std::chrono::system_clock::now();
     //  std::chrono::duration<double> diff = t1-start;
-    //   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
+    //  std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
     CaloGpuGeneral::simulate_hits( Ehit, nhit, args );
 
@@ -228,10 +228,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
     }
 
-    //    auto t2 = std::chrono::system_clock::now();
-    //   diff = t2-t1;
+    //  auto t2 = std::chrono::system_clock::now();
+    //  diff = t2-t1;
     //  std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" <<" CT="<<args.ct<<  std::endl ;
-    //   TFCSShapeValidation::time_g += (t2-start) ;
+    //  TFCSShapeValidation::time_g += (t2-start) ;
   } else {
 #endif
    auto end_nhits = std::chrono::system_clock::now();
@@ -281,7 +281,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       TFCSShapeValidation::time_mchain += end_mchain - start_mchain; 
     }
     
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   }
 
   auto t2 = std::chrono::system_clock::now();
@@ -291,15 +291,11 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     TFCSShapeValidation::time_g2 += ( t2 - start );
   } else
 #endif
-  {
+
     auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_h += ( t2 - start );
-  }
-  {
     auto t3 = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_o2 += ( t3 - start_hit );
-  }
-
+    //TFCSShapeValidation::time_o2 += ( t3 - start_hit );//TODO
 
   std::call_once(calledGetEnv, [](){
         if(const char* env_p = std::getenv("FCS_DUMP_HITCOUNT")) {

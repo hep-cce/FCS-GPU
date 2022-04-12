@@ -27,7 +27,7 @@ TFCSHitCellMappingWiggle::TFCSHitCellMappingWiggle( const char* name, const char
 
 TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle() {
   for ( auto function : m_functions ) delete function;
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   delete m_LdFH;
 
 #endif
@@ -96,7 +96,6 @@ FCSReturnCode TFCSHitCellMappingWiggle::simulate_hit( Hit& hit, TFCSSimulationSt
                                                       const TFCSExtrapolationState* extrapol ) {
   if ( !simulstate.randomEngine() ) { return FCSFatal; }
 
-  //std::cout << "wwwigle " << std::endl;
   float eta = fabs( hit.eta() );
   if ( eta < m_bin_low_edge[0] || eta >= m_bin_low_edge[get_number_of_bins()] ) {
     return TFCSHitCellMapping::simulate_hit( hit, simulstate, truth, extrapol );
@@ -181,7 +180,7 @@ void TFCSHitCellMappingWiggle::unit_test( TFCSSimulationState* simulstate, TFCST
 #endif
 }
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
 void TFCSHitCellMappingWiggle::LoadHistFuncs() {
 
   if ( m_LdFH ) {

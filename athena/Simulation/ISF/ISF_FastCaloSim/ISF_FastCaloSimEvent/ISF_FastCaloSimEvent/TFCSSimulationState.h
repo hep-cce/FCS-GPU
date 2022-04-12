@@ -48,7 +48,7 @@ class TFCSSimulationState:public TObject
     void Print(Option_t *option="") const;
     void set_SF(double mysf) {m_SF = mysf;}
     double get_SF() {return m_SF;}
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
     struct EventStatus {
     	long int ievent ;
   	bool is_first ;
@@ -71,7 +71,7 @@ class TFCSSimulationState:public TObject
     double m_SF;
     double m_E[CaloCell_ID_FCS::MaxSample];
     double m_Efrac[CaloCell_ID_FCS::MaxSample];
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
     void * m_gpu_rand ;
     void * m_geold ;
     EventStatus * m_es ;

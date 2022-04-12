@@ -5,6 +5,7 @@
 #include "CaloGpuGeneral.h"
 #include "CaloGpuGeneral_cu.h"
 #include "CaloGpuGeneral_kk.h"
+#include "CaloGpuGeneral_omp.h"
 
 #include "Rand4Hits.h"
 #include <chrono>
@@ -68,9 +69,11 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
 
-//#ifndef USE_KOKKOS
-//  CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
-//#else
-//  CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
-//#endif
+#ifdef USE_KOKKOS
+  CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
+#elif defined USE_OMPGPU
+  CaloGpuGeneral_omp::simulate_hits( E, nhits, args );
+#else
+  CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
+#endif
 }
