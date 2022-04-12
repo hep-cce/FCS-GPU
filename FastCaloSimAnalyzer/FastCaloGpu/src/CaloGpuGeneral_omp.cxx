@@ -11,6 +11,7 @@
 //#include "gpuQ.h"
 #include "Args.h"
 #include <chrono>
+#include <iostream>
 
 #ifdef USE_KOKKOS
 #include <Kokkos_Core.hpp>
@@ -24,7 +25,7 @@
 
 //using namespace CaloGpuGeneral_fnc;
 
-namespace CaloGpuGeneral_cu {
+namespace CaloGpuGeneral_omp {
 
 //  __global__ void simulate_A( float E, int nhits, Chain0_Args args ) {
 //
@@ -66,7 +67,7 @@ namespace CaloGpuGeneral_cu {
 //  }
 
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
-
+      std::cout << "insiiiiiiide simulate hits" << std::endl;
 //    cudaError_t err = cudaGetLastError();
 //
 //    unsigned long ncells      = args.ncells;
@@ -117,4 +118,4 @@ namespace CaloGpuGeneral_cu {
 //    //   args.hitcells_ct_h=hitcells_ct ;
   }
 
-} // namespace CaloGpuGeneral_cu
+} // namespace CaloGpuGeneral_omp

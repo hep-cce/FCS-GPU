@@ -195,14 +195,14 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
         args.fh2d_h = *( ( (TFCSHistoLateralShapeParametrization*)hitsim )->LdFH()->hf2d_h() );
       }
       if ( ichn == 2 ) {
-        if ( 0 ) {
-          std::cout << "---NumberOfBins:" << ( (TFCSHitCellMappingWiggle*)hitsim )->get_number_of_bins() << std::endl;
-          std::vector<const TFCS1DFunction*> funcs = ( (TFCSHitCellMappingWiggle*)hitsim )->get_functions();
-          for ( auto it = funcs.begin(); it != funcs.end(); ++it ) {
+        //if ( 0 ) {
+        //  std::cout << "---NumberOfBins:" << ( (TFCSHitCellMappingWiggle*)hitsim )->get_number_of_bins() << std::endl;
+        //  std::vector<const TFCS1DFunction*> funcs = ( (TFCSHitCellMappingWiggle*)hitsim )->get_functions();
+        //  for ( auto it = funcs.begin(); it != funcs.end(); ++it ) {
 
-            std::cout << "----+++type of funcs: " << typeid( *( *it ) ).name() << ", pointer: " << *it << std::endl;
-          }
-        }
+        //    std::cout << "----+++type of funcs: " << typeid( *( *it ) ).name() << ", pointer: " << *it << std::endl;
+        //  }
+        //}
         auto tt1 = std::chrono::system_clock::now();
         ( (TFCSHitCellMappingWiggle*)hitsim )->LoadHistFuncs();
         auto tt2 = std::chrono::system_clock::now();
