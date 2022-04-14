@@ -41,6 +41,7 @@ message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
 add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
 
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
+target_include_directories(${FastCaloGpu_LIB} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
 target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
 if(USE_KOKKOS)

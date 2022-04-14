@@ -6,6 +6,7 @@
 #define LOADGPUFUNCHIST_H
 
 #include "FH_structs.h"
+#include <omp.h>
 
 #ifdef USE_KOKKOS
 #  include "FH_views.h"
@@ -39,6 +40,13 @@ private:
   struct FH2D* m_hf2d{0};
   struct FH2D* m_hf2d_d{0}; // device pointer
   struct FH2D* m_hf2d_h{0}; // host pointer struct hold device param to be copied to device
+
+  //TODO: Wrap device IDs from omp APIs to a class
+  //link to GeoLoadGpu.h, Rand4Hits.h, LoadGpuFuncHist
+  int m_num_devices    = omp_get_num_devices();
+  int m_initial_device = omp_get_initial_device();
+  int m_default_device = omp_get_default_device();
+  std::size_t m_offset = 0;
 
 #ifdef USE_KOKKOS
   FH2D_v*            m_hf2d_v{0};

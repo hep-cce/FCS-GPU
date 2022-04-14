@@ -87,6 +87,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     return FCSFatal;
   }
 
+  //std::cout << "-------- calosample cs  and   nhit ----------" << cs << " " << nhit << std::endl;
   float Ehit = simulstate.E( cs ) / nhit;
 
   bool debug = msgLvl( MSG::DEBUG );
@@ -221,12 +222,12 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
     CaloGpuGeneral::simulate_hits( Ehit, nhit, args );
 
-    for ( unsigned int ii = 0; ii < args.ct; ++ii ) {
-      // std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
-
-      const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
-      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
-    }
+//    for ( unsigned int ii = 0; ii < args.ct; ++ii ) {
+//      // std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
+//
+//      const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
+//      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
+//    }
 
     //  auto t2 = std::chrono::system_clock::now();
     //  diff = t2-t1;
@@ -291,11 +292,15 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     TFCSShapeValidation::time_g2 += ( t2 - start );
   } else
 #endif
-
+  {
     auto t2 = std::chrono::system_clock::now();
     TFCSShapeValidation::time_h += ( t2 - start );
+  }
+  {
     auto t3 = std::chrono::system_clock::now();
-    //TFCSShapeValidation::time_o2 += ( t3 - start_hit );//TODO
+    TFCSShapeValidation::time_o2 += ( t3 - start );
+  }
+
 
   std::call_once(calledGetEnv, [](){
         if(const char* env_p = std::getenv("FCS_DUMP_HITCOUNT")) {

@@ -67,7 +67,7 @@ namespace CaloGpuGeneral_omp {
 //  }
 
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
-      std::cout << "insiiiiiiide simulate hits" << std::endl;
+
 //    cudaError_t err = cudaGetLastError();
 //
 //    unsigned long ncells      = args.ncells;

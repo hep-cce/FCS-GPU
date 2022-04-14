@@ -395,7 +395,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         
         auto m = std::chrono::system_clock::now();
         TFCSSimulationState& chain_simul = validation.simul().back();
-//#ifdef USE_GPU
 #if defined USE_GPU || defined USE_OMPGPU
         chain_simul.set_gpu_rand( m_rd4h );
         chain_simul.set_geold( m_gl );

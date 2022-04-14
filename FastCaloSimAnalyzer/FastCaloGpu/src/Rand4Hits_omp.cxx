@@ -4,7 +4,7 @@
 
 #include "Rand4Hits.h"
 #include <iostream>
-//#include <curand.h>
+#include <curand.h>
 
 #include "Rand4Hits_cpu.cxx"
 
@@ -75,7 +75,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl; 
     }
   //} else {
-//    curandGenerator_t* gen = new curandGenerator_t;
+    curandGenerator_t* gen = new curandGenerator_t;
 //    CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
 //    CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
 //    CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
