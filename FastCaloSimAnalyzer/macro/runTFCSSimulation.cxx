@@ -165,6 +165,11 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   printf ( "OpenMP num devices are %d \n", omp_get_num_devices() );
   printf ( "OpenMP default device is %d \n", omp_get_default_device() );
 
+  if ( omp_get_num_devices() < 1 or omp_get_default_device() < 0) {
+    std::cout << " ERROR: No device found." << std::endl;
+    return false;
+  }
+
 /* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0 = std::chrono::system_clock::now();
 /* * * * * * * * * * * * * * * * * * * * * * * * * * */  

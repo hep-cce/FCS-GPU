@@ -246,9 +246,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       TFCSLateralShapeParametrizationHitBase::Hit hit;
       hit.E() = Ehit;
       
-      //This loop is time consuming
       for ( TFCSLateralShapeParametrizationHitBase* hitsim : m_chain ) {
-      //this for loop is probably loading data from ram to cache 
+      
         auto start_hitsim = std::chrono::system_clock::now();
         if ( debug ) {
           if ( i < 2 )

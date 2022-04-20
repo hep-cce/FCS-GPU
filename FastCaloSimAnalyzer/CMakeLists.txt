@@ -24,7 +24,7 @@ include(XRootD)
 # Add OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)
-  set(OpenMP_FLAGS "-Xopenmp-target -march=sm_60 -fopenmp -fopenmp-targets=nvptx64")
+  set(OpenMP_FLAGS "-Xopenmp-target -march=sm_37 -fopenmp -fopenmp-targets=nvptx64")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS}")
 else()

@@ -17,21 +17,11 @@ bool GeoLoadGpu::LoadGpu_omp() {
     return false;
   }
 
-  int num_devices    = omp_get_num_devices();
-  int initial_device = omp_get_initial_device();
-  int default_device = omp_get_default_device();
-  std::size_t offset = 0;
-
-  if ( num_devices < 1 or default_device < 0) {
-    std::cout << " ERROR: No device found." << std::endl;
-    return false;
-  }
-
   GeoGpu geo_gpu_h;
   
   // Allocate Device memory for cells and copy cells as array
   // move cells on host to a array first
-  m_cells_d = (CaloDetDescrElement *) omp_target_alloc( sizeof( CaloDetDescrElement ) * m_ncells, default_device); 
+  m_cells_d = (CaloDetDescrElement *) omp_target_alloc( sizeof( CaloDetDescrElement ) * m_ncells, m_default_device); 
   if ( m_cells_d == NULL ) {
     std::cout << " ERROR: No space left on device." << std::endl;
     return false;
@@ -55,7 +45,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
   // omp_target_memcpy returns zero on success and nonzero on failure.
   ////////////////////////////////
   if ( omp_target_memcpy( &m_cells_d[0], cells_Host, sizeof( CaloDetDescrElement ) * m_ncells, 
-                                                offset, offset, default_device, initial_device  ) ) {
+                                                m_offset, m_offset, m_default_device, m_initial_device  ) ) {
     std::cout << " ERROR: Unable to copy to device." << std::endl;
     return false;
   }
@@ -71,7 +61,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
 //  }
 
   Rg_Sample_Index* SampleIndex_g;
-  SampleIndex_g = (Rg_Sample_Index *) omp_target_alloc( sizeof( Rg_Sample_Index ) * m_ncells, default_device); 
+  SampleIndex_g = (Rg_Sample_Index *) omp_target_alloc( sizeof( Rg_Sample_Index ) * m_ncells, m_default_device); 
   if ( SampleIndex_g == NULL ) {
     std::cout << " ERROR: No space left on device." << std::endl;;
     return false;
@@ -79,7 +69,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
   // copy sample_index array  to gpu
   if ( omp_target_memcpy( SampleIndex_g, m_sample_index_h, sizeof( Rg_Sample_Index ) * m_max_sample, 
-                                                offset, offset, default_device, initial_device ) ) { 
+                                                m_offset, m_offset, m_default_device, m_initial_device ) ) { 
      std::cout << "ERROR: copy sample index. " << std::endl;
      return false;
   }  
@@ -91,7 +81,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
     //	std::cout << "debug m_regions_d[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
     long long* ptr_g;
     ptr_g = (long long *) omp_target_alloc( sizeof( long long ) * m_regions[ir].cell_grid_eta() *
-                                                        m_regions[ir].cell_grid_phi(), default_device); 
+                                                        m_regions[ir].cell_grid_phi(), m_default_device); 
     if ( ptr_g == NULL ) {
       std::cout << " ERROR: No space left on device." << std::endl;;
       return false;
@@ -99,7 +89,7 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
     //      std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
     if ( omp_target_memcpy( ptr_g, m_regions[ir].cell_grid(), sizeof( long long ) * m_regions[ir].cell_grid_eta() 
-                              * m_regions[ir].cell_grid_phi(), offset, offset, default_device, initial_device ) ) { 
+                              * m_regions[ir].cell_grid_phi(), m_offset, m_offset, m_default_device, m_initial_device ) ) { 
       std::cout << "ERROR: copy m_regions. " << std::endl;
       return false;
     }  
@@ -112,13 +102,13 @@ bool GeoLoadGpu::LoadGpu_omp() {
   }
 
   // GPU allocate Regions data  and load them to GPU as array of regions
-  m_regions_d = (GeoRegion *) omp_target_alloc( sizeof( GeoRegion ) * m_nregions, default_device); 
+  m_regions_d = (GeoRegion *) omp_target_alloc( sizeof( GeoRegion ) * m_nregions, m_default_device); 
   if ( m_regions_d == NULL ) {
     std::cout << " ERROR: No space left on device." << std::endl;;
     return false;
   }
   if ( omp_target_memcpy( m_regions_d, m_regions, sizeof( GeoRegion ) * m_nregions,
-                                    offset, offset, default_device, initial_device ) ) { 
+                                    m_offset, m_offset, m_default_device, m_initial_device ) ) { 
     std::cout << "ERROR: copy m_regions. " << std::endl;
     return false;
   } 
@@ -135,13 +125,13 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
   // Now copy this to GPU and set the static member to this pointer
   GeoGpu* Gptr;
-  Gptr = (GeoGpu *) omp_target_alloc( sizeof( GeoGpu ), default_device); 
+  Gptr = (GeoGpu *) omp_target_alloc( sizeof( GeoGpu ), m_default_device); 
   if ( Gptr == NULL ) {
     std::cout << " ERROR: No space left on device." << std::endl;
     return false;
   }
   if ( omp_target_memcpy( Gptr, &geo_gpu_h, sizeof( GeoGpu ),
-               offset, offset, default_device, initial_device ) ) { 
+               m_offset, m_offset, m_default_device, m_initial_device ) ) { 
     std::cout << "ERROR: copy Gptr. " << std::endl;
     return false;
   } 
@@ -161,13 +151,9 @@ bool GeoLoadGpu::UnloadGpu_omp() {
   * during LoadGpu_omp 
   */
 
-  int num_devices    = omp_get_num_devices();
-  int initial_device = omp_get_initial_device();
-  int default_device = omp_get_default_device();
+  omp_target_free ( m_cells_d, m_default_device ); 
 
-  omp_target_free ( m_cells_d, default_device ); 
-
-  //omp_target_free ( SampleIndex_g, default_device ); 
+  //omp_target_free ( SampleIndex_g, m_default_device ); 
   //
   //// each Region allocate a grid (long Long) gpu array
   ////  copy array to GPU
@@ -176,7 +162,7 @@ bool GeoLoadGpu::UnloadGpu_omp() {
   //  //	std::cout << "debug m_regions_d[ir].cell_grid()[0] " << m_regions[ir].cell_grid()[0] <<std::endl;
   //  long long* ptr_g;
   //  ptr_g = (long long *) omp_target_alloc( sizeof( long long ) * m_regions[ir].cell_grid_eta() *
-  //                                                      m_regions[ir].cell_grid_phi(), default_device); 
+  //                                                      m_regions[ir].cell_grid_phi(), m_default_device); 
   //  if ( ptr_g == NULL ) {
   //    std::cout << " ERROR: No space left on device." << std::endl;;
   //    return false;
@@ -184,7 +170,7 @@ bool GeoLoadGpu::UnloadGpu_omp() {
 
   //  //      std::cout<< "cuMalloc region grid "<<  ir  << std::endl;
   //  if ( omp_target_memcpy( ptr_g, m_regions[ir].cell_grid(), sizeof( long long ) * m_regions[ir].cell_grid_eta() 
-  //                            * m_regions[ir].cell_grid_phi(), offset, offset, default_device, initial_device ) ) { 
+  //                            * m_regions[ir].cell_grid_phi(), m_offset, m_offset, m_default_device, m_initial_device ) ) { 
   //    std::cout << "ERROR: copy m_regions. " << std::endl;
   //    return false;
   //  }  
@@ -196,9 +182,9 @@ bool GeoLoadGpu::UnloadGpu_omp() {
   //  // m_regions[ir].all_cells() << std::endl ;
   //}
 
-  omp_target_free ( m_regions_d, default_device ); 
+  omp_target_free ( m_regions_d, m_default_device ); 
 
-  omp_target_free ( m_geo_d, default_device );
+  omp_target_free ( m_geo_d, m_default_device );
 
   return true;
 }
