@@ -31,7 +31,7 @@
 #  ifdef __CUDACC__
 #    define __HOSTDEV__ __host__ __device__
 #  else
-#    define __HOSTDEV__
+#    define __HOSTDEV__ inline
 #  endif
 #endif
 

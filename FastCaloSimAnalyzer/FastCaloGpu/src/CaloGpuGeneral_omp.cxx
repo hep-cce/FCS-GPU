@@ -3,7 +3,7 @@
 */
 
 #include "CaloGpuGeneral_omp.h"
-//#include "GeoRegion.h"
+#include "GeoRegion.h"
 #include "GeoGpu_structs.h"
 #include "Hit.h"
 #include "Rand4Hits.h"
@@ -28,67 +28,47 @@ using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_omp {
 
-//  inline void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
-//
-//    printf ( "Task being executed on host? %d %d %d!\n", omp_is_initial_device(), omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
-//    hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
-//    hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
-//    hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
-//    hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
-//  }
-
-
-  
   void simulate_A( float E, int nhits, Chain0_Args args ) {
 
-    int t;
+    long t;
+    const unsigned long ncells = args.ncells;
    
-    #pragma omp target map(args.hitcells_ct[:1]) 
+    #pragma omp target //map(args.cells_energy[:ncells]) //TODO: runtime error when mapping cells_energy 
     {
-      for(t = 0; t < nhits; t++) {
+      for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
-        //CenterPositionCalculation_d( hit, args );
-
+        CenterPositionCalculation_d( hit, args );
+        HistoLateralShapeParametrization_d( hit, t, args );
+        HitCellMappingWiggle_d( hit, args, t );
       }
     }
 
-    //long t = threadIdx.x + blockIdx.x * blockDim.x;
-    //if ( t < nhits ) {
-    //  Hit hit;
-    //  hit.E() = E;
-    //  CenterPositionCalculation_d( hit, args );
-    //  HistoLateralShapeParametrization_d( hit, t, args );
-    //  HitCellMappingWiggle_d( hit, args, t );
-    //}
   }
 
-//  __global__ void simulate_A( float E, int nhits, Chain0_Args args ) {
-//
-//    long t = threadIdx.x + blockIdx.x * blockDim.x;
-//    if ( t < nhits ) {
-//      Hit hit;
-//      hit.E() = E;
-//      CenterPositionCalculation_d( hit, args );
-//      HistoLateralShapeParametrization_d( hit, t, args );
-//      HitCellMappingWiggle_d( hit, args, t );
-//    }
-//  }
-//
-//  __global__ void simulate_ct( Chain0_Args args ) {
-//
-//    unsigned long tid = threadIdx.x + blockIdx.x * blockDim.x;
-//    if ( tid < args.ncells ) {
-//      if ( args.cells_energy[tid] > 0 ) {
-//        unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
-//        Cell_E       ce;
-//        ce.cellid           = tid;
-//        ce.energy           = args.cells_energy[tid];
-//        args.hitcells_E[ct] = ce;
-//      }
-//    }
-//  }
-//
+  void simulate_ct( Chain0_Args args ) {
+
+    unsigned long tid;
+    const unsigned long ncells = args.ncells;
+
+    #pragma omp target //TODO: map args.hitcells_E[ct]
+    {
+      for ( tid = 0; tid < ncells; tid++ ) {
+        if ( args.cells_energy[tid] > 0 ) {
+          //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+          unsigned int ct     = args.hitcells_ct[0];
+          Cell_E                ce;
+          ce.cellid           = tid;
+          ce.energy           = args.cells_energy[tid];
+          args.hitcells_E[ct] = ce;
+          #pragma omp atomic update
+            args.hitcells_ct[0]++;
+        }
+      }
+    }
+
+  }
+
   void simulate_clean( Chain0_Args args ) {
  
     int tid; 
@@ -100,9 +80,9 @@ namespace CaloGpuGeneral_omp {
     {
       #pragma omp teams distribute parallel for
       for(tid = 0; tid < ncells; tid++) {
+
         args.cells_energy[tid] = 0.0;
         if ( tid == 0 ) args.hitcells_ct[0] = 0;
-        //printf ( "Task being executed on host? %d %d %d!\n", omp_is_initial_device(), omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
       }
     }
 
@@ -112,7 +92,6 @@ namespace CaloGpuGeneral_omp {
 
     simulate_clean ( args );
 
-    //simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
     simulate_A ( E, nhits, args );
 
 //    //  cudaDeviceSynchronize() ;
@@ -121,13 +100,7 @@ namespace CaloGpuGeneral_omp {
 //    //        std::cout<< "simulate_A "<<cudaGetErrorString(err)<< std::endl;
 //    //}
 //
-//    nblocks = ( ncells + blocksize - 1 ) / blocksize;
-//    simulate_ct<<<nblocks, blocksize>>>( args );
-//    //  cudaDeviceSynchronize() ;
-//    // err = cudaGetLastError();
-//    // if (err != cudaSuccess) {
-//    //        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
-//    //}
+    simulate_ct ( args );
 //
 //    int ct;
 //    gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );

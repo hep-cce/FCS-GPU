@@ -69,14 +69,12 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
 
-//#ifndef USE_KOKKOS
-//  CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
-//#else
-//  CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
-//#endif
-//TODO:: debug macros 
-//#ifdef USE_OMPGPU
+#ifdef USE_KOKKOS
+  CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
+#elif defined USE_OMPGPU
   CaloGpuGeneral_omp::simulate_hits( E, nhits, args );
-//#endif
+#else
+  CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
+#endif
 
 }

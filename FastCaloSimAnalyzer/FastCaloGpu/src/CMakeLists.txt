@@ -47,6 +47,8 @@ target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY})
 if(USE_KOKKOS)
   target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
+elseif(ENABLE_OMPGPU)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_OMPGPU )
 endif()
 
 if(RNDGEN_CPU)

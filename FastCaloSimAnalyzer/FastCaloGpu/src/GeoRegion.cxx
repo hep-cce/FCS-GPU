@@ -4,6 +4,7 @@
 
 #include "GeoRegion.h"
 #include <iostream>
+#include <algorithm> 
 
 #define PI 3.14159265358979323846
 #define TWOPI 2 * 3.14159265358979323846
@@ -41,7 +42,7 @@ __HOSTDEV__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, fl
   dist_phi0           = ( Phi_mpi_pi( phi - m_all_cells[DDE].phi() ) ) / m_dphi_double;
   float abs_dist_eta0 = abs( dist_eta0 );
   float abs_dist_phi0 = abs( dist_phi0 );
-  return max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
+  return std::max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
 }
 
 __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, int* steps ) {
