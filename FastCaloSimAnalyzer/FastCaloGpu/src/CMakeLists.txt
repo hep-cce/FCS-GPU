@@ -50,7 +50,11 @@ if(USE_STDPAR)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 
   target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
-      ${STDPAR_DIRECTIVE}> )
+    ${STDPAR_DIRECTIVE}> )
+  if( ${STDPAR_TARGET} STREQUAL "gpu" )
+    target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>: -cuda -g>)
+  endif()
+    
   target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})
 
 endif()
