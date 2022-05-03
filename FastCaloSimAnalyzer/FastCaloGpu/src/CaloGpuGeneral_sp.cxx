@@ -10,12 +10,62 @@
 #include "Hit.h"
 #include "CountingIterator.h"
 
+#define DO_ATOMIC_TESTS 0
+
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
 
 using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_stdpar {
+
+  void test_atomicAdd_int() {
+    std::cout << "---------- test_atomic<int>_add -------------\n";
+    std::atomic<int> *ii = new std::atomic<int>{0};
+    constexpr int N {10};
+    std::for_each_n(std::execution::par_unseq, counting_iterator(0), N,
+                    [=](int i) {
+                      int j = (*ii)++;
+                      printf("%d %d\n",i,j);
+                    } );
+    std::cout << "   after loop: " << *ii << " (should be " << N << ")" <<std::endl;
+    std::cout << "---------- done test_atomic<int>_add -------------\n\n";
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+  void test_atomicAdd_float() {
+    std::cout << "---------- test_atomicAdd_float -------------\n";
+    constexpr int N {10};
+
+    float ta[N]{0.}, tc[N]{0.};
+    for (int i=0; i<N; ++i) {
+      ta[i%2] += i;
+      tc[i] += i;
+    }
+
+    
+    float *fa = new float[N];
+    float *fb = new float[N];
+    float *fc = new float[N];
+    std::for_each_n(std::execution::par_unseq, counting_iterator(0), N,
+                    [=] (int i) {
+                      fb[i%2] += i;
+#ifdef _NVHPC_STDPAR_NONE
+                      fa[i % 2] += i;
+                      fc[i] += i;
+#else
+                      atomicAdd(&fa[i%2],float(i));
+                      atomicAdd(&fc[i],float(i));
+#endif
+                    });
+    for (int i=0; i<N; ++i) {
+      printf("%d : %2g [%2g] %g  %g [%g]\n",i, fa[i], ta[i], fb[i], fc[i], tc[i]);
+    }
+    std::cout << "---------- done test_atomicAdd_float -------------\n\n";
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_clean(Chain0_Args& args) {
 
@@ -32,49 +82,9 @@ namespace CaloGpuGeneral_stdpar {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_A( float E, int nhits, Chain0_Args args ) {
-
-    // int* id = new int[10];
-    // for (int i=0; i<10; ++i) {
-    //   id[i] = i*10;
-    // }
-
-    // for (int i=0; i<10; ++i) {
-    //   std::cout << i << "  " << id[i] << std::endl;
-    // }
-
-    // int* di{nullptr};
-    // cudaMalloc( &di, 10*sizeof(int) );
-    // cudaMemcpy( di, id, 10*sizeof(int), cudaMemcpyHostToDevice );
-    // std::cout << "devptr: " << di << std::endl;
     
 
-    // std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
-    // float* ce = new float[200000];
-    // ce[0] = 1.1;
-    // ce[1] = 2.2;
-    // std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
-    //                 [=](int i) {
-    //                   int j = (*ii)++;
-    //                   //                      int k = di[i];
-    //                   //                      printf("%d %d %d %p\n",i,j,k, (void*)di);
-    //                   printf("%d %d\n",i,j);
-    //                   printf(" -> %p %f\n",(void*)ce,ce[i]);
-    //                 } );
-    // std::cout << "   after loop: " << *ii << std::endl;
-
-    // float *fa = new float[10];
-    // float *fb = new float[10];
-    // float *fc = new float[10];
-    // std::for_each_n(std::execution::par_unseq, counting_iterator(0), 10,
-    //                 [=](int i) {
-    //                   atomicAdd(&fa[i%2],float(i));
-    //                   fb[i%2] += i;
-    //                   atomicAdd(&fc[i],float(i));
-    //                 } );
-    // for (int i=0; i<10; ++i) {
-    //   std::cout << i << " == " << fa[i] << "  " << fb[i] << "  " << fc[i] << std::endl;
-    // }
-    // return;
+    // std::cout << "sim_A: nhits: " << nhits << std::endl;
 
     std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
@@ -95,6 +105,8 @@ namespace CaloGpuGeneral_stdpar {
                   }
                     );
     int j = *ii;
+
+    delete ii;
     
   }
 
@@ -124,6 +136,13 @@ namespace CaloGpuGeneral_stdpar {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
+
+    if (DO_ATOMIC_TESTS) {
+      test_atomicAdd_int();
+      test_atomicAdd_float();
+      return;
+    }
+    
 
     auto t0 = std::chrono::system_clock::now();
     simulate_clean( args );
