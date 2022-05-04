@@ -86,11 +86,8 @@ namespace CaloGpuGeneral_stdpar {
 
     // std::cout << "sim_A: nhits: " << nhits << std::endl;
 
-    std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
                   [=](unsigned int i) {
-
-                    int j = (*ii)++;
                     
                     Hit hit;                    
                     hit.E() = E;
@@ -104,9 +101,6 @@ namespace CaloGpuGeneral_stdpar {
                     
                   }
                     );
-    int j = *ii;
-
-    delete ii;
     
   }
 
