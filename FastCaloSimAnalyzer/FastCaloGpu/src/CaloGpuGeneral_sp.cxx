@@ -112,7 +112,8 @@ namespace CaloGpuGeneral_stdpar {
                       #ifdef _NVHPC_STDPAR_NONE
                         ce.energy           = args.cells_energy[i];
                       #else
-                        ce.energy           = double(args.cells_energy[i])/CELL_ENE_FAC;
+                        ce.energy           = args.cells_energy[i];
+                        // ce.energy           = double(args.cells_energy[i])/CELL_ENE_FAC;
                       #endif
                         // ce.energy           = args.cells_energy[i];
                         args.hitcells_E[ct] = ce;

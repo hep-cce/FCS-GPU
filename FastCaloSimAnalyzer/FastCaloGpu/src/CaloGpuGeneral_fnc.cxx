@@ -271,7 +271,8 @@ namespace CaloGpuGeneral_fnc {
   #ifdef _NVHPC_STDPAR_NONE
     args.cells_energy[cellele] += hit.E();
   #else
-    args.cells_energy[cellele] += int( CELL_ENE_FAC*hit.E() );
+    atomicAdd( &args.cells_energy[cellele], hit.E() );
+    // args.cells_energy[cellele] += int( CELL_ENE_FAC*hit.E() );
   #endif
     //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
 
