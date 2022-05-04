@@ -7,16 +7,17 @@
 #include "Hit.h"
 #include "Rand4Hits.h"
 #include "Args.h"
+#include "HostDevDef.h"
 
-#ifdef USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#  include <Kokkos_Random.hpp>
-#  define __DEVICE__ KOKKOS_INLINE_FUNCTION
-#elif defined (USE_STDPAR)
-#  define __DEVICE__
-#else
-#  define __DEVICE__ __device__
-#endif
+// #ifdef USE_KOKKOS
+// #  include <Kokkos_Core.hpp>
+// #  include <Kokkos_Random.hpp>
+// #  define __DEVICE__ KOKKOS_INLINE_FUNCTION
+// #elif defined (USE_STDPAR)
+// #  define __DEVICE__
+// #else
+// #  define __DEVICE__ __device__
+// #endif
 
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {

@@ -47,7 +47,7 @@ namespace CaloGpuGeneral_stdpar {
     // cudaMemcpy( di, id, 10*sizeof(int), cudaMemcpyHostToDevice );
     // std::cout << "devptr: " << di << std::endl;
     
-
+    // std::atomic<int> *ii = new std::atomic<int>{0};
     // std::cout << "sim_A: nhits: " << nhits << "  ii: " << *ii << std::endl;
     // float* ce = new float[200000];
     // ce[0] = 1.1;
@@ -76,12 +76,9 @@ namespace CaloGpuGeneral_stdpar {
     // }
     // return;
 
-    std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), nhits,
                   [=](unsigned int i) {
 
-                    int j = (*ii)++;
-                    
                     Hit hit;                    
                     hit.E() = E;
                     
@@ -94,8 +91,6 @@ namespace CaloGpuGeneral_stdpar {
                     
                   }
                     );
-    int j = *ii;
-    
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
