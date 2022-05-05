@@ -9,7 +9,11 @@
 #  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
 #  define __INLINE__
 #elif defined (USE_STDPAR)
-#  define __DEVICE__
+#  if defined (_NVHPC_STDPAR_NONE)
+#    define __DEVICE__
+#  else
+#    define __DEVICE__ __device__
+#  endif
 #  define __HOST__
 #  define __HOSTDEV__
 #  define __INLINE__ inline
