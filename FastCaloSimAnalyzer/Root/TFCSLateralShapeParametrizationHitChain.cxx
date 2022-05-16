@@ -225,7 +225,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     for ( unsigned int ii = 0; ii < args.ct; ++ii ) {
       // std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
       const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
-//      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
+      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
     }
 
     //  auto t2 = std::chrono::system_clock::now();

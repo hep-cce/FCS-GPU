@@ -35,6 +35,7 @@ namespace CaloGpuGeneral_omp {
    
     #pragma omp target //map(args.cells_energy[:ncells]) //TODO: runtime error when mapping cells_energy 
     {
+      #pragma omp teams distribute parallel for
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
@@ -53,6 +54,7 @@ namespace CaloGpuGeneral_omp {
 
     #pragma omp target //TODO: map args.hitcells_E[ct]
     {
+      #pragma omp teams distribute parallel for
       for ( tid = 0; tid < ncells; tid++ ) {
         if ( args.cells_energy[tid] > 0 ) {
           //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
@@ -90,26 +92,38 @@ namespace CaloGpuGeneral_omp {
 
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
+    int m_default_device = omp_get_default_device();
+    int m_initial_device = omp_get_initial_device();
+    std::size_t m_offset = 0;
+
     simulate_clean ( args );
 
     simulate_A ( E, nhits, args );
 
-//    //  cudaDeviceSynchronize() ;
-//    //  err = cudaGetLastError();
-//    // if (err != cudaSuccess) {
-//    //        std::cout<< "simulate_A "<<cudaGetErrorString(err)<< std::endl;
-//    //}
-//
+    //  cudaDeviceSynchronize() ;
+    //  err = cudaGetLastError();
+    // if (err != cudaSuccess) {
+    //        std::cout<< "simulate_A "<<cudaGetErrorString(err)<< std::endl;
+    //}
+
     simulate_ct ( args );
-//
-//    int ct;
+
+    int ct;
+    if ( omp_target_memcpy( &ct, args.hitcells_ct, sizeof( int ),
+                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+      std::cout << "ERROR: copy hitcells_ct. " << std::endl;
+    } 
 //    gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
-//    // std::cout<< "ct="<<ct<<std::endl;
+    if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
+                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+      std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
+    } 
 //    gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
-//
-//    // pass result back
-//    args.ct = ct;
-//    //   args.hitcells_ct_h=hitcells_ct ;
+
+
+    // pass result back
+    args.ct = ct;
+    //   args.hitcells_ct_h=hitcells_ct ;
   }
 
 } // namespace CaloGpuGeneral_omp
