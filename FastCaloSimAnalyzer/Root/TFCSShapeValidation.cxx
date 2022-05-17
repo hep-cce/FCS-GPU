@@ -74,7 +74,7 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
   m_rd4h                             = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
   auto                          t1   = std::chrono::system_clock::now();
   std::chrono::duration<double> diff = t1 - t0;
-  std::cout << "Time of Rabd4Hit_init: " << diff.count() << " s" << std::endl;
+  std::cout << "Time of Rand4Hit_init: " << diff.count() << " s" << std::endl;
 #endif
 }
 

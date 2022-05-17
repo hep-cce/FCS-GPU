@@ -70,8 +70,8 @@ void LoadGpuFuncHist::LD() {
   hf_ptr->h_szs = new unsigned int[hf_ptr->nhist];
   std::memcpy( hf_ptr->h_szs, ( *m_hf ).h_szs, hf_ptr->nhist * sizeof( unsigned int ) );
 
-  hf_ptr->h_contents = ( *m_hf ).h_contents;
-  hf_ptr->h_borders  = ( *m_hf ).h_borders;
+  hf_ptr->h_contents = (uint32_t**) malloc( hf_ptr->nhist * sizeof( uint32_t* ) );
+  hf_ptr->h_borders  = (float**)    malloc( hf_ptr->nhist * sizeof( float* ) );
 
   uint32_t** contents_ptr = (uint32_t**)malloc( hf_ptr->nhist * sizeof( uint32_t* ) );
   float**    borders_ptr  = (float**)malloc( hf_ptr->nhist * sizeof( float* ) );

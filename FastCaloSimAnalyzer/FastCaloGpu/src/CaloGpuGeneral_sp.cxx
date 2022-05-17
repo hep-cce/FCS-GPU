@@ -28,16 +28,15 @@ namespace CaloGpuGeneral_stdpar {
     
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells*args.nsims,
                     [=](unsigned int tid) {
-                      //                      printf("-> %u %p\n",tid,&args.cells_energy[tid]);
-                      args.cells_energy[tid] = 0.0;
-                      //                      if ( tid < args.nsims ) args.ct[tid] = 0;
+                      args.cells_energy[tid] = 0;
+                      if ( tid < args.nsims ) args.ct[tid] = 0;  // faster than separate kernel
                     }
                     );
-    std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.nsims,
-                    [=](unsigned int tid) {
-                      args.ct[tid] = 0;
-                    }
-                    );     
+    // std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.nsims,
+    //                 [=](unsigned int tid) {
+    //                   args.ct[tid] = 0;
+    //                 }
+    //                 );     
 
   }
 
@@ -45,11 +44,11 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_hits_de( const Sim_Args args ) {
 
-    std::atomic<int> *ii = new std::atomic<int>{0};
+    // std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.nhits,
                   [=](unsigned int i) {
 
-                    int j = (*ii)++;
+                    // int j = (*ii)++;
                     
                     Hit hit;
                     
@@ -64,12 +63,12 @@ namespace CaloGpuGeneral_stdpar {
                     
                   }
                     );
-    int j = *ii;
+    // int j = *ii;
 
-    if (j != args.nhits) {
-      std::cout << "ERROR: loop not executed fully in simulate_hits_de. expected "
-                << args.nhits << " got " << j << std::endl;
-    }
+    // if (j != args.nhits) {
+    //   std::cout << "ERROR: loop not executed fully in simulate_hits_de. expected "
+    //             << args.nhits << " got " << j << std::endl;
+    // }
     
   }
 
@@ -93,7 +92,6 @@ namespace CaloGpuGeneral_stdpar {
                       #else
                         ce.energy = double(args.cells_energy[tid])/CELL_ENE_FAC;
                       #endif
-                        ce.energy                            = args.cells_energy[tid];
                         args.hitcells_E[ct + sim * MAXHITCT] = ce;
                         }
 

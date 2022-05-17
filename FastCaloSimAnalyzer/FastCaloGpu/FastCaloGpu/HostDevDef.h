@@ -8,7 +8,7 @@
 #  define __HOST__
 #  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
 #elif defined (USE_STDPAR)
-#  define __DEVICE__
+#  define __DEVICE__ __device__
 #  define __HOST__
 #  define __HOSTDEV__
 #elif defined (__CUDACC__)

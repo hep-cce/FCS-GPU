@@ -9,17 +9,17 @@
 
 void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_cells ) {
 
-  if ( 0 ) {
-    std::cout << "R4H::allocate_simulation\n";
-    float* f = new float[100];
-    std::for_each_n( std::execution::par_unseq, counting_iterator( 0 ), 100,
-                     [=]( unsigned int tid ) { f[tid] = tid; } );
-    std::cout << "f[33] = " << f[33] << std::endl;
-  }
+  // if ( 1 ) {
+  //   std::cout << "R4H::allocate_simulation\n";
+  //   float* f = new float[100];
+  //   std::for_each_n( std::execution::par_unseq, counting_iterator( 0 ), 100,
+  //                    [=]( unsigned int tid ) { f[tid] = tid; } );
+  //   std::cout << "f[33] = " << f[33] << std::endl;
+  // }
 
   // for args.cells_energy
-  //  m_cells_energy = (CELL_ENE_T*)malloc( MAX_SIM * n_cells * sizeof(CELL_ENE_T) );
   m_cells_energy = new CELL_ENE_T[MAX_SIM * n_cells];
+  std::cout << "Rand4Hits: Allocate " << n_cells << " x " << MAX_SIM << " cells\n";
 
   // for args.hitcells_E
   m_cell_e_h = (Cell_E*)malloc( MAX_SIM * maxhitct * sizeof( Cell_E ) );

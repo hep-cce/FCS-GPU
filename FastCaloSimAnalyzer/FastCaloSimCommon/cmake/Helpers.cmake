@@ -62,6 +62,13 @@ function(fcs_make_task)
   target_compile_definitions(${_target} PRIVATE ${FCS_CommonDefinitions})
   target_include_directories(${_target} PRIVATE ${PROJECT_SRC_DIR})
 
+  if(USE_STDPAR)
+    target_compile_options(${_target} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+      ${STDPAR_DIRECTIVE}> )
+    target_link_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
+  endif()
+
+  
   foreach(_dependency ${ARG_DEPENDENCY})
     fcs_add_dependency(${_target} ${_dependency})
   endforeach()

@@ -9,6 +9,11 @@
 #include "CaloDetDescrElement_g.h"
 #include "HostDevDef.h"
 
+#ifdef USE_KOKKOS
+#  include <Kokkos_Core.hpp>
+#  include <Kokkos_Random.hpp>
+#endif
+
 __HOSTDEV__ double Phi_mpi_pi( double );
 
 class GeoRegion {
