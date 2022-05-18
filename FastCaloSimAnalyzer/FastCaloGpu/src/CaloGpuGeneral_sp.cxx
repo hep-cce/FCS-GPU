@@ -9,6 +9,7 @@
 #include "Rand4Hits.h"
 #include "Hit.h"
 #include "CountingIterator.h"
+#include "nvToolsExt.h"
 
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
@@ -121,20 +122,33 @@ namespace CaloGpuGeneral_stdpar {
   
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
+    nvtxRangeId_t r1 = nvtxRangeStartA("sim_clean");
+
     auto t0 = std::chrono::system_clock::now();
     simulate_clean( args );
+
+    nvtxRangeEnd(r1);
+    nvtxRangeId_t r2 = nvtxRangeStartA("sim_A");
 
     auto t1 = std::chrono::system_clock::now();
     simulate_A( E, nhits, args );
 
+    nvtxRangeEnd(r2);
+    nvtxRangeId_t r3 = nvtxRangeStartA("sim_ct");
+
     auto t2 = std::chrono::system_clock::now();
     simulate_ct( args );
+
+    nvtxRangeEnd(r3);
+    nvtxRangeId_t r4 = nvtxRangeStartA("sim_cp");
 
     auto t3 = std::chrono::system_clock::now();
 
     // pass result back
     args.ct = *args.hitcells_ct;
     std::memcpy( args.hitcells_E_h, args.hitcells_E, args.ct * sizeof( Cell_E ));
+
+    nvtxRangeEnd(r4);
 
     auto t4 = std::chrono::system_clock::now();
 
