@@ -30,7 +30,7 @@ static const char* USAGE =
     R"(Run toy simulation to validate the shape parametrization
 
 Usage:
-  runTFCSSimulation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--pcabin <pcabin>] [--debug <debug>] [--png]
+  runTFCSSimulation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--pcabin <pcabin>] [--debug <debug>] [--png] [--earlyReturn]
   runTFCSSimulation (-h | --help)
 
 Options:
@@ -46,6 +46,7 @@ Options:
   --pcabin <pcabin>            Select over which pcabin to run. pcabin=-1 runs over all bins and over each individual bin. pcabin=-2 runs only over all bins [default: -1].
   --debug <debug>              Set debug level to print debug messages [default: 0].
   --png                        Save all the histograms in .png images.
+  --earlyReturn                Return early to avoid ROOT segfault
 )";
 
 void Draw_1Dhist(TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "", TString title = "",TCanvas* c=0, bool png=false)
@@ -167,7 +168,8 @@ int runTFCSSimulation(int pdgid = 22,
          int firstEvent = 0,
          int selectPCAbin = -1,
          int debug = 0,
-         bool png = false)
+         bool png = false,
+         bool earlyReturn = false)
 {
   auto t0 = std::chrono::system_clock::now();
 
@@ -271,6 +273,11 @@ int runTFCSSimulation(int pdgid = 22,
 
   auto t3 = std::chrono::system_clock::now();
 
+  if (earlyReturn) {
+    std::cout << "exiting early\n";
+    return 0;
+  }
+
   if ( plotfilename != "" ) {
     fout = TFile::Open( plotfilename.c_str(), "recreate" );
     if ( !fout ) {
@@ -346,8 +353,9 @@ int main(int argc, char **argv)
   int         selectPCAbin = args["--pcabin"].asLong();
   int         debug        = args["--debug"].asLong();
   bool        png          = args["--png"].asBool();
+  bool        earlyReturn  = args["--earlyReturn"].asBool();
 
-  int ret=runTFCSSimulation(pdgId, energy, etamin, layer, output, seed,nEvents,firstEvent,selectPCAbin,debug,png);
+  int ret=runTFCSSimulation(pdgId, energy, etamin, layer, output, seed,nEvents,firstEvent,selectPCAbin,debug,png,earlyReturn);
   
   return ret;
 }
