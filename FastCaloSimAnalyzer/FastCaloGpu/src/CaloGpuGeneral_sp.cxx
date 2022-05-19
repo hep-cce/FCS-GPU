@@ -10,6 +10,7 @@
 #include "Hit.h"
 #include "CountingIterator.h"
 #include "GpuParams.h"
+#include "nvToolsExt.h"
 
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
@@ -19,6 +20,8 @@ using namespace CaloGpuGeneral_fnc;
 namespace CaloGpuGeneral_stdpar {
 
   void simulate_clean(Sim_Args args) {
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_clean");
 
     // std::cout << "args.nsims: " << args.nsims << " args.ncells: " << args.ncells
     //           << "  MAX_SIM: "<< MAX_SIM
@@ -36,13 +39,18 @@ namespace CaloGpuGeneral_stdpar {
     //                 [=](unsigned int tid) {
     //                   args.ct[tid] = 0;
     //                 }
-    //                 );     
+    //                 );
+    
+    if (!first) nvtxRangeEnd(r);
 
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_hits_de( const Sim_Args args ) {
+
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_A");
 
     // std::atomic<int> *ii = new std::atomic<int>{0};
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.nhits,
@@ -69,6 +77,8 @@ namespace CaloGpuGeneral_stdpar {
     //   std::cout << "ERROR: loop not executed fully in simulate_hits_de. expected "
     //             << args.nhits << " got " << j << std::endl;
     // }
+
+    if (!first) nvtxRangeEnd(r);
     
   }
 
@@ -76,6 +86,8 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_hits_ct( Sim_Args args ) {
 
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_ct");
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells*args.nsims,
                     [=](unsigned int tid) {
 
@@ -96,6 +108,9 @@ namespace CaloGpuGeneral_stdpar {
                         }
 
                     } );
+    
+    if (!first) nvtxRangeEnd(r);
+
   }  
   
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -114,11 +129,15 @@ namespace CaloGpuGeneral_stdpar {
     auto t3 = std::chrono::system_clock::now();
 
     // pass result back
-    //    std::memcpy( args.ct_h, args.ct, args.nsims * sizeof(int));
-    for (int i=0; i<args.nsims; ++i) {
-      args.ct_h[i] = args.ct[i];
-    }
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_cp");
+    std::memcpy( args.ct_h, args.ct, args.nsims * sizeof(int));
+    // for (int i=0; i<args.nsims; ++i) {
+    //   args.ct_h[i] = args.ct[i];
+    // }
     std::memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ));
+    if (!first) nvtxRangeEnd(r);
+    
     auto t4 = std::chrono::system_clock::now();
 
 #ifdef DUMP_HITCELLS
