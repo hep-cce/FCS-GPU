@@ -55,11 +55,7 @@ public:
   Cell_E*     get_cell_e() { return m_cell_e; };
   Cell_E*     get_cell_e_h() { return m_cell_e_h; };
 
-#ifdef USE_STDPAR
-  std::atomic<int>* get_ct() { return m_ct; };
-#else
-  int* get_ct() { return m_ct; };
-#endif
+  CELL_CT_T*  get_ct() { return m_ct; };
   int* get_ct_h() { return m_ct_h; };
 
   unsigned long* get_hitcells() { return m_hitcells; };
@@ -95,11 +91,7 @@ private:
   // patch in some GPU pointers for cudaMalloc
   CELL_ENE_T* m_cells_energy{0};
   Cell_E*     m_cell_e{0};
-#ifdef USE_STDPAR
-  std::atomic<int>* m_ct{0};
-#else
-  int* m_ct{0};
-#endif
+  CELL_CT_T*  m_ct{0};
 
   HitParams* m_hitparams;
   long*      m_simbins;

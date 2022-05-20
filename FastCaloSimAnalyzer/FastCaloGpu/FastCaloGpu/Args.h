@@ -78,12 +78,8 @@ typedef struct Sim_Args {
   Cell_E*     hitcells_E{nullptr};   // array with only hit cells (Mem maxhitct )
   Cell_E*     hitcells_E_h{nullptr}; // array with only hit cells (Mem maxhitct )
 
-#ifdef USE_STDPAR
-  std::atomic<int>* ct{nullptr};
-#else
-  int* ct{nullptr}; // GPU pointer for number of uniq hit cells
-#endif
-  int* ct_h{nullptr};
+  CELL_CT_T*  ct{nullptr};
+  int*        ct_h{nullptr};
 
   HitParams*    hitparams{nullptr};
   long*         simbins{nullptr};

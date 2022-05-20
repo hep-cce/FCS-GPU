@@ -244,7 +244,7 @@ namespace CaloGpuGeneral_fnc {
       return;
     }
 
-#if defined( USE_STDPAR )
+#if defined( USE_STDPAR ) && !defined( USE_ATOMICADD )
     //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
 #  ifdef _NVHPC_STDPAR_NONE
     args.cells_energy[cellele + args.ncells * hp.index] += hit.E();

@@ -95,15 +95,19 @@ namespace CaloGpuGeneral_stdpar {
 
                         int           sim    = tid / args.ncells;
                         unsigned long cellid = tid % args.ncells;
-                        
+
+#if defined(USE_ATOMICADD)
+                        unsigned int ct = atomicAdd( &args.ct[sim], 1 );
+#else
                         unsigned int ct = args.ct[sim]++;
+#endif
                         Cell_E ce;
                         ce.cellid = cellid;
-                      #ifdef _NVHPC_STDPAR_NONE
+#if defined(_NVHPC_STDPAR_NONE) || defined (USE_ATOMICADD)
                         ce.energy = args.cells_energy[tid];
-                      #else
+#else
                         ce.energy = double(args.cells_energy[tid])/CELL_ENE_FAC;
-                      #endif
+#endif
                         args.hitcells_E[ct + sim * MAXHITCT] = ce;
                         }
 
