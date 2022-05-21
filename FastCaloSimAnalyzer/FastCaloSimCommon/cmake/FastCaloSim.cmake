@@ -58,6 +58,10 @@ if(USE_KOKKOS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
 endif()
 
+if(USE_ALPAKA)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_ALPAKA )
+endif()
+
 if(USE_STDPAR)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 endif()
