@@ -17,7 +17,6 @@ or
 ## module load cmake gcc/8.2.0 cuda/10.1 root/6.18.02-gcc-8.2.0
 module load cmake gcc/8.2.0 llvm/13.0.1 cuda/10.1 root/v6.20.04-gcc-8.2.0
 ```
-
 then
 
 ```
@@ -26,6 +25,14 @@ cd build
 ## cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
 cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
 make -j 8
+```
+
+or on alpha/lambda machines
+```
+module use /work/software/modulefiles
+module load llvm-13.0.1
+source ../../packages/root_install/root/bin/thisroot.sh
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda-11.2/
 ```
 
 load the runtime environment:
