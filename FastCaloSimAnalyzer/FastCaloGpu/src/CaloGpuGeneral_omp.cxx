@@ -28,7 +28,7 @@ using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_omp {
 
-  void simulate_A( float E, int nhits, Chain0_Args args ) {
+  void simulate_A( float E, int nhits, Chain0_Args& args ) {
 
     long t;
     const unsigned long ncells = args.ncells;
@@ -47,7 +47,7 @@ namespace CaloGpuGeneral_omp {
 
   }
 
-  void simulate_ct( Chain0_Args args ) {
+  void simulate_ct( Chain0_Args& args ) {
 
     unsigned long tid;
     const unsigned long ncells = args.ncells;
@@ -71,7 +71,7 @@ namespace CaloGpuGeneral_omp {
 
   }
 
-  void simulate_clean( Chain0_Args args ) {
+  void simulate_clean( Chain0_Args& args ) {
  
     int tid; 
     unsigned long ncells = args.ncells;
