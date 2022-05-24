@@ -140,15 +140,18 @@ namespace CaloGpuGeneral_stdpar {
     simulate_ct( args );
 
     nvtxRangeEnd(r3);
-    nvtxRangeId_t r4 = nvtxRangeStartA("sim_cp");
-
     auto t3 = std::chrono::system_clock::now();
+    nvtxRangeId_t r4 = nvtxRangeStartA("sim_cp part 1");
 
     // pass result back
     args.ct = *args.hitcells_ct;
-    std::memcpy( args.hitcells_E_h, args.hitcells_E, args.ct * sizeof( Cell_E ));
 
     nvtxRangeEnd(r4);
+    nvtxRangeId_t r5 = nvtxRangeStartA("sim_cp part 2");
+
+    std::memcpy( args.hitcells_E_h, args.hitcells_E, args.ct * sizeof( Cell_E ));
+
+    nvtxRangeEnd(r5);
 
     auto t4 = std::chrono::system_clock::now();
 
