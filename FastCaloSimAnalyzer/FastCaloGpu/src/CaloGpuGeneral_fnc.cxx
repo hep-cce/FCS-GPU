@@ -185,7 +185,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
+  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args& args ) {
 
     //printf ( "Task being executed on host? %d!\n", omp_is_initial_device() );
     //printf ( "Num teams, threads: %d %d!\n", omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
@@ -197,7 +197,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
+  __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args& args ) {
 
     // int     pdgId    = args.pdgId;
     float charge = args.charge;
@@ -247,7 +247,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
+  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args& args ) {
 
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
 
@@ -278,7 +278,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args args, unsigned long t ) {
+  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args& args, unsigned long t ) {
 
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
