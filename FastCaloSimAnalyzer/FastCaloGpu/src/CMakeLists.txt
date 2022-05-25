@@ -68,6 +68,10 @@ if(DUMP_HITCELLS)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DDUMP_HITCELLS )
 endif()
 
+if(USE_ATOMIC_ADD)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_ATOMICADD )
+endif()
+
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}

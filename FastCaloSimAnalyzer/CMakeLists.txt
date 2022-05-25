@@ -1,6 +1,6 @@
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
 
 # Add additional CMake macros and definitions
 set(CMAKE_MODULE_PATH
@@ -17,6 +17,7 @@ set(RNDGEN_CPU OFF CACHE BOOL "Generate Random Numbers on CPU")
 set(USE_STDPAR OFF CACHE BOOL "Use std::par")
 set(STDPAR_TARGET "gpu" CACHE STRING "target for std::par. should be gpu,multicore or cpu")
 set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
+set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
 
 if ( USE_STDPAR )
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )

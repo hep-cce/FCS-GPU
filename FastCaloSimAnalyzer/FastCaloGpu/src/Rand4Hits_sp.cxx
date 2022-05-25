@@ -13,7 +13,7 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
 
   // for args.hitcells_E_h and args.hitcells_ct
   m_cell_e = m_cell_e_h;
-  m_ct = new std::atomic<int>{0};
+  m_ct     = new CELL_CT_T{0};
 
   printf(" R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
