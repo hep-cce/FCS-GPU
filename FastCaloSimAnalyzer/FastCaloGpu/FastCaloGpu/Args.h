@@ -106,12 +106,10 @@ typedef struct Chain0_Args {
   // bool *          hitcells_b ;  // GPU array of whether a cell got hit
   // unsigned long * hitcells ;//GPU pointer for hit cell index for each hit
   // unsigned long * hitcells_l ; // GPU pointer for uniq  hitcell indexes
-#ifdef USE_STDPAR
-  std::atomic<int>*  hitcells_ct;
-#else
-  int*               hitcells_ct; // GPU pointer for number of uniq hit cells
-#endif
+
+  CELL_CT_T*         hitcells_ct; // GPU pointer for number of uniq hit cells
   CELL_ENE_T*        cells_energy; // big, all cells, ~ 200K array
+
   unsigned long      ncells;
   unsigned int       maxhitct;
 

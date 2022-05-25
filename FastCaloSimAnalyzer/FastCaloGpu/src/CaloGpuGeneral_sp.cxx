@@ -112,10 +112,14 @@ namespace CaloGpuGeneral_stdpar {
                     [=](unsigned int i) {
                       // printf("ct: %p %p\n",(void*)args.hitcells_ct,(void*)args.hitcells_E);
                       if ( args.cells_energy[i] > 0 ) {
+                      # if defined (USE_ATOMICADD)
+                        unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+                      # else
                         unsigned int ct = (*(args.hitcells_ct))++;
+                      # endif
                         Cell_E              ce;
                         ce.cellid           = i;
-                      #ifdef _NVHPC_STDPAR_NONE
+                      #if defined (_NVHPC_STDPAR_NONE) || defined (USE_ATOMICADD)
                         ce.energy           = args.cells_energy[i];
                       #else
                         ce.energy           = double(args.cells_energy[i])/CELL_ENE_FAC;

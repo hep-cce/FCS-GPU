@@ -256,7 +256,7 @@ namespace CaloGpuGeneral_fnc {
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
-#elif defined (USE_STDPAR)
+#elif defined (USE_STDPAR) && !defined( USE_ATOMICADD )
 
     //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
   #ifdef _NVHPC_STDPAR_NONE
