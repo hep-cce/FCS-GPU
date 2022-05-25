@@ -9,6 +9,7 @@
 #include "Rand4Hits.h"
 #include "Hit.h"
 #include "CountingIterator.h"
+#include "nvToolsExt.h"
 
 #define DO_ATOMIC_TESTS 0
 
@@ -69,6 +70,9 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_clean(Chain0_Args& args) {
 
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_clean");
+
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells,
                     [=](unsigned int i) {
                       args.cells_energy[i] = 0;
@@ -76,6 +80,7 @@ namespace CaloGpuGeneral_stdpar {
                     );    
     
     args.hitcells_ct[0] = 0;
+    if (!first) nvtxRangeEnd(r);
         
   }
 
@@ -83,6 +88,9 @@ namespace CaloGpuGeneral_stdpar {
 
   void simulate_A( float E, int nhits, Chain0_Args args ) {
     
+
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_A");
 
     // std::cout << "sim_A: nhits: " << nhits << std::endl;
 
@@ -102,11 +110,16 @@ namespace CaloGpuGeneral_stdpar {
                   }
                     );
     
+    if (!first) nvtxRangeEnd(r);
+
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   void simulate_ct( Chain0_Args args ) {
+
+    nvtxRangeId_t r;
+    if (!first) r = nvtxRangeStartA("sim_ct");
 
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), args.ncells,
                     [=](unsigned int i) {
@@ -129,6 +142,8 @@ namespace CaloGpuGeneral_stdpar {
                         
                       }
                     } );
+    
+    if (!first) nvtxRangeEnd(r);
   }  
   
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -154,8 +169,16 @@ namespace CaloGpuGeneral_stdpar {
     auto t3 = std::chrono::system_clock::now();
 
     // pass result back
+    nvtxRangeId_t r1,r2;
+    if (!first) r1 = nvtxRangeStartA("sim_cp_1");
     args.ct = *args.hitcells_ct;
+    if (!first) {
+      nvtxRangeEnd(r1);
+      r2 = nvtxRangeStartA("sim_cp_2");
+    }
     std::memcpy( args.hitcells_E_h, args.hitcells_E, args.ct * sizeof( Cell_E ));
+    if (!first) nvtxRangeEnd(r2);
+
 
     auto t4 = std::chrono::system_clock::now();
 
