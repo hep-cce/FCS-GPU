@@ -74,7 +74,11 @@ void TFCS2DParametrization::PlotShapePolar() {
   std::string      shapefileName = m_outputFile;
   std::cout << "Running on = " << shapefileName.c_str() << std::endl;
   std::string outDir = "shape_polar_plots";
-  system( ( "mkdir -p " + outDir ).c_str() );
+  auto r = system( ( "mkdir -p " + outDir ).c_str() );
+  if ( r != 0 ) {
+    std::cerr << "Error: Could not create directory \"" << outDir << "\"" << std::endl;
+    return;
+  }
 
   TString title = TFCSAnalyzerBase::GetLabel();
 
