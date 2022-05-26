@@ -185,7 +185,8 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args& args ) {
+  #pragma omp declare target
+  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
 
     //printf ( "Task being executed on host? %d!\n", omp_is_initial_device() );
     //printf ( "Num teams, threads: %d %d!\n", omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
@@ -194,10 +195,11 @@ namespace CaloGpuGeneral_fnc {
     hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
     hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
   }
+  #pragma omp end declare target
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args& args ) {
+  __DEVICE__ void HistoLateralShapeParametrization_d( Hit& hit, unsigned long t, Chain0_Args args ) {
 
     // int     pdgId    = args.pdgId;
     float charge = args.charge;
@@ -235,7 +237,8 @@ namespace CaloGpuGeneral_fnc {
     // Particle with negative charge are expected to have the same shape as positively charged particles after
     // transformation: delta_phi --> -delta_phi
     if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
-
+   
+    //TODO : save exp and divisions
     float dist000    = sqrt( center_r * center_r + center_z * center_z );
     float eta_jakobi = abs( 2.0 * exp( -center_eta ) / ( 1.0 + exp( -2 * center_eta ) ) );
 
@@ -247,11 +250,11 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args& args ) {
-
+  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
+//TODO: SLOW
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
 
-    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
+//    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
 
       //  args.hitcells_b[cellele]= true ;
       //  args.hitcells[t]=cellele ;

@@ -23,18 +23,19 @@
 // #  endif
 // #endif
 
-#ifdef USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#  include <Kokkos_Random.hpp>
-#  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
-#else
-#  ifdef __CUDACC__
-#    define __HOSTDEV__ __host__ __device__
-#  else
-#    define __HOSTDEV__ inline
-#  endif
-#endif
+//#ifdef USE_KOKKOS
+//#  include <Kokkos_Core.hpp>
+//#  include <Kokkos_Random.hpp>
+//#  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
+//#else
+//#  ifdef __CUDACC__
+//#    define __HOSTDEV__ __host__ __device__
+//#  else
+//#    define __HOSTDEV__ inline
+//#  endif
+//#endif
 
+#    define __HOSTDEV__ inline
 __HOSTDEV__ double Phi_mpi_pi( double );
 
 class GeoRegion {

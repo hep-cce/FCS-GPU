@@ -28,35 +28,59 @@ using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_omp {
 
-  void simulate_A( float E, int nhits, Chain0_Args& args ) {
+  #pragma omp declare target
+  inline void CenterPositionCalculation_dd( Hit& hit, const Chain0_Args args ) {
+
+    //printf ( "Task being executed on host? %d!\n", omp_is_initial_device() );
+    //printf ( "Num teams, threads: %d %d!\n", omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
+    hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
+    hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
+    hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
+    hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
+  }
+  #pragma omp end declare target
+
+  #pragma omp declare target
+  void simulate_A( float E, int nhits, Chain0_Args args, Hit &hit ) {
+    
+    int m_default_device = omp_get_default_device();
 
     long t;
-    unsigned long ncells = args.ncells;
-   
-    #pragma omp target map(to : args.extrapol_eta_ent, args.extrapol_phi_ent, args.extrapol_r_ent,\
-		    args.extrapol_z_ent, args.extrapol_eta_ext, args.extrapol_phi_ext, args.extrapol_r_ext,\
-		    args.extrapol_z_ext, args.extrapWeight)
-    //#pragma omp target map(alloc:args.cells_energy) map(tofrom:args.cells_energy[:ncells])
+    const unsigned long ncells   = args.ncells;
+    const unsigned long maxhitct = args.maxhitct;
+    
+    //declare mapper for members of struct
     {
+      #pragma omp target //is_device_ptr( args.cells_energy ) device( m_default_device )
       #pragma omp teams distribute parallel for
       for ( t = 0; t < nhits; t++ ) {
-        Hit hit;
+  
+//        Hit hit;
         hit.E() = E;
-        CenterPositionCalculation_d( hit, args );
-        //HistoLateralShapeParametrization_d( hit, t, args );
-        //HitCellMappingWiggle_d( hit, args, t );
+  
+//        hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
+//        hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
+//        hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
+//        hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
+  	CenterPositionCalculation_dd( hit, args );
+
+        HistoLateralShapeParametrization_d( hit, t, args );
+	
+        HitCellMappingWiggle_d( hit, args, t );
       }
     }
 
   }
+  #pragma omp end declare target
 
   #pragma omp declare target
-  void simulate_ct( Chain0_Args& args ) {
+  void simulate_ct( Chain0_Args args ) {
 
     unsigned long tid;
     const unsigned long ncells   = args.ncells;
     const unsigned long maxhitct = args.maxhitct;
     
+    #pragma omp target
     #pragma omp teams distribute parallel for
     for ( tid = 0; tid < ncells; tid++ ) {
       if ( args.cells_energy[tid] > 0 ) {
@@ -74,11 +98,12 @@ namespace CaloGpuGeneral_omp {
   #pragma omp end declare target
 
   #pragma omp declare target
-  void simulate_clean( Chain0_Args& args ) {
+  void simulate_clean( Chain0_Args args ) {
  
     int tid; 
     unsigned long ncells = args.ncells;
     
+    #pragma omp target
     #pragma omp teams distribute parallel for
     for(tid = 0; tid < ncells; tid++) {
       args.cells_energy[tid] = 0.0;
@@ -87,7 +112,6 @@ namespace CaloGpuGeneral_omp {
   }
   #pragma omp end declare target
 
-  //TODO: args pass by value or ref?
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
     int m_default_device = omp_get_default_device();
@@ -98,16 +122,26 @@ namespace CaloGpuGeneral_omp {
     const unsigned long maxhitct = args.maxhitct;
 
     //TODO : args.hitcells_ct[0] = 0; //why does this give segfault
+    //TODO : discuss memory allocation -- CPU or GPU? 18s vs 6s, correctness?
 
-    #pragma omp target map(alloc:args.hitcells_ct) map(tofrom:args.hitcells_ct[:1])\
-                map(alloc:args.cells_energy) map(tofrom:args.cells_energy[:ncells])
+    #pragma omp target data map( alloc : args.hitcells_ct ) map( tofrom : args.hitcells_ct[:1] )\
+                map( alloc : args.cells_energy ) map( tofrom : args.cells_energy[:ncells] ) 
+                           //check if only 'from' performs better
     simulate_clean ( args );
 
-    simulate_A ( E, nhits, args );
+    //TODO : discuss 'target data' faster than 'target'
+    Hit hit;
+    #pragma omp target data map(to : args.extrapol_eta_ent, args.extrapol_phi_ent, args.extrapol_r_ent,\
+		    args.extrapol_z_ent, args.extrapol_eta_ext, args.extrapol_phi_ext, args.extrapol_r_ext,\
+		    args.extrapol_z_ext, args.extrapWeight, args.charge, args.rand[:3*nhits],\
+		    args.is_phi_symmetric, args.fh2d, args.fhs, args.geo, args.cs, args.nhits, hit,\
+		    args.ncells ) map( alloc : args.cells_energy ) map( tofrom : args.cells_energy[:ncells] )
+    simulate_A ( E, nhits, args, hit );
 
-    #pragma omp target map(alloc:args.hitcells_ct) map(tofrom:args.hitcells_ct[:1])\
-                map(alloc:args.hitcells_E) map(tofrom:args.hitcells_E[:maxhitct])\
-		map(alloc:args.cells_energy) map(tofrom:args.cells_energy[:ncells])
+    //TODO : discuss 'target' faster than 'target data'
+    #pragma omp target data map( alloc : args.hitcells_ct ) map( tofrom : args.hitcells_ct[:1] )\
+                map( alloc : args.hitcells_E ) map( tofrom : args.hitcells_E[:maxhitct] )\
+		map( alloc : args.cells_energy ) map( tofrom : args.cells_energy[:ncells] )
     simulate_ct ( args );
 
     int ct;// = args.hitcells_ct[0];
@@ -117,10 +151,10 @@ namespace CaloGpuGeneral_omp {
     } 
     //gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
 
-    if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
-                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
-      std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
-    } 
+    //if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
+    //                                m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+    //  std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
+    //} 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
 
