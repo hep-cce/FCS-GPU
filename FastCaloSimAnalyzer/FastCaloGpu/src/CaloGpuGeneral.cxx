@@ -6,6 +6,7 @@
 #include "CaloGpuGeneral_cu.h"
 #include "CaloGpuGeneral_kk.h"
 #include "CaloGpuGeneral_sp.h"
+#include "CaloGpuGeneral_al.h"
 
 #include "Rand4Hits.h"
 #include <chrono>
@@ -70,6 +71,8 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
 void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
   #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::Rand4Hits_finish( rd4h );
+// #elif defined (USE_ALPAKA)
+// CaloGpuGeneral_al::Rand4Hits_finish( rd4h );
   #else
   CaloGpuGeneral_cu::Rand4Hits_finish( rd4h );
   #endif  
@@ -98,6 +101,8 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
   CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
 #elif defined (USE_STDPAR)
   CaloGpuGeneral_stdpar::simulate_hits( E, nhits, args );
+#elif defined (USE_ALPAKA)
+  CaloGpuGeneral_al::simulate_hits( E, nhits, args );
 #else
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 #endif

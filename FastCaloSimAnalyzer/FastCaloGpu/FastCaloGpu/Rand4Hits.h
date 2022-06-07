@@ -17,39 +17,17 @@
 #   include <atomic>
 #endif
 
+/*
 #ifdef USE_ALPAKA
-
-#include <alpaka/alpaka.hpp>
-
-using Dim = alpaka::DimInt<1>;
-using Idx = std::size_t;
-using Vec = alpaka::Vec<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
-using Host = alpaka::DevCpu;
-using QueueProperty = alpaka::Blocking;
-using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
-using WorkDiv = alpaka::WorkDivMembers<Dim, Idx>;
-
-using BufHost = alpaka::Buf<Host, float, Dim, Idx>;
-using BufAcc = alpaka::Buf<Acc, float, Dim, Idx>;
-
-// This engine was chosen only because it is used by one of
-// Alpaka examples
-template<typename TAcc>
-using RandomEngine = alpaka::rand::Philox4x32x10<TAcc>;
-
-using BufHostEngine = alpaka::Buf<Host, RandomEngine<Acc>, Dim, Idx>;
-using BufAccEngine = alpaka::Buf<Acc, RandomEngine<Acc>, Dim, Idx>;
-
-// The choice of NUM_STATES value is totally random
-unsigned constexpr NUM_STATES = 1000;
+#  include "AlpakaDefs.h"
 #endif
+*/
 
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
 public:  
-
+/*
 #ifdef USE_ALPAKA
   Rand4Hits()
     : m_queue(alpaka::getDevByIdx<Acc>(Idx{0}))
@@ -57,8 +35,9 @@ public:
     , m_bufAccEngine(alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(NUM_STATES)}))
     {}
 #else
+*/
   Rand4Hits() = default;
-#endif
+//#endif
   ~Rand4Hits();
 
   float* rand_ptr( int nhits ) {
@@ -136,12 +115,13 @@ private:
   Kokkos::View<int>     m_ct_v;
   Kokkos::View<float*>  m_rand_ptr_v;
 #endif
-
+/*
 #ifdef USE_ALPAKA
   BufAcc m_bufAcc;
   BufAccEngine m_bufAccEngine;
   QueueAcc m_queue;
 #endif
+*/
 };
 
 #endif
