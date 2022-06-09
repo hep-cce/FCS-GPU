@@ -50,8 +50,10 @@ __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, 
   float     dist;
   long long bestDDE = -1;
   if ( !distance ) distance = &dist;
+/**/
   *distance    = +10000000;
   int intsteps = 0;
+/**/
   if ( !steps ) steps = &intsteps;
 
   float best_eta_corr = m_eta_correction;

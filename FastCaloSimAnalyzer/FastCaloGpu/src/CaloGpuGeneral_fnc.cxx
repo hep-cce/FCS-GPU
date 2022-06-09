@@ -21,6 +21,7 @@
 #include <omp.h>
 
 namespace CaloGpuGeneral_fnc {
+
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
 
     float* distance = 0;
@@ -51,6 +52,7 @@ namespace CaloGpuGeneral_fnc {
 
     if ( sampling < 21 ) {
       for ( int skip_range_check = 0; skip_range_check <= 1; ++skip_range_check ) {
+
         for ( unsigned int j = sample_index; j < sample_index + sample_size; ++j ) {
           if ( !skip_range_check ) {
             if ( eta < gr[j].mineta() ) continue;
@@ -77,6 +79,7 @@ namespace CaloGpuGeneral_fnc {
     if ( steps ) *steps = beststeps;
 
     return bestDDE;
+//    return -1;
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -185,7 +188,6 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  #pragma omp declare target
   __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
 
     //printf ( "Task being executed on host? %d!\n", omp_is_initial_device() );
@@ -195,7 +197,6 @@ namespace CaloGpuGeneral_fnc {
     hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
     hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
   }
-  #pragma omp end declare target
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -250,44 +251,33 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
-//TODO: SLOW
+  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args, float* cells_energy ) {
+    
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
-
-//    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
-
-      //  args.hitcells_b[cellele]= true ;
-      //  args.hitcells[t]=cellele ;
 
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
 #elif defined USE_OMPGPU
+    #pragma omp target is_device_ptr ( cells_energy )
     #pragma omp atomic update
-      args.cells_energy[cellele] += hit.E();
+      cells_energy[cellele] += hit.E();
+//      args.cells_energy[cellele] += hit.E();
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
-    /*
-      CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
-      long long id = cell.identify();
-      float eta=cell.eta();
-      float phi=cell.phi();
-      float z=cell.z();
-      float r=cell.r() ;
-    */
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args& args, unsigned long t ) {
+  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args& args, unsigned long t, float* cells_energy ) {
 
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
 
     float eta = fabs( hit.eta() );
-    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args ); }
+    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args, cells_energy ); }
 
     int bin = nhist;
     for ( int i = 0; i < nhist + 1; ++i ) {
@@ -314,7 +304,7 @@ namespace CaloGpuGeneral_fnc {
     float hit_phi_shifted = hit.phi() + wiggle;
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
 
-    HitCellMapping_d( hit, t, args );
+    HitCellMapping_d( hit, t, args, cells_energy );
   }
 } // namespace CaloGpuGeneral_fnc
 
