@@ -6,7 +6,7 @@
 
 __global__  void testHello() {
 
-  printf("Hello, I am from GPU thread %d\n", hipThreadIdx_x);
+  printf("Hello, I am from GPU thread %zu\n", hipThreadIdx_x);
 }
 
 __global__  void testCell(CaloDetDescrElement * cells , unsigned long index ) {
@@ -17,7 +17,7 @@ float phi = cell->phi();
 
 long long hashid= cell->calo_hash(); 
 
-printf(" From GPU cell index %ld , hashid=%ld, eta=%f, phi=%f, sample=%d \n", index, hashid, eta, phi, sample);
+printf(" From GPU cell index %ld , hashid=%lld, eta=%f, phi=%f, sample=%d \n", index, hashid, eta, phi, sample);
 }
 
 __global__  void testGeo(CaloDetDescrElement* cells,  GeoRegion * regions, unsigned int nregions , unsigned long ncells, int r, int ir, int ip) {
@@ -25,7 +25,7 @@ __global__  void testGeo(CaloDetDescrElement* cells,  GeoRegion * regions, unsig
 int neta = regions[r].cell_grid_eta() ;
 int nphi = regions[r].cell_grid_phi() ;
 unsigned long long index = regions[r].cell_grid_g()[ir*nphi+ip] ;
-printf(" From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%ld \n",r,ir,ip, neta, nphi,index ) ;
+printf(" From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%llu \n",r,ir,ip, neta, nphi,index ) ;
 
 CaloDetDescrElement *c = &cells[index] ;
 
@@ -35,11 +35,11 @@ int sample = c->getSampling() ;
 float eta = c->eta();
 float phi = c->phi();
 
-printf(" From GPU.., region %d, cell_grid[%d][%d]: index %ld index, hashid=%ld,eta=%f, phi=%f, sample=%d , ID=%ld cell_ptr=%#015x \n",
- r,ir,ip, index, hashid, eta, phi, sample,id, regions[r].all_cells()); 
+printf(" From GPU.., region %d, cell_grid[%d][%d]: index %llu index, hashid=%lld,eta=%f, phi=%f, sample=%d , ID=%lld cell_ptr=%p \n",
+       r,ir,ip, index, hashid, eta, phi, sample,id, (void*)regions[r].all_cells()); 
 
 CaloDetDescrElement cc=(regions[r].all_cells())[index] ;
-printf(" GPU test region have cells: cell index %d, eta=%f phi=%f size of cell*GPU=%d\n",index, cc.eta(), cc.phi(),sizeof(CaloDetDescrElement *) ); 
+printf(" GPU test region have cells: cell index %llu, eta=%f phi=%f size of cell*GPU=%lu\n",index, cc.eta(), cc.phi(),sizeof(CaloDetDescrElement *) ); 
 
 
 }
@@ -53,7 +53,7 @@ CaloDetDescrElement * cells = geo->cells ;
 int neta = regions[r].cell_grid_eta() ;
 int nphi = regions[r].cell_grid_phi() ;
 unsigned long long index = regions[r].cell_grid_g()[ir*nphi+ip] ;
-printf(" From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%ld \n",r,ir,ip, neta, nphi,index ) ;
+printf(" From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%llu \n",r,ir,ip, neta, nphi,index ) ;
 
 CaloDetDescrElement *c = &cells[index] ;
 
@@ -63,11 +63,11 @@ int sample = c->getSampling() ;
 float eta = c->eta();
 float phi = c->phi();
 
-printf(" From GPU.., region %d, cell_grid[%d][%d]: index %ld index, hashid=%ld,eta=%f, phi=%f, sample=%d , ID=%ld cell_ptr=%#015x \n",
- r,ir,ip, index, hashid, eta, phi, sample,id, regions[r].all_cells()); 
+printf(" From GPU.., region %d, cell_grid[%d][%d]: index %llu index, hashid=%lld,eta=%f, phi=%f, sample=%d , ID=%lld cell_ptr=%p \n",
+       r,ir,ip, index, hashid, eta, phi, sample,id, (void*)regions[r].all_cells()); 
 
 CaloDetDescrElement cc=(regions[r].all_cells())[index] ;
-printf(" GPU test region have cells: cell index %d, eta=%f phi=%f size of cell*GPU=%d\n",index, cc.eta(), cc.phi(),sizeof(CaloDetDescrElement *) ); 
+printf(" GPU test region have cells: cell index %llu, eta=%f phi=%f size of cell*GPU=%ld\n",index, cc.eta(), cc.phi(),sizeof(CaloDetDescrElement *) ); 
 }
 
 
@@ -84,7 +84,11 @@ bool GeoLoadGpu::LoadGpu()
 
     hipDeviceProp_t prop;
     gpuQ( hipGetDeviceProperties( &prop, 0 ) );
-    std::cout << "Executing on GPU: " << prop.name << std::endl;
+    std::string gn(prop.name);
+    if (gn == "") {
+      gn = "UNKNOWN";
+    }
+    std::cout << "Executing on GPU: " << gn << std::endl;
 
 
    GeoGpu geo_gpu_h ;
@@ -120,7 +124,7 @@ if(0) {
     //sanity check/test
     hipLaunchKernelGGL(testHello, dim3(1), dim3(1), 0, 0) ;
     hipLaunchKernelGGL(testCell, dim3(1), dim3(1), 0, 0, m_cells_g, 1872 ) ;
-    hipDeviceSynchronize() ;
+    gpuQ( hipDeviceSynchronize() );
 
      std::cout<<" ID of 2000's cell "<< m_cellid_array[2000] <<std::endl ;
      Identifier  Id  = m_cellid_array[2000] ;
@@ -184,8 +188,8 @@ if(hipSuccess != hipMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_In
 
  // Now copy this to GPU and set the staic memner to thsi pointer  
 	GeoGpu * Gptr ;
-        hipMalloc((void**)&Gptr, sizeof(GeoGpu)) ;
-	hipMemcpy(Gptr,&geo_gpu_h,sizeof(GeoGpu),hipMemcpyHostToDevice) ;
+        gpuQ( hipMalloc((void**)&Gptr, sizeof(GeoGpu)) );
+	gpuQ( hipMemcpy(Gptr,&geo_gpu_h,sizeof(GeoGpu),hipMemcpyHostToDevice) );
 
 	Geo_g= Gptr ;
 
@@ -193,7 +197,7 @@ if(hipSuccess != hipMemcpy(SampleIndex_g, m_sample_index_h , sizeof(Rg_Sample_In
 // more test for region grids
 if(0) {
     hipLaunchKernelGGL(testGeo, dim3(1), dim3(1 ), 0, 0, m_cells_g, m_regions_g,m_ncells, m_nregions, 14, 0, 32 ); 
-    hipDeviceSynchronize() ;
+    gpuQ( hipDeviceSynchronize() );
     hipError_t err = hipGetLastError();
     if (err != hipSuccess) {
         std::cout<< hipGetErrorString(err)<< std::endl;
@@ -201,7 +205,7 @@ if(0) {
     }
 	
     hipLaunchKernelGGL(testGeo_g, dim3(1), dim3(1 ), 0, 0, Geo_g, 14, 0, 32 ); 
-    hipDeviceSynchronize() ;
+    gpuQ( hipDeviceSynchronize() );
     err = hipGetLastError();
     if (err != hipSuccess) {
         std::cout<< hipGetErrorString(err)<< std::endl;

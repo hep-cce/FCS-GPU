@@ -6,28 +6,95 @@
 #include "GeoGpu_structs.h"
 #include "Hit.h"
 #include <chrono>
+#include <vector>
 
 #include "GpuGeneral_structs.h"
 
 
 namespace CaloGpuGeneral {
+  //   struct KernelTime {
+  //     std::chrono::duration<double> t_sim_clean {0};
+  //     std::chrono::duration<double> t_sim_A {0};
+  //     std::chrono::duration<double> t_sim_ct {0};
+  //     std::chrono::duration<double> t_sim_cp {0};
+  //     KernelTime() = default;
+  //     KernelTime( std::chrono::duration<double> t1, std::chrono::duration<double> t2,
+  //                 std::chrono::duration<double> t3, std::chrono::duration<double> t4 ):
+  //       t_sim_clean(t1),t_sim_A(t2),t_sim_ct(t3),t_sim_cp(t4) {}
+  //     KernelTime& operator+=(const KernelTime& rhs) {
+  //       t_sim_clean += rhs.t_sim_clean;
+  //       t_sim_A += rhs.t_sim_A;
+  //       t_sim_ct += rhs.t_sim_ct;
+  //       t_sim_cp += rhs.t_sim_cp;
+  //       return *this;
+  //     }
+  // };
+
     struct KernelTime {
-      std::chrono::duration<double> t_sim_clean {0};
-      std::chrono::duration<double> t_sim_A {0};
-      std::chrono::duration<double> t_sim_ct {0};
-      std::chrono::duration<double> t_sim_cp {0};
-      KernelTime() = default;
-      KernelTime( std::chrono::duration<double> t1, std::chrono::duration<double> t2,
-                  std::chrono::duration<double> t3, std::chrono::duration<double> t4 ):
-        t_sim_clean(t1),t_sim_A(t2),t_sim_ct(t3),t_sim_cp(t4) {}
-      KernelTime& operator+=(const KernelTime& rhs) {
-        t_sim_clean += rhs.t_sim_clean;
-        t_sim_A += rhs.t_sim_A;
-        t_sim_ct += rhs.t_sim_ct;
-        t_sim_cp += rhs.t_sim_cp;
-        return *this;
+    std::vector<std::chrono::duration<double>> t_sim_clean{0};
+    std::vector<std::chrono::duration<double>> t_sim_A{0};
+    std::vector<std::chrono::duration<double>> t_sim_ct{0};
+    std::vector<std::chrono::duration<double>> t_sim_cp{0};
+    unsigned int                  count{0};
+    KernelTime() = default;
+    void add( std::chrono::duration<double> t1, std::chrono::duration<double> t2, std::chrono::duration<double> t3,
+              std::chrono::duration<double> t4 ) {
+      t_sim_clean.push_back(t1);
+      t_sim_A.push_back(t2);
+      t_sim_ct.push_back(t3);
+      t_sim_cp.push_back(t4);
+      count++;
+    }
+
+    void printAll() const {
+      for (size_t i=0; i<t_sim_clean.size(); ++i) {
+        printf("%15.1f %15.1f %15.1f %15.1f\n",
+               t_sim_clean[i].count() * 1000000, t_sim_A[i].count() * 1000000,
+               t_sim_ct[i].count() * 1000000, t_sim_cp[i].count() * 1000000);
+          }
+    }
+               
+    
+    std::string print() const {
+      if (t_sim_clean.size() < 3) {
+        return ("insufficient kernel launches to time\n");
       }
+      double s_cl{0.}, s_A{0.}, s_ct{0.}, s_cp{0.};
+      for ( size_t i=1; i<t_sim_clean.size()-1; ++i) {
+        s_cl += t_sim_clean[i].count();
+        s_A  += t_sim_A[i].count();
+        s_ct += t_sim_ct[i].count();
+        s_cp += t_sim_cp[i].count();
+      }
+      
+        
+      std::string out;
+      char buf[100];
+      sprintf(buf,"%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_clean", s_cl,
+              s_cl * 1000000 / (count-2) );
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_A", s_A,
+              s_A * 1000000 / (count-2) );
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_ct", s_ct,
+              s_ct * 1000000 / (count-2) );
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_cp", s_cp,
+              s_cp * 1000000 / (count-2) );
+      out += buf;
+      sprintf(buf,"%12s %15d +2\n","launch count",count-2);
+      out += buf;
+
+      return out;
+    }
+    
+    friend std::ostream& operator<< (std::ostream& ost, const KernelTime& k) {
+      return ost << k.print();
+    }
   };
+
 }
 
 typedef struct Sim_Args {

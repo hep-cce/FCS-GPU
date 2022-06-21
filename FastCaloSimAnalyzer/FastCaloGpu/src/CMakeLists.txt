@@ -35,7 +35,8 @@ target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/ } )
 target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/hiprand/include )
 target_include_directories(${FastCaloGpu_LIB} PRIVATE /opt/rocm/rocrand/include )
 
-target_link_libraries(${FastCaloGpu_LIB}  PUBLIC /opt/rocm/hiprand/lib/libhiprand.so)
+# target_link_libraries(${FastCaloGpu_LIB}  PUBLIC /opt/rocm/hiprand/lib/libhiprand.so)
+target_link_libraries(${FastCaloGpu_LIB}  PUBLIC /opt/rocm/lib/libhiprand.so)
 
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}

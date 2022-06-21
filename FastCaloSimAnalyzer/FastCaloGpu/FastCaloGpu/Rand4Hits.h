@@ -21,12 +21,12 @@ class Rand4Hits {
 		m_total_a_hits=0 ;
 	  }; 
      ~Rand4Hits() {gpuQ(hipFree(m_rand_ptr));
-		 HIPRAND_CALL(hiprandDestroyGenerator(m_gen));
-		hipFree(m_cells_energy) ;
-		hipFree(m_cell_e) ;
-		hipFree(m_ct) ;
-		hipFree(m_hitparams) ;
-		hipFree(m_simbins) ;
+       HIPRAND_CALL(hiprandDestroyGenerator(m_gen));
+       HIPCALL( hipFree(m_cells_energy) );
+       HIPCALL( hipFree(m_cell_e) );
+       HIPCALL( hipFree(m_ct) );
+       HIPCALL( hipFree(m_hitparams) );
+       HIPCALL( hipFree(m_simbins) );
 		};
 		
      //float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
@@ -118,4 +118,3 @@ class Rand4Hits {
 };
 
 #endif
-

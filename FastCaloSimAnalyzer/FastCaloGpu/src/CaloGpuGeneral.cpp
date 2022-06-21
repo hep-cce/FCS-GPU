@@ -9,10 +9,16 @@
 #include "CU_BigMem.h"
 
 #include <chrono>
+#include <mutex>
 
 static CaloGpuGeneral::KernelTime timing;
+static bool first{true};
 
-#define BLOCK_SIZE 256 
+
+static std::once_flag calledGetEnv {};
+static int BLOCK_SIZE{128};
+
+// #define BLOCK_SIZE 65
 #define NLOOPS 1
 
 #define M_PI 3.14159265358979323846
@@ -226,23 +232,7 @@ __host__  void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin
         CU_BigMem::bm_ptr = bm ;
    auto t5 = std::chrono::system_clock::now();
 
-  std::chrono::duration<double> diff1 = t1-t0 ;
-  std::chrono::duration<double> diff2 = t2-t1 ;
-  std::chrono::duration<double> diff3 = t3-t2 ;
-  std::chrono::duration<double> diff4 = t4-t3 ;
-  std::chrono::duration<double> diff5 = t5-t4 ;
-/*  std::cout<<"Time of R4hit: " << diff1.count() << 
-     ","<< 
-       diff2.count() <<  
-     ","<< 
-       diff3.count() <<  
-     ","<< 
-       diff4.count() <<  
-     ","<< 
-       diff5.count() <<  " s" << std::endl ;
-*/
-
-	return  (void* ) rd4h ;
+    return  (void* ) rd4h ;
 
 }
 __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
@@ -253,11 +243,16 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
 
-  std::cout << "time kernel sim_clean: " << timing.t_sim_clean.count() << std::endl;
-  std::cout << "time kernel sim_A:     " << timing.t_sim_A.count() << std::endl;
-  std::cout << "time kernel sim_ct:    " << timing.t_sim_ct.count() << std::endl;
-  std::cout << "time kernel sim_cp:    " << timing.t_sim_cp.count() << std::endl;
- 
+ if (timing.count > 0) {
+   std::cout << "kernel timing:\n";
+   std::cout << timing;
+   std::cout << "\n";
+   std::cout << "all kernel timings:\n";
+   timing.printAll();
+ } else {
+   std::cout << "no kernel timing available" << std::endl;
+ }
+
 }
 
 
@@ -379,7 +374,7 @@ __device__ void HitCellMapping_g_d( HitParams hp,Hit& hit,  Sim_Args args ) {
 
 //if (hp.index ==0 ) printf("Tid: %d cellId: %ld  nhits: %ld \n" , threadIdx.x ,cellele, hp.nhits ) ; 
 
- if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
+ if( cellele < 0) printf("cellele not found %lld \n", cellele ) ; 
   if( cellele >= 0 )  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
 
 }
@@ -465,6 +460,16 @@ __global__  void simulate_hits_ct( const Sim_Args args) {
 
 __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 
+  std::call_once(calledGetEnv, [](){
+        if(const char* env_p = std::getenv("FCS_BLOCK_SIZE")) {
+          std::string bs(env_p);
+          BLOCK_SIZE = std::stoi(bs);
+        }
+        std::cout << "kernel BLOCK_SIZE: " << BLOCK_SIZE << std::endl;
+
+  });
+
+  
 // get Randowm numbers ptr , generate if need
   long nhits =args.nhits ;
   Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
@@ -481,7 +486,9 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   args.simbins=rd4h->get_simbins();
   args.hitparams = rd4h->get_hitparams() ;
   
-  
+  // std::cout << "  => hits: " << args.nhits << "  cells: " << args.ncells
+  //           << "   sims: " << args.nsims << "  threads: " << args.ncells*args.nsims
+  //           << std::endl;
   
   //
   
@@ -495,7 +502,7 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   int nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t0 = std::chrono::system_clock::now();
   hipLaunchKernelGGL(simulate_clean, dim3(nblocks), dim3(blocksize ), 0, 0,  args) ;
-  hipDeviceSynchronize() ;
+  gpuQ( hipDeviceSynchronize() );
   
   // Now main hit simulation find cell and populate hitcells_energy[] :
   blocksize=BLOCK_SIZE ;
@@ -503,14 +510,14 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t1 = std::chrono::system_clock::now();
   hipLaunchKernelGGL(simulate_hits_de, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ;
-  hipDeviceSynchronize() ;
+  gpuQ( hipDeviceSynchronize() );
   
   // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
   
   nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
   auto t2 = std::chrono::system_clock::now();
   hipLaunchKernelGGL(simulate_hits_ct, dim3(nblocks), dim3(blocksize ), 0, 0, args ) ; 
-  hipDeviceSynchronize() ;
+  gpuQ( hipDeviceSynchronize() );
   
   // cpy result back 
   auto t3 = std::chrono::system_clock::now();
@@ -518,10 +525,13 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   
   gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), hipMemcpyDeviceToHost));
   auto t4 = std::chrono::system_clock::now();
-
-  CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
-  timing += kt;
-
+  
+  // if (first) {
+  //   first = false;
+  // } else {
+    timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
+  // }
+  
   //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
   //     gpuQ(hipMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), hipMemcpyDeviceToHost));
   
