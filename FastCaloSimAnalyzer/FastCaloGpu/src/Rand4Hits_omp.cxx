@@ -71,6 +71,12 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     std::cout << " ERROR: No space left on device." << std::endl;
   }
 
+  float* f_cpu{nullptr};
+  f_cpu = (float *) malloc( num * sizeof( float ) );
+  if ( f_cpu == NULL ) {
+    std::cout << " ERROR: No space left on host." << std::endl;
+  }
+
   m_useCPU = useCPU;
   if ( m_useCPU ) {
     createCPUGen( seed );
@@ -78,6 +84,12 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     if ( omp_target_memcpy( f, m_rnd_cpu.data(), num * sizeof( float ), m_offset, m_offset, m_default_device, m_initial_device ) ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl; 
     }
+ 
+    if ( omp_target_memcpy( f_cpu, f, num * sizeof( float ), m_offset, m_offset, m_initial_device, m_default_device ) ) {
+       std::cout << "ERROR: copy random numbers from gpu to cpu " << std::endl; 
+    }
+    for ( int i = 0; i < num; i++ ) std::cout << m_rnd_cpu.at(i) << " " << f_cpu[i] << std::endl ;
+
   } else {
     curandGenerator_t* gen = new curandGenerator_t;
     CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
