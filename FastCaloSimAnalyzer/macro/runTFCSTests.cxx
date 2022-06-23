@@ -1,29 +1,29 @@
-//#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
-//#include "catch.hpp"
-//
-//#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
-//#include <chrono>
-//#include <omp.h>
+#define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
+#include "catch.hpp"
+
+#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
+#include <chrono>
+#include <omp.h>
 #include <iostream>
 
 #define MAXHITS 200000
 #define MAXBINS 1024
 
-//void Draw_1Dhist( TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "",
-//                  TString title = "", TCanvas* c = 0, bool png = false ) {
-//
-//  double min1, max1, rmin1, rmax1;
-//  TFCSAnalyzerBase::autozoom( hist1, min1, max1, rmin1, rmax1 );
-//
-//  return;
-//}
+void Draw_1Dhist( TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "",
+                  TString title = "", TCanvas* c = 0, bool png = false ) {
 
-int main ( int argc, char* argv[] ) {
-  
-  double a = 1.0;
-  std::cout << "Executed" << std::endl;
-  return 0;
+  double min1, max1, rmin1, rmax1;
+  TFCSAnalyzerBase::autozoom( hist1, min1, max1, rmin1, rmax1 );
+
+  return;
 }
+
+//int main ( int argc, char* argv[] ) {
+//  
+//  double a = 1.0;
+//  std::cout << "Executed" << std::endl;
+//  return 0;
+//}
 
 //unsigned int Factorial( unsigned int number ) {
 //  return number > 1 ? Factorial(number-1)*number : 1;
