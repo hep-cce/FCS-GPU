@@ -42,6 +42,7 @@ public:
   void         set_c_hits( int nhits ) { m_current_hits = nhits; };
   unsigned int get_c_hits() { return m_current_hits; };
   unsigned int get_t_a_hits() { return m_total_a_hits; };
+  float        get_cpu_rand_at( long long i) { return m_rnd_cpu.at( i ); }
 
   void create_gen( unsigned long long seed, size_t numhits, bool useCPU = false );
 
