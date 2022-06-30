@@ -11,6 +11,38 @@
 #define MAXHITS 200000
 #define MAXBINS 1024
 
+template <typename T>
+void copy_rands_to (T* dest, T* src, int num) {
+
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  std::size_t m_offset = 0;
+
+  if ( omp_target_memcpy( dest, src, num * sizeof( T ), m_offset, m_offset, m_initial_device, m_default_device ) ) {
+     std::cout << "ERROR: copy random numbers from gpu to cpu " << std::endl;
+  }
+
+}
+
+template <typename T>
+std::array<T, 2> calculate_moments (T* rand_stream, int num) {
+
+  std::array<T, 2> moments = {0.0f, 0.0f};
+
+  for ( int i = 0; i < num; i++ ) {
+
+    moments[0] += rand_stream[i];	  
+    moments[1] += rand_stream[i] * rand_stream[i];	  
+  }
+
+  T one_by_num = 1.0/num;
+  moments[0] *= one_by_num;
+  moments[1] *= one_by_num;
+
+  return moments;
+}
+
+
 /* In this test, RNs are generated on the CPU and copied to the GPU. 
  * New memory is allocated on CPU, onto which the RNs are copied from
  * the GPU using omp_target_memcpy. RNs originally generated on the CPU
@@ -19,8 +51,6 @@
 TEST_CASE( "RNs generated on CPU" ) {
     
   int m_default_device = omp_get_default_device();
-  int m_initial_device = omp_get_initial_device();
-  std::size_t m_offset = 0;
 
   long seed = 42;
   long long num = 3 * MAXHITS;
@@ -38,13 +68,13 @@ TEST_CASE( "RNs generated on CPU" ) {
   }
 
   //copy RNs from GPU
-  if ( omp_target_memcpy( rn_cpu_cpy, rd4h->rand_ptr_base(), num * sizeof( float ), m_offset, m_offset, m_initial_device, m_default_device ) ) {
-     std::cout << "ERROR: copy random numbers from gpu to cpu " << std::endl;
-  }
+  copy_rands_to ( rn_cpu_cpy, rd4h->rand_ptr_base(), num );
 
   float cpu_rn_mean(0.0f), gpu_rn_mean(0.0f);
   float cpu_rn_var(0.0f),  gpu_rn_var(0.0f);
   //compare
+  std::array <float, 2> gpu_moments = calculate_moments ( rn_cpu_cpy, num );
+  std::array <float, 2> cpu_moments = calculate_moments ( rd4h->rnd_ptr_cpu(), num );
   for ( int i = 0; i < num; i++ ) {
 
     cpu_rn_mean += rn_cpu_cpy[i];	  
@@ -60,9 +90,12 @@ TEST_CASE( "RNs generated on CPU" ) {
   cpu_rn_var  *= one_by_num;
   gpu_rn_var  *= one_by_num;
   
-  //std::cout << "means are " << cpu_rn_mean << " " << gpu_rn_mean << std::endl;
-  REQUIRE( std::fabs( cpu_rn_mean - gpu_rn_mean ) < epsilon );
-  REQUIRE( std::fabs( cpu_rn_var  - gpu_rn_var  ) < epsilon );
+  std::cout << "means are " << cpu_rn_mean << " " << gpu_rn_mean << std::endl;
+  std::cout << "vars are  " << cpu_rn_var << " " << gpu_rn_var << std::endl;
+  std::cout << "measn are  " << gpu_moments[0] << " " << cpu_moments[0] << std::endl;
+  std::cout << "vasr are  " << gpu_moments[1] << " " << cpu_moments[1] << std::endl;
+  REQUIRE( std::fabs( cpu_moments[0] - gpu_moments[0] ) < epsilon );
+  REQUIRE( std::fabs( cpu_moments[1] - gpu_moments[1] ) < epsilon );
 
 }
 
@@ -93,9 +126,7 @@ TEST_CASE( "Compare stats of RNs generated on CPU and GPU" ) {
   }
 
   //copy RNs from GPU
-  if ( omp_target_memcpy( rn_cpu_cpy, rd4h_gpu->rand_ptr_base(), num * sizeof( float ), m_offset, m_offset, m_initial_device, m_default_device ) ) {
-     std::cout << "ERROR: copy random numbers from gpu to cpu " << std::endl;
-  }
+  copy_rands_to ( rn_cpu_cpy, rd4h_gpu->rand_ptr_base(), num );
 
   float cpu_rn_mean(0.0f), gpu_rn_mean(0.0f);
   float cpu_rn_var(0.0f),  gpu_rn_var(0.0f);
