@@ -3,6 +3,10 @@
 
 #include <chrono>
 #include <omp.h>
+
+#include "FastCaloSimAnalyzer/TFCSShapeValidation.h"
+#include <chrono>
+#include <omp.h>
 #include <iostream>
 
 #include "../FastCaloGpu/FastCaloGpu/Rand4Hits.h"
