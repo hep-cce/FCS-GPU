@@ -62,6 +62,7 @@ namespace CaloGpuGeneral_omp {
       for ( t = 0; t < nhits; t++ ) {
         //Hit hit;
         hit.E() = E;
+	//printf("num teams = %d", omp_get_num_teams() );
   
       //CenterPositionCalculation_d( hit, args );
         hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );

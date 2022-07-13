@@ -59,6 +59,10 @@ public:
   GeoGpu* get_geoPtr() const { return m_geo_d; }
 
   unsigned long get_ncells() const { return m_ncells; }
+  unsigned long get_nregions() const { return m_nregions; }
+  int           get_max_sample() const { return m_max_sample; }
+  const         GeoRegion* get_g_regions_d() { return m_regions_d; };
+  const         GeoRegion* get_g_regions_h() { return m_regions; };
 
   // bool LoadGpu_Region(GeoRegion * ) ;
 

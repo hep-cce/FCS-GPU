@@ -112,18 +112,6 @@ bool GeoLoadGpu::LoadGpu_omp() {
     return false;
   }
 
-  /********** Test ********/
-  GeoRegion* m_regions_host{0}; 
-  m_regions_host = (GeoRegion *) malloc( sizeof( GeoRegion ) * m_nregions ); 
-  if ( omp_target_memcpy( m_regions_host, m_regions_d, sizeof( GeoRegion ) * m_nregions,
-                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
-    std::cout << "ERROR: copy m_regions from device to host." << std::endl;
-    return false;
-  }
-  std::cout << "Comparing GeoRegion members from dev and host" << std::endl;
-  std::cout << m_regions->mineta_raw() << " " << m_regions_host->mineta_raw()  << std::endl; 
-  /************************/
-
 //        std::cout<< "Regions Array Copied , size (Byte) " <<  sizeof(GeoRegion)*m_nregions << "sizeof cell *" <<
 //        sizeof(CaloDetDescrElement *) << std::endl; std::cout<< "Region Pointer GPU print from host" <<  m_regions_d
 //        << std::endl;
@@ -154,23 +142,6 @@ bool GeoLoadGpu::LoadGpu_omp() {
 
   // more test for region grids
   if ( 0 ) { return TestGeo(); }
-
-  /********** Test ********/
-  GeoGpu* Gptr_host;
-  Gptr_host = (GeoGpu *) malloc( sizeof( GeoGpu ) );
-  if ( omp_target_memcpy( Gptr_host, Gptr, sizeof( GeoGpu ),
-               m_offset, m_offset, m_initial_device, m_default_device ) ) {
-    std::cout << "ERROR: copy Gptr from device to host " << std::endl;
-    return false;
-  }
-  std::cout << "Comparing Gptr members from dev and host" << std::endl;
-  std::cout << geo_gpu_h.cells        << " " << Gptr_host->cells        << std::endl; 
-  std::cout << geo_gpu_h.ncells       << " " << Gptr_host->ncells       << std::endl; 
-  std::cout << geo_gpu_h.nregions     << " " << Gptr_host->nregions     << std::endl; 
-  std::cout << geo_gpu_h.regions      << " " << Gptr_host->regions      << std::endl; 
-  std::cout << geo_gpu_h.max_sample   << " " << Gptr_host->max_sample   << std::endl; 
-  std::cout << geo_gpu_h.sample_index << " " << Gptr_host->sample_index << std::endl; 
-  /************************/
 
   return true;
 }

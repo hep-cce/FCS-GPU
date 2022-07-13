@@ -6,6 +6,7 @@
 #include "catch.hpp"
 #include "../FastCaloGpu/FastCaloGpu/Rand4Hits.h"
 #include "../FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
+#include "../FastCaloGpu/FastCaloGpu/GeoRegion.h"
 
 #include "../FastCaloSimAnalyzer/CaloGeometryFromFile.h"
 #include "../FastCaloSimCommon/src/TFCSSampleDiscovery.h"
@@ -111,9 +112,6 @@ TEST_CASE( "Compare stats of RNs generated on CPU and GPU" ) {
   REQUIRE( std::fabs( cpu_moments[1] - gpu_moments[1] ) < epsilon );
 }
 
-
-
-
 inline void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr ) {
 
   // Copy all parameters
@@ -178,7 +176,6 @@ inline void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr ) {
 }
 
 inline void GeoLg( CaloGeometryFromFile* m_geo, GeoLoadGpu* m_gl ) {
-  m_gl = new GeoLoadGpu();
   m_gl->set_ncells( m_geo->get_cells()->size() );
   m_gl->set_max_sample( CaloGeometry::MAX_SAMPLING );
   int nrgns = m_geo->get_tot_regions();
@@ -211,62 +208,58 @@ inline void GeoLg( CaloGeometryFromFile* m_geo, GeoLoadGpu* m_gl ) {
  */
 TEST_CASE( "Compare Geometry Params" ) {
 
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  std::size_t m_offset = 0;
+  const float epsilon  = 1e-5;
+
   CaloGeometryFromFile* m_geo = new CaloGeometryFromFile();
 
-  std::string GeometryPath = "/work/atif/FastCaloSimInputs";
-
   // load geometry files
+  std::string GeometryPath = "/work/atif/FastCaloSimInputs";
   m_geo->LoadGeometryFromFile( GeometryPath + "/CaloGeometry/Geometry-ATLAS-R2-2016-01-00-01.root",
                                "ATLAS-R2-2016-01-00-01",
                                GeometryPath + "/CaloGeometry/cellId_vs_cellHashId_map.txt" );
 
-  std::string geoPathFCal1 = GeometryPath + "/CaloGeometry/FCal1-electrodes.sorted.HV.09Nov2007.dat";
-  std::string geoPathFCal2 = GeometryPath + "/CaloGeometry/FCal2-electrodes.sorted.HV.April2011.dat";
-  std::string geoPathFCal3 = GeometryPath + "/CaloGeometry/FCal3-electrodes.sorted.HV.09Nov2007.dat";
   m_geo->LoadFCalGeometryFromFiles( TFCSSampleDiscovery::geometryNameFCal() );
-
-  //std::cout << "------ m_geo->get_cells()->size() = " << m_geo->get_cells()->size() << std::endl;
   
   GeoLoadGpu* m_gl;
+  m_gl = new GeoLoadGpu();
   GeoLg ( m_geo, m_gl );
   m_gl->LoadGpu();
 
-//  /********** Test ********/
-//  GeoRegion* m_regions_host{0};
-//  m_regions_host = (GeoRegion *) malloc( sizeof( GeoRegion ) * m_nregions );
-//  if ( omp_target_memcpy( m_regions_host, m_regions_d, sizeof( GeoRegion ) * m_nregions,
-//                                    m_offset, m_offset, m_initial_device, m_default_device ) ) {
-//    std::cout << "ERROR: copy m_regions from device to host." << std::endl;
-//    return false;
-//  }
-//  std::cout << "Comparing GeoRegion members from dev and host" << std::endl;
-//  std::cout << m_regions->mineta_raw() << " " << m_regions_host->mineta_raw()  << std::endl;
-//  /************************/
-//
-//
-//  GeoLoadGpu* m_gl;
-//  if ( m_gl->LoadGpu() ) std::cout << "GPU Geometry loaded!!!" << std::endl;
-//
-//  /********** Test ********/
-//  GeoGpu* Gptr_host;
-//  Gptr_host = (GeoGpu *) malloc( sizeof( GeoGpu ) );
-//  if ( omp_target_memcpy( Gptr_host, Gptr, sizeof( GeoGpu ),
-//               m_offset, m_offset, m_initial_device, m_default_device ) ) {
-//    std::cout << "ERROR: copy Gptr from device to host " << std::endl;
-//    return false;
-//  }
-//  std::cout << "Comparing Gptr members from dev and host" << std::endl;
-//  std::cout << geo_gpu_h.cells        << " " << Gptr_host->cells        << std::endl;
-//  std::cout << geo_gpu_h.ncells       << " " << Gptr_host->ncells       << std::endl;
-//  std::cout << geo_gpu_h.nregions     << " " << Gptr_host->nregions     << std::endl;
+  GeoRegion* m_regions_host{0};
+  m_regions_host = (GeoRegion *) malloc( sizeof( GeoRegion ) * m_gl->get_nregions() );
+  if ( omp_target_memcpy( m_regions_host, m_gl->get_g_regions_d(), 
+			  sizeof( GeoRegion ) * m_gl->get_nregions(),
+                          m_offset, m_offset, m_initial_device, m_default_device ) ) {
+    std::cout << "ERROR: copy m_regions from device to host." << std::endl;
+  }
+
+  REQUIRE( m_gl->get_g_regions_h()->cell_grid_eta() == m_regions_host->cell_grid_eta() );
+  REQUIRE( m_gl->get_g_regions_h()->cell_grid_phi() == m_regions_host->cell_grid_phi() );
+  REQUIRE( m_gl->get_g_regions_h()->index()         == m_regions_host->index()         );
+  
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->mineta_raw() - m_regions_host->mineta_raw() ) < epsilon );
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->minphi_raw() - m_regions_host->minphi_raw() ) < epsilon );
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->maxeta()     - m_regions_host->maxeta()     ) < epsilon );
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->mineta()     - m_regions_host->mineta()     ) < epsilon );
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->maxphi()     - m_regions_host->maxphi()     ) < epsilon );
+  REQUIRE( std::fabs( m_gl->get_g_regions_h()->minphi()     - m_regions_host->minphi()     ) < epsilon );
+
+  GeoGpu* Gptr_host;
+  Gptr_host = (GeoGpu *) malloc( sizeof( GeoGpu ) );
+  if ( omp_target_memcpy( Gptr_host, m_gl->get_geoPtr(), sizeof( GeoGpu ),
+               m_offset, m_offset, m_initial_device, m_default_device ) ) {
+    std::cout << "ERROR: copy Gptr from device to host " << std::endl;
+  }
+
+  REQUIRE( m_gl->get_ncells()     == Gptr_host->ncells     );
+  REQUIRE( m_gl->get_nregions()   == Gptr_host->nregions   );
+  REQUIRE( m_gl->get_max_sample() == Gptr_host->max_sample );
+
 //  std::cout << geo_gpu_h.regions      << " " << Gptr_host->regions      << std::endl;
-//  std::cout << geo_gpu_h.max_sample   << " " << Gptr_host->max_sample   << std::endl;
 //  std::cout << geo_gpu_h.sample_index << " " << Gptr_host->sample_index << std::endl;
-//  /************************/
-//
-//
-//
-//  REQUIRE( std::fabs( cpu_moments[1] - gpu_moments[1] ) < epsilon );
 }
 
 
