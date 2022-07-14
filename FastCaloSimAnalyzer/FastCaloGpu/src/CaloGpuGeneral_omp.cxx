@@ -164,14 +164,22 @@ namespace CaloGpuGeneral_omp {
 
     /************* ct ***********/
 
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
+    auto hitcells_E   = args.hitcells_E;
+
+    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
     #pragma omp teams distribute parallel for
-    for(tid = 0; tid < ncells; tid++) {
-      cells_energy[tid] = 0.0;
-      if ( tid == 0 ) hitcells_ct[tid] = 0;
+    for ( tid = 0; tid < ncells; tid++ ) {
+      if ( cells_energy[tid] > 0 ) {
+        //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+        unsigned int ct     = hitcells_ct[0];
+        Cell_E                ce;
+        ce.cellid           = tid;
+        ce.energy           = cells_energy[tid];
+        hitcells_E[ct]      = ce;
+        #pragma omp atomic update
+          hitcells_ct[0]++;
+      }
     }
-
-
   }
 
 
@@ -277,10 +285,10 @@ namespace CaloGpuGeneral_omp {
     } 
     //gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
 
-    //if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
-    //                                m_offset, m_offset, m_initial_device, m_default_device ) ) { 
-    //  std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
-    //} 
+    if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
+                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+      std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
+    } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
 
