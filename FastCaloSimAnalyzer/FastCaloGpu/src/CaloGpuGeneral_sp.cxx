@@ -52,7 +52,7 @@ namespace CaloGpuGeneral_stdpar {
     std::for_each_n(std::execution::par_unseq, counting_iterator(0), N,
                     [=] (int i) {
                       fb[i%2] += i;
-#ifdef _NVHPC_STDPAR_NONE
+#if defined ( _NVHPC_STDPAR_NONE ) || defined ( _NVHPC_STDPAR_MULTICORE )
                       fa[i % 2] += i;
                       fc[i] += i;
 #else
