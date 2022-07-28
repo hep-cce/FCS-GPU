@@ -29,15 +29,17 @@ using namespace CaloGpuGeneral_fnc;
 namespace CaloGpuGeneral_omp {
 
   void simulate_hits_master( float E, int nhits, Chain0_Args args ) {
- 
+
     const unsigned long ncells = args.ncells;
     const unsigned long maxhitct = args.maxhitct;
     auto cells_energy = args.cells_energy;
     auto hitcells_ct  = args.hitcells_ct;
+    auto rand         = args.rand;
     int m_default_device = omp_get_default_device();
 
     /************* clean **********/	  
 
+    //hitcells_ct[0] = 0;
     int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
     #pragma omp teams distribute parallel for
@@ -49,18 +51,17 @@ namespace CaloGpuGeneral_omp {
     /************* A **********/
 
     long t;
-    Hit hit;
+    //Hit hit;
     #pragma omp target data map(to : args.extrapol_eta_ent, args.extrapol_phi_ent, args.extrapol_r_ent,\
                   args.extrapol_z_ent, args.extrapol_eta_ext, args.extrapol_phi_ext, args.extrapol_r_ext,\
-                  args.extrapol_z_ext, args.extrapWeight, args.charge, args.rand[:3*nhits],\
-                  args.is_phi_symmetric, args.fh2d, args.fhs, args.geo, args.cs, args.nhits, hit,\
-                  args.ncells )
+                  args.extrapol_z_ext, args.extrapWeight, args.charge, args.is_phi_symmetric, args.fh2d,\
+		  args.fhs, args.geo, args.cs, args.nhits, args.ncells )
     //declare mapper for members of struct
     {
-      #pragma omp target is_device_ptr( cells_energy )
+      #pragma omp target is_device_ptr( cells_energy, rand )
       #pragma omp teams distribute parallel for
       for ( t = 0; t < nhits; t++ ) {
-        //Hit hit;
+        Hit hit;
         hit.E() = E;
 	//printf("num teams = %d", omp_get_num_teams() );
   
@@ -81,9 +82,9 @@ namespace CaloGpuGeneral_omp {
         float center_z   = hit.center_z();
     
         float alpha, r, rnd1, rnd2;
-        rnd1 = args.rand[t];
-        rnd2 = args.rand[t + args.nhits];
-    
+        rnd1 = rand[t];
+        rnd2 = rand[t + args.nhits];
+        //printf ( " rands are %f %f ----> \n ", rnd1, rnd2);  
         if ( args.is_phi_symmetric ) {
           if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
             rnd2 -= 0.5;
@@ -145,7 +146,7 @@ namespace CaloGpuGeneral_omp {
         int          h_size     = ( *( args.fhs ) ).h_szs[bin];
         uint32_t     s_MaxValue = ( *( args.fhs ) ).s_MaxValue;
     
-        float rnd = args.rand[t + 2 * args.nhits];
+        float rnd = rand[t + 2 * args.nhits];
     
         float wiggle = rnd_to_fct1d( rnd, contents, borders, h_size, s_MaxValue );
     
@@ -154,6 +155,7 @@ namespace CaloGpuGeneral_omp {
    
       //HitCellMapping	
         long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
+        //printf("t = %ld cellee %lld hit.eta %f hit.phi %f \n", t, cellele, hit.eta(), hit.phi());
 
         #pragma omp atomic update
         //*( cells_energy + cellele ) += E;
@@ -178,6 +180,7 @@ namespace CaloGpuGeneral_omp {
         hitcells_E[ct]      = ce;
         #pragma omp atomic update
           hitcells_ct[0]++;
+	//printf ( " cell id %lu energy %f \n ", tid, ce.energy  );
       }
     }
   }
@@ -290,7 +293,6 @@ namespace CaloGpuGeneral_omp {
       std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
     } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
-
 
     // pass result back
     args.ct = ct;
