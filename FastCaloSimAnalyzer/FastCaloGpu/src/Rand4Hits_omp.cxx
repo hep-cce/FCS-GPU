@@ -17,7 +17,7 @@
 void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*maxbins*/, unsigned short maxhitct,
                                      unsigned long n_cells ) {
 
-  float* Cells_Energy ;//= (float *) malloc( n_cells * sizeof( float ) );
+  float* Cells_Energy ;
   Cells_Energy = (float *) omp_target_alloc( n_cells * sizeof( float ), m_default_device);
   if ( Cells_Energy == NULL ) {
     std::cout << " ERROR: No space left on device for Cells_Energy." << std::endl;
@@ -31,7 +31,9 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   }
   m_cell_e   = cell_e;
 
-  m_cell_e_h = (Cell_E*)malloc( maxhitct * sizeof( Cell_E ) );
+  //m_cell_e_h = (Cell_E*) malloc( maxhitct * sizeof( Cell_E ) );
+  m_cell_e_h = new Cell_E[maxhitct];
+
   int*   ct;
   ct = (int *) omp_target_alloc( sizeof( int ), m_default_device);
   if ( ct == NULL ) {

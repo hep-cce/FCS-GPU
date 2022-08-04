@@ -8,7 +8,7 @@
 #include <iostream>
 #include "Args.h"
 
-#define MIN_GPU_HITS 256
+#define MIN_GPU_HITS 32
 
 namespace CaloGpuGeneral {
 

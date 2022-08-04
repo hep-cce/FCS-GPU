@@ -36,6 +36,7 @@ namespace CaloGpuGeneral_omp {
     auto hitcells_ct  = args.hitcells_ct;
     auto rand         = args.rand;
     int m_default_device = omp_get_default_device();
+    int m_initial_device = omp_get_initial_device();
 
     /************* clean **********/	  
 
@@ -63,7 +64,6 @@ namespace CaloGpuGeneral_omp {
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
-	//printf("num teams = %d", omp_get_num_teams() );
   
       //CenterPositionCalculation_d( hit, args );
         hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
@@ -84,7 +84,7 @@ namespace CaloGpuGeneral_omp {
         float alpha, r, rnd1, rnd2;
         rnd1 = rand[t];
         rnd2 = rand[t + args.nhits];
-        //printf ( " rands are %f %f ----> \n ", rnd1, rnd2);  
+        // printf ( " rands are %f %f ----> \n ", rnd1, rnd2);  
         if ( args.is_phi_symmetric ) {
           if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
             rnd2 -= 0.5;
@@ -155,7 +155,7 @@ namespace CaloGpuGeneral_omp {
    
       //HitCellMapping	
         long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
-        //printf("t = %ld cellee %lld hit.eta %f hit.phi %f \n", t, cellele, hit.eta(), hit.phi());
+        // printf("t = %ld cellee %lld hit.eta %f hit.phi %f \n", t, cellele, hit.eta(), hit.phi());
 
         #pragma omp atomic update
         //*( cells_energy + cellele ) += E;
@@ -165,24 +165,35 @@ namespace CaloGpuGeneral_omp {
     }
 
     /************* ct ***********/
-
+    int* count{nullptr};
+    count = (int *) omp_target_alloc( sizeof( int ), m_default_device);
     auto hitcells_E   = args.hitcells_E;
-
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
-    #pragma omp teams distribute parallel for
-    for ( tid = 0; tid < ncells; tid++ ) {
-      if ( cells_energy[tid] > 0 ) {
+    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E, count ) device(m_default_device)
+    #pragma omp teams distribute parallel for simd
+    for ( int tid = 0; tid < ncells; tid++ ) {
+      if ( cells_energy[tid] > 0. ) {
         //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+        //unsigned int ct     = count[0];
         unsigned int ct     = hitcells_ct[0];
         Cell_E                ce;
         ce.cellid           = tid;
         ce.energy           = cells_energy[tid];
         hitcells_E[ct]      = ce;
         #pragma omp atomic update
+          //count[0]++;
           hitcells_ct[0]++;
-	//printf ( " cell id %lu energy %f \n ", tid, ce.energy  );
+	//printf( " ct %d \n", count[0]);
+        //printf ( " cell id %d %d %d energy %f %f \n ", ct, tid, hitcells_E[ct].cellid, ce.energy, hitcells_E[ct].energy  );
       }
     }
+
+    int *h_count = (int *) malloc( sizeof( int ) );
+    if ( omp_target_memcpy( h_count, count, sizeof( int ), 0, 0, m_initial_device, m_default_device ) ) {
+	    std::cout << "ERROR: copy COUNT from gpu to cpu " << std::endl;
+    }
+
+    std::cout << "count now is = " <<h_count[0] << std::endl;
+
   }
 
 
@@ -280,22 +291,24 @@ namespace CaloGpuGeneral_omp {
     //simulate_clean ( args );
     //simulate_A ( E, nhits, args );
     //simulate_ct ( args );
-
-    int ct;// = args.hitcells_ct[0];
-    if ( omp_target_memcpy( &ct, args.hitcells_ct, sizeof( int ),
+ 
+    //omp target memcopy does not copy correctly to stack, only heap 
+    //int ct;// = args.hitcells_ct[0];
+    int *ct = (int *) malloc( sizeof( int ) );
+    if ( omp_target_memcpy( ct, args.hitcells_ct, sizeof( int ),
                                     m_offset, m_offset, m_initial_device, m_default_device ) ) { 
       std::cout << "ERROR: copy hitcells_ct. " << std::endl;
     } 
     //gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
 
-    if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ),
+    if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct[0] * sizeof( Cell_E ),
                                     m_offset, m_offset, m_initial_device, m_default_device ) ) { 
       std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
     } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
     // pass result back
-    args.ct = ct;
+    args.ct = ct[0];
     //   args.hitcells_ct_h=hitcells_ct ;
   }
 

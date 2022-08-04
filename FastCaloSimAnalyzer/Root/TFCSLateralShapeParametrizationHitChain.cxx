@@ -81,7 +81,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
   int cs = calosample();
   // Call get_number_of_hits() only once, as it could contain a random number
-  int nhit = get_number_of_hits( simulstate, truth, extrapol );
+  int nhit = 33;//get_number_of_hits( simulstate, truth, extrapol );
   if ( nhit <= 0 ) {
     ATH_MSG_ERROR( "TFCSLateralShapeParametrizationHitChain::simulate(): number of hits could not be calculated" );
     return FCSFatal;
@@ -225,7 +225,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     std::map<unsigned int,float> cm;
     for ( unsigned int ii = 0; ii < args.ct; ++ii ) {
       // std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
-      //std::cout << "celleleIndex=" << args.hitcells_E_h[ii].cellid << " " << args.hitcells_E_h[ii].energy <<std::endl;
+      std::cout << "celleleIndex=" << args.hitcells_E_h[ii].cellid << " " << args.hitcells_E_h[ii].energy <<std::endl;
 	    
       const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
       simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
