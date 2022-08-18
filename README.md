@@ -30,9 +30,9 @@ make -j 8
 or on alpha/lambda machines
 ```
 module use /work/software/modulefiles
-module load llvm-13.0.1
-source ../../packages/root_install/root/bin/thisroot.sh
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+module load llvm-openmp-dev
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
 ```
 
 load the runtime environment:

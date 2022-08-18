@@ -227,23 +227,23 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       // std::cout<<"celleleIndex="<< args.hitcells_h[ii]<<" " << args.hitcells_ct_h[ii]<<std::endl;
       std::cout << "celleleIndex=" << args.hitcells_E_h[ii].cellid << " " << args.hitcells_E_h[ii].energy <<std::endl;
 	    
-      const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
-      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
-      cm[args.hitcells_E_h[ii].cellid] = args.hitcells_E_h[ii].energy;
+     const CaloDetDescrElement* cellele = gld->index2cell( args.hitcells_E_h[ii].cellid );
+     simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
+     cm[args.hitcells_E_h[ii].cellid] = args.hitcells_E_h[ii].energy;
     }
     
     
 //    std::cout << "\n\n---------------\n\n" << std::endl;
-//    float* Cells_Energy = (float *) malloc( 187652 * sizeof( float ) );
-//    for ( int cid = 0; cid < 187652; cid++){
+//    float* Cells_Energy = (float *) malloc( 190000 * sizeof( float ) );
+//    for ( int cid = 0; cid < 190000; cid++){
 //      Cells_Energy[cid] = -1.;
 //    } 
-//    if ( omp_target_memcpy( Cells_Energy, args.cells_energy, 187652 * sizeof( float ),
+//    if ( omp_target_memcpy( Cells_Energy, args.cells_energy, 190000 * sizeof( float ),
 //                                    0, 0, 1, 0 ) ) { 
 //      std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
 //    } 
-//    for ( int cid = 0; cid < 187652; cid++){
-//      std::cout << cid << " " << Cells_Energy[cid] << std::endl;
+//    for ( int cid = 0; cid < 190000; cid++){
+//      if ( Cells_Energy[cid] > 0. ) std::cout << cid << " " << Cells_Energy[cid] << std::endl;
 //    }
 //    std::cout << "\n\n---------------\n\n" << std::endl;
     

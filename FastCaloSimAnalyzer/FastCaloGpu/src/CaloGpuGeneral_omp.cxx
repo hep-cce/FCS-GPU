@@ -40,7 +40,6 @@ namespace CaloGpuGeneral_omp {
 
     /************* clean **********/	  
 
-    //hitcells_ct[0] = 0;
     int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
     #pragma omp teams distribute parallel for
@@ -165,34 +164,24 @@ namespace CaloGpuGeneral_omp {
     }
 
     /************* ct ***********/
-    int* count{nullptr};
-    count = (int *) omp_target_alloc( sizeof( int ), m_default_device);
     auto hitcells_E   = args.hitcells_E;
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E, count ) device(m_default_device)
-    #pragma omp teams distribute parallel for simd
+    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
+    #pragma omp teams distribute parallel for thread_limit(256)
     for ( int tid = 0; tid < ncells; tid++ ) {
       if ( cells_energy[tid] > 0. ) {
-        //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
-        //unsigned int ct     = count[0];
-        unsigned int ct     = hitcells_ct[0];
-        Cell_E                ce;
-        ce.cellid           = tid;
-        ce.energy           = cells_energy[tid];
-        hitcells_E[ct]      = ce;
-        #pragma omp atomic update
-          //count[0]++;
-          hitcells_ct[0]++;
-	//printf( " ct %d \n", count[0]);
-        //printf ( " cell id %d %d %d energy %f %f \n ", ct, tid, hitcells_E[ct].cellid, ce.energy, hitcells_E[ct].energy  );
+         //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+	 
+	 unsigned int ct;
+         #pragma omp atomic capture
+	 ct = hitcells_ct[0]++; 
+	      
+	 Cell_E                ce;
+         ce.cellid           = tid;
+         ce.energy           = cells_energy[tid];
+         hitcells_E[ct]      = ce;
+         //printf ( "ct %d %d energy %f cellid %d \n", ct, hitcells_ct[0], hitcells_E[ct].energy, hitcells_E[ct].cellid);
       }
     }
-
-    int *h_count = (int *) malloc( sizeof( int ) );
-    if ( omp_target_memcpy( h_count, count, sizeof( int ), 0, 0, m_initial_device, m_default_device ) ) {
-	    std::cout << "ERROR: copy COUNT from gpu to cpu " << std::endl;
-    }
-
-    std::cout << "count now is = " <<h_count[0] << std::endl;
 
   }
 
@@ -293,7 +282,6 @@ namespace CaloGpuGeneral_omp {
     //simulate_ct ( args );
  
     //omp target memcopy does not copy correctly to stack, only heap 
-    //int ct;// = args.hitcells_ct[0];
     int *ct = (int *) malloc( sizeof( int ) );
     if ( omp_target_memcpy( ct, args.hitcells_ct, sizeof( int ),
                                     m_offset, m_offset, m_initial_device, m_default_device ) ) { 
@@ -307,9 +295,24 @@ namespace CaloGpuGeneral_omp {
     } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
+////    std::cout << "count now is = " << ct[0] << std::endl;
     // pass result back
     args.ct = ct[0];
     //   args.hitcells_ct_h=hitcells_ct ;
+
+//    const int count = ct[0];
+//    auto hitcells_E   = args.hitcells_E;
+//    #pragma omp target is_device_ptr ( hitcells_E )
+//    #pragma omp teams distribute parallel for
+//    for ( int tid = 0; tid < count; tid++ ) {
+//      //if ( hitcells_E[tid].energy > 0. ) {
+//       printf ( " energy %f cellid %d \n", hitcells_E[tid].energy, hitcells_E[tid].cellid);
+//      //}
+//    }
+
+
+
+
   }
 
 } // namespace CaloGpuGeneral_omp

@@ -31,8 +31,9 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   }
   m_cell_e   = cell_e;
 
-  //m_cell_e_h = (Cell_E*) malloc( maxhitct * sizeof( Cell_E ) );
-  m_cell_e_h = new Cell_E[maxhitct];
+  auto cell_e_h = (Cell_E*) malloc( maxhitct * sizeof( Cell_E ) );
+  m_cell_e_h = cell_e_h;
+  //m_cell_e_h = new Cell_E[maxhitct];
 
   int*   ct;
   ct = (int *) omp_target_alloc( sizeof( int ), m_default_device);
