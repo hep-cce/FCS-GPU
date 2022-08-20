@@ -3,7 +3,7 @@
 */
 
 #include "GeoLoadGpu.cxx"
-#include "GeoLoadGpu_cu.cu"
+#include "GeoLoadGpu_al.cxx"
 #include "CaloGpuGeneral_fnc.cu"
 #include "CaloGpuGeneral_cu.cu"
 #include "CaloGpuGeneral_al.cxx"
