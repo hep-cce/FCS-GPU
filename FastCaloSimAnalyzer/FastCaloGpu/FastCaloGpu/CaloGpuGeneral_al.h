@@ -9,7 +9,7 @@
 
 namespace CaloGpuGeneral_al {
 
-  /* void Rand4Hits_finish( void* rd4h ); */
+  void Rand4Hits_finish( void* rd4h );
   void simulate_hits( float E, int nhits, Chain0_Args& args );
 
 

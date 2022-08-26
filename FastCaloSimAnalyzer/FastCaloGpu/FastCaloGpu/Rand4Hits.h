@@ -17,27 +17,29 @@
 #   include <atomic>
 #endif
 
-/*
+
 #ifdef USE_ALPAKA
 #  include "AlpakaDefs.h"
 #endif
-*/
+
 
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
-public:  
-/*
+ public:  
+
 #ifdef USE_ALPAKA
-  Rand4Hits()
+   Rand4Hits()
     : m_queue(alpaka::getDevByIdx<Acc>(Idx{0}))
     , m_bufAcc(alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(1u)}))
     , m_bufAccEngine(alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(NUM_STATES)}))
-    {}
+    , m_cellsEnergy{alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+    , m_cellE{alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+    , m_cT{alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1u)})}
+  {}
 #else
-*/
   Rand4Hits() = default;
-//#endif
+#endif
   ~Rand4Hits();
 
   float* rand_ptr( int nhits ) {
@@ -115,13 +117,16 @@ private:
   Kokkos::View<int>     m_ct_v;
   Kokkos::View<float*>  m_rand_ptr_v;
 #endif
-/*
+
 #ifdef USE_ALPAKA
   BufAcc m_bufAcc;
   BufAccEngine m_bufAccEngine;
   QueueAcc m_queue;
+  CellsEnergy m_cellsEnergy;
+  CellE m_cellE;
+  CellCtT m_cT;
 #endif
-*/
+
 };
 
 #endif

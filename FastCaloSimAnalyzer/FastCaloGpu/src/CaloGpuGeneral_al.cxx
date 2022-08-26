@@ -10,13 +10,13 @@
 #define BLOCK_SIZE 256
 
 using namespace CaloGpuGeneral_fnc;
-/*
+
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
-*/
+
 namespace CaloGpuGeneral_al {
 
-  /*
+
   void Rand4Hits_finish( void* rd4h ) {
 
     if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
@@ -29,7 +29,7 @@ namespace CaloGpuGeneral_al {
     }
 
   }
-  */
+
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   struct SimulateAKernel

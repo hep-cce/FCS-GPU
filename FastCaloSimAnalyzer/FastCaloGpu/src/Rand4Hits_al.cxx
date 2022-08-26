@@ -56,20 +56,16 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
                                      unsigned long n_cells ) {
 
   // for args.cells_energy
-
-  using CellsEnergy = alpaka::Buf<Acc,CELL_ENE_T, Dim, Idx>;
-  CellsEnergy cellsEnergy{alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(n_cells)})};
-  m_cells_energy = alpaka::getPtrNative(cellsEnergy);
+  m_cellsEnergy = alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(n_cells)});
+  m_cells_energy = alpaka::getPtrNative(m_cellsEnergy);
 
   // for args.hitcells_E
-  using CellE = alpaka::Buf<Acc,Cell_E, Dim, Idx>;
-  CellE cellE{alpaka::allocBuf<Cell_E, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(maxhitct)})};
-  m_cell_e = alpaka::getPtrNative(cellE);
+  m_cellE = alpaka::allocBuf<Cell_E, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(maxhitct)});
+  m_cell_e = alpaka::getPtrNative(m_cellE);
   m_cell_e_h = (Cell_E*)malloc( maxhitct * sizeof( Cell_E ) );
 
   // for args.hitcells_E_h and args.hitcells_ct
-  alpaka::Buf<Acc,int, Dim, Idx> ct{alpaka::allocBuf<int, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1u)})};
-  m_ct = alpaka::getPtrNative(ct);
+  m_ct = alpaka::getPtrNative(m_cT);
 
   printf(" -- R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);

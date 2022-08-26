@@ -6,6 +6,7 @@
 
 #include <alpaka/alpaka.hpp>
 #include "GeoGpu_structs.h"
+#include "GpuGeneral_structs.h"
 
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
@@ -41,5 +42,9 @@ using BufAccEngine = alpaka::Buf<Acc, RandomEngine<Acc>, Dim, Idx>;
 
 // The choice of NUM_STATES value is totally random
 unsigned constexpr NUM_STATES = 1000;
+
+using CellsEnergy = alpaka::Buf<Acc,CELL_ENE_T, Dim, Idx>;
+using CellE = alpaka::Buf<Acc,Cell_E, Dim, Idx>;
+using CellCtT = alpaka::Buf<Acc, CELL_CT_T, Dim, Idx>;
 
 #endif
