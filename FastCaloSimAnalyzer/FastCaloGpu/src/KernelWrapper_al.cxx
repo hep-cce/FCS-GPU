@@ -7,5 +7,5 @@
 #include "CaloGpuGeneral_fnc.cxx"
 #include "CaloGpuGeneral_al.cxx"
 #include "GeoRegion.cxx"
-#include "LoadGpuFuncHist.cu"
+#include "LoadGpuFuncHist_al.cxx"
 

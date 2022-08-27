@@ -7,6 +7,7 @@
 #include <alpaka/alpaka.hpp>
 #include "GeoGpu_structs.h"
 #include "GpuGeneral_structs.h"
+#include "FH_structs.h"
 
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
@@ -25,12 +26,16 @@ using BufHostSampleIndex = alpaka::Buf<Host, Rg_Sample_Index, Dim, Idx>;
 using BufHostGeoRegion  = alpaka::Buf<Host, GeoRegion, Dim, Idx>;
 using BufHostGeoGpu = alpaka::Buf<Host, GeoGpu, Dim, Idx>;
 using BufHostLongLong = alpaka::Buf<Host, long long, Dim, Idx>;
+using BufHostUnsigned = alpaka::Buf<Host, unsigned, Dim, Idx>;
+using BufHostUint32 = alpaka::Buf<Host, uint32_t, Dim, Idx>;
 
 using BufAccCaloDDE = alpaka::Buf<Acc, CaloDetDescrElement, Dim, Idx>;
 using BufAccSampleIndex = alpaka::Buf<Acc, Rg_Sample_Index, Dim, Idx>;
 using BufAccGeoRegion  = alpaka::Buf<Acc, GeoRegion, Dim, Idx>;
 using BufAccGeoGpu = alpaka::Buf<Acc, GeoGpu, Dim, Idx>;
 using BufAccLongLong = alpaka::Buf<Acc, long long, Dim, Idx>;
+using BufAccUnsigned = alpaka::Buf<Acc, unsigned, Dim, Idx>;
+using BufAccUint32 = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
 
 // This engine was chosen only because it is used by one of
 // the Alpaka examples
@@ -46,5 +51,10 @@ unsigned constexpr NUM_STATES = 1000;
 using CellsEnergy = alpaka::Buf<Acc,CELL_ENE_T, Dim, Idx>;
 using CellE = alpaka::Buf<Acc,Cell_E, Dim, Idx>;
 using CellCtT = alpaka::Buf<Acc, CELL_CT_T, Dim, Idx>;
+
+using BufAccFH2D = alpaka::Buf<Acc, FH2D, Dim, Idx>;
+using BufAccFHs = alpaka::Buf<Acc, FHs, Dim, Idx>;
+using BufHostFH2D = alpaka::Buf<Host, FH2D, Dim, Idx>;
+using BufHostFHs = alpaka::Buf<Host, FHs, Dim, Idx>;
 
 #endif

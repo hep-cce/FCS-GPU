@@ -6,7 +6,6 @@
 #include "AlpakaDefs.h"
 #include <alpaka/alpaka.hpp>
 #include <iostream>
-#include "gpuQ.h"
 
 class GeoLoadGpu::Impl {
 public:
