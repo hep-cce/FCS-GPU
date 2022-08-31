@@ -100,7 +100,7 @@ function( atlas_os_id os isValid )
       elseif( _linuxId MATCHES "Rocky" )
          set( _linuxShort "rocky" )
       else()
-         message( WARNING "Linux flavour not recognised" )
+         message( WARNING "Linux flavour not recognised: ${_linuxId}" )
          set( _linuxShort "linux" )
       endif()
       # Get the linux version number:
