@@ -361,11 +361,13 @@ int main( int argc, char** argv ) {
   int         selectPCAbin = args["--pcabin"].asLong();
   int         debug        = args["--debug"].asLong();
   bool        png          = args["--png"].asBool();
+  bool        earlyReturn  = args["--earlyReturn"].asBool();
+
 #ifdef USE_KOKKOS
   Kokkos::initialize( argc, argv );
 #endif
   int ret =
-      runTFCSSimulation( pdgId, energy, etamin, layer, output, seed, nEvents, firstEvent, selectPCAbin, debug, png );
+    runTFCSSimulation( pdgId, energy, etamin, layer, output, seed, nEvents, firstEvent, selectPCAbin, debug, png, earlyReturn );
 
 #ifdef USE_KOKKOS
   Kokkos::finalize();
