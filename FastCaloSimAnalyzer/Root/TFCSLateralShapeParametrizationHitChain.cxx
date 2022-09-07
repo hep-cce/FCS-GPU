@@ -81,7 +81,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
   int cs = calosample();
   // Call get_number_of_hits() only once, as it could contain a random number
-  int nhit = 33;//get_number_of_hits( simulstate, truth, extrapol );
+  int nhit = get_number_of_hits( simulstate, truth, extrapol );
   if ( nhit <= 0 ) {
     ATH_MSG_ERROR( "TFCSLateralShapeParametrizationHitChain::simulate(): number of hits could not be calculated" );
     return FCSFatal;

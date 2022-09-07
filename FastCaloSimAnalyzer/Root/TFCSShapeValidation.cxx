@@ -204,8 +204,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   ///////////////////////////////////
   //// Event loop
   ///////////////////////////////////
-  for ( int ievent = m_firstevent; ievent < 1; ievent++ ) {
-  //for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
+  for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
 #if defined USE_GPU || defined USE_OMPGPU
     es.ievent = ievent;

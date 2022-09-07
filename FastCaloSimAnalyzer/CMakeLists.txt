@@ -26,7 +26,9 @@ find_package(OpenMP)
 if(OPENMP_FOUND)
 	##set(OpenMP_FLAGS "-Xopenmp-target=amdgcn -march=gfx906 -fopenmp -fopenmp-targets=amdgcn")
 	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_70 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64 -fopenmp-target-debug=0x5" )
-	set(OpenMP_FLAGS "-Xopenmp-target -march=sm_70 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64")
+	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_70 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64")##lambda1
+	set(OpenMP_FLAGS "-Xopenmp-target -march=sm_86 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64")##lambda2
+	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_75 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64")##lambda4
 	##set(OpenMP_FLAGS "-mp=gpu -cuda -Minfo=mp") ## for nvc++
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS}")
