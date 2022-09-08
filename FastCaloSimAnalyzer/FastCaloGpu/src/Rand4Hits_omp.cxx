@@ -14,6 +14,10 @@
     exit( EXIT_FAILURE );                                                                                              \
   }
 
+extern "C" void *llvm_omp_target_alloc_host  (size_t Size, int DeviceNum);
+extern "C" void *llvm_omp_target_alloc_device(size_t Size, int DeviceNum);
+extern "C" void *llvm_omp_target_alloc_shared(size_t Size, int DeviceNum);
+
 void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*maxbins*/, unsigned short maxhitct,
                                      unsigned long n_cells ) {
 

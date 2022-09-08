@@ -30,11 +30,13 @@ namespace CaloGpuGeneral_omp {
 
   void simulate_hits_master( float E, int nhits, Chain0_Args args ) {
 
-    const unsigned long ncells = args.ncells;
+    const unsigned long ncells   = args.ncells;
     const unsigned long maxhitct = args.maxhitct;
+    
     auto cells_energy = args.cells_energy;
     auto hitcells_ct  = args.hitcells_ct;
     auto rand         = args.rand;
+
     int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
 
@@ -42,9 +44,10 @@ namespace CaloGpuGeneral_omp {
 
     int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
-    #pragma omp teams distribute parallel for
+    #pragma omp teams distribute parallel for simd num_teams(128) // num_teams default 1467, threads default 128
     for(tid = 0; tid < ncells; tid++) {
-      cells_energy[tid] = 0.0;
+      //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
+      cells_energy[tid] = 0.;
       if ( tid == 0 ) hitcells_ct[tid] = 0;
     }
    
@@ -52,14 +55,9 @@ namespace CaloGpuGeneral_omp {
 
     long t;
     //Hit hit;
-    #pragma omp target data map(to : args.extrapol_eta_ent, args.extrapol_phi_ent, args.extrapol_r_ent,\
-                  args.extrapol_z_ent, args.extrapol_eta_ext, args.extrapol_phi_ext, args.extrapol_r_ext,\
-                  args.extrapol_z_ext, args.extrapWeight, args.charge, args.is_phi_symmetric, args.fh2d,\
-		  args.fhs, args.geo, args.cs, args.nhits, args.ncells )
-    //declare mapper for members of struct
+    #pragma omp target is_device_ptr( cells_energy, rand ) map( to : args )
     {
-      #pragma omp target is_device_ptr( cells_energy, rand )
-      #pragma omp teams distribute parallel for
+      #pragma omp teams distribute parallel for num_teams(128) //num_teams default 33
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
@@ -166,11 +164,9 @@ namespace CaloGpuGeneral_omp {
     /************* ct ***********/
     auto hitcells_E   = args.hitcells_E;
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
-    #pragma omp teams distribute parallel for thread_limit(256)
+    #pragma omp teams distribute parallel for num_teams(128) //thread_limit(128) //num_teams default 1467, threads default 128
     for ( int tid = 0; tid < ncells; tid++ ) {
       if ( cells_energy[tid] > 0. ) {
-         //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
-	 
 	 unsigned int ct;
          #pragma omp atomic capture
 	 ct = hitcells_ct[0]++; 
