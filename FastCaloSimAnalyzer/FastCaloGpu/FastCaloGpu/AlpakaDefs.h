@@ -12,7 +12,28 @@
 using Dim = alpaka::DimInt<1>;
 using Idx = std::size_t;
 using Vec = alpaka::Vec<Dim, Idx>;
-using Acc = alpaka::AccGpuCudaRt<Dim, Idx>;
+
+// Default accelerator used by the application
+namespace alpaka {
+  template<class TDim, class TIdx>
+#if defined(ALPAKA_ACC_GPU_CUDA_ENABLED)
+    using FccDefaultAcc = alpaka::AccGpuCudaRt<TDim, TIdx>;
+#elif defined(ALPAKA_ACC_GPU_HIP_ENABLED)
+    using FccDefaultAcc = alpaka::AccGpuHipRt<TDim, TIdx>;
+#elif defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
+    using FccDefaultAcc = alpaka::AccCpuTbbBlocks<TDim, TIdx>;
+#elif defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
+    using ExampleDefaultAcc = alpaka::AccCpuThreads<TDim, TIdx>;
+#elif defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
+    using ExampleDefaultAcc = alpaka::AccCpuSerial<TDim, TIdx>;
+#else
+    class FccDefaultAcc;
+#   warning "No supported backend selected for default Alpaka accelerator"
+#endif
+}
+
+using Acc = alpaka::FccDefaultAcc<Dim, Idx>;
+
 using Host = alpaka::DevCpu;
 using QueueProperty = alpaka::Blocking;
 using QueueAcc = alpaka::Queue<Acc, QueueProperty>;
