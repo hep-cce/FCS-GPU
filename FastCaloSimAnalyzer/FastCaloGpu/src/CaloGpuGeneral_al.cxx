@@ -48,7 +48,7 @@ namespace CaloGpuGeneral_al {
 	
 	CenterPositionCalculation_d( hit, args );
 	HistoLateralShapeParametrization_d( hit, idx, args );
-	HitCellMappingWiggle_d( hit, args, idx );
+	HitCellMappingWiggle_d( acc, hit, args, idx );
       }
     }
   };
@@ -65,7 +65,7 @@ namespace CaloGpuGeneral_al {
       auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
       if(idx < args.ncells) {
 	if ( args.cells_energy[idx] > 0 ) {
-	  unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
+	  unsigned int ct = alpaka::atomicAdd( acc, args.hitcells_ct, 1 );
 	  Cell_E ce;
 	  ce.cellid           = idx;
 	  ce.energy           = args.cells_energy[idx];
