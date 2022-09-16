@@ -6,11 +6,12 @@
 #define CALOGPUGENERAL_AL_H
 
 #include "Args.h"
+#include "Rand4Hits.h"
 
 namespace CaloGpuGeneral_al {
 
   void Rand4Hits_finish( void* rd4h );
-  void simulate_hits( float E, int nhits, Chain0_Args& args );
+  void simulate_hits( float E, int nhits, Chain0_Args& args, Rand4Hits* rd4h );
 
 
   void simulate_clean_alpaka(Chain0_Args& args);

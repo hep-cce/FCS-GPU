@@ -102,7 +102,7 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 #elif defined (USE_STDPAR)
   CaloGpuGeneral_stdpar::simulate_hits( E, nhits, args );
 #elif defined (USE_ALPAKA)
-  CaloGpuGeneral_al::simulate_hits( E, nhits, args );
+  CaloGpuGeneral_al::simulate_hits( E, nhits, args, rd4h );
 #else
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 #endif

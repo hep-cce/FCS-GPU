@@ -71,7 +71,9 @@ unsigned constexpr NUM_STATES = 1000;
 
 using CellsEnergy = alpaka::Buf<Acc,CELL_ENE_T, Dim, Idx>;
 using CellE = alpaka::Buf<Acc,Cell_E, Dim, Idx>;
+using CellEHost = alpaka::Buf<Host,Cell_E, Dim, Idx>;
 using CellCtT = alpaka::Buf<Acc, CELL_CT_T, Dim, Idx>;
+using CellCtTHost = alpaka::Buf<Host, CELL_CT_T, Dim, Idx>;
 
 using BufAccFH2D = alpaka::Buf<Acc, FH2D, Dim, Idx>;
 using BufAccFHs = alpaka::Buf<Acc, FHs, Dim, Idx>;

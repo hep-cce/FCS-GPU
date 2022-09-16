@@ -68,9 +68,16 @@ class Rand4Hits {
   
   CELL_ENE_T*  get_cells_energy() { return m_cells_energy; };
   Cell_E* get_cell_e()            { return m_cell_e; };
+#ifdef USE_ALPAKA
+  CellE& get_cell_E() { return m_cellE; };
+#endif
   Cell_E* get_cell_e_h()          { return m_cell_e_h; };
 
   CELL_CT_T* get_ct() { return m_ct; };
+#ifdef USE_ALPAKA
+  CellCtT& get_cT() { return m_cT; };
+#endif
+
 
   unsigned long* get_hitcells()    { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };

@@ -147,7 +147,7 @@ namespace CaloGpuGeneral_al {
     alpaka::wait(queue);
   }
 
-  void simulate_hits( float E, int nhits, Chain0_Args& args ) {
+  void simulate_hits( float E, int nhits, Chain0_Args& args, Rand4Hits* rd4h ) {
 
     QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
 
@@ -160,14 +160,22 @@ namespace CaloGpuGeneral_al {
     auto t2 = std::chrono::system_clock::now();
     simulate_ct_alpaka(args,queue);
 
-    int ct;
     auto t3 = std::chrono::system_clock::now();
-    cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost );
-    cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost);
+
+    CellCtTHost ct_host{alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(1u)})};
+    alpaka::memcpy(queue,ct_host,rd4h->get_cT());
+    alpaka::wait(queue);
+    CELL_CT_T* ct = alpaka::getPtrNative(ct_host);
+
+    CellEHost cell_e_host{alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(*ct)})};
+    alpaka::memcpy(queue,cell_e_host,rd4h->get_cell_E(),Vec{Idx(*ct)});
+    alpaka::wait(queue);
+    Cell_E* cell_e_host_ptr = alpaka::getPtrNative(cell_e_host);
+    memcpy(args.hitcells_E_h,cell_e_host_ptr, (*ct) * sizeof( Cell_E ));
 
     auto t4 = std::chrono::system_clock::now();
     // pass result back
-    args.ct = ct;
+    args.ct = *ct;
 
 #ifdef DUMP_HITCELLS
     std::cout << "hitcells: " << args.ct << "  nhits: " << nhits << "  E: " << E << "\n";
