@@ -7,6 +7,11 @@
 #  define __DEVICE__  KOKKOS_INLINE_FUNCTION
 #  define __HOST__
 #  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
+/* #elif defined (USE_ALPAKA) */
+/* #  include <alpaka/alpaka.hpp> */
+/* #  define __DEVICE__ ALPAKA_FN_ACC */
+/* #  define __HOST__   ALPAKA_FN_HOST */
+/* #  define __HOSTDEV__ ALPAKA_FN_HOST_ACC */
 #elif defined (USE_STDPAR)
 #  if defined (_NVHPC_STDPAR_NONE)
 #    define __DEVICE__
@@ -23,10 +28,6 @@
 #  define __DEVICE__
 #  define __HOST__
 #  define __HOSTDEV__
-#elif defined (USE_ALPAKA)
-#  define __DEVICE__ ALPAKA_FN_ACC
-#  define __HOST__   ALPAKA_FN_HOST
-#  define __HOSTDEV__ ALPAKA_FN_HOST_ACC
 #else
 #  define __DEVICE__  ERROR
 #  define __HOST__    ERROR

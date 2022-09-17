@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
+  Copyright (C) 2002-2022 CERN for the benefit of the ATLAS collaboration
 */
 
 #include "GeoLoadGpu.h"
@@ -58,7 +58,7 @@ struct TestCellKernel
 
     long long hashid = cell->calo_hash();
 
-    printf( "From GPU cell index %ld , hashid=%ld, eta=%f, phi=%f, sample=%d \n"
+    printf( "From GPU cell index %ld , hashid=%lld, eta=%f, phi=%f, sample=%d \n"
 	    , index
 	    , hashid
 	    , eta
@@ -80,7 +80,7 @@ struct TestGeoKernel
     int                neta  = regions[r].cell_grid_eta();
     int                nphi  = regions[r].cell_grid_phi();
     unsigned long long index = regions[r].cell_grid_g()[ir * nphi + ip];
-    printf( " From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%lu \n"
+    printf( " From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%llu \n"
 	    , r
 	    , ir
 	    , ip
@@ -96,8 +96,8 @@ struct TestGeoKernel
   float     eta    = c->eta();
   float     phi    = c->phi();
 
-  printf( " From GPU.., region %d, cell_grid[%d][%d]: index %lu index, hashid=%ld,eta=%f, phi=%f, sample=%d , ID=%ld "
-          "cell_ptr=%#015lx \n"
+  printf( " From GPU.., region %d, cell_grid[%d][%d]: index %llu index, hashid=%lld,eta=%f, phi=%f, sample=%d , ID=%lld "
+          "cell_ptr=%p \n"
 	  , r
 	  , ir
 	  , ip
@@ -110,7 +110,7 @@ struct TestGeoKernel
 	  , regions[r].all_cells() );
   
   CaloDetDescrElement cc = ( regions[r].all_cells() )[index];
-  printf( " GPU test region have cells: cell index %lu, eta=%f phi=%f size of cell*GPU=%lu\n"
+  printf( " GPU test region have cells: cell index %llu, eta=%f phi=%f size of cell*GPU=%lu\n"
 	  , index
 	  , cc.eta()
 	  , cc.phi()
@@ -131,7 +131,7 @@ struct TestGeoKernel_G
     int                neta  = regions[r].cell_grid_eta();
     int                nphi  = regions[r].cell_grid_phi();
     unsigned long long index = regions[r].cell_grid_g()[ir * nphi + ip];
-    printf( " From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%ld \n"
+    printf( " From GPU.., region %d, cell_grid[%d][%d]: [%d][%d] index=%lld \n"
 	    , r
 	    , ir
 	    , ip
@@ -147,8 +147,8 @@ struct TestGeoKernel_G
   float     eta    = c->eta();
   float     phi    = c->phi();
 
-  printf( " From GPU.., region %d, cell_grid[%d][%d]: index %lu index, hashid=%ld,eta=%f, phi=%f, sample=%d , ID=%ld "
-          "cell_ptr=%#015lx \n"
+  printf( " From GPU.., region %d, cell_grid[%d][%d]: index %llu index, hashid=%lld,eta=%f, phi=%f, sample=%d , ID=%lld "
+          "cell_ptr=%p \n"	  
 	  , r
 	  , ir
 	  , ip
@@ -205,8 +205,8 @@ bool GeoLoadGpu::TestGeo() {
   return true;
   // end test
 }
-/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 bool GeoLoadGpu::SanityCheck() {
   // sanity check/test
   QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
@@ -270,7 +270,10 @@ bool GeoLoadGpu::LoadGpu_al() {
 
   if(!pImpl) pImpl = new Impl();
 
-  QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
+  auto dev = alpaka::getDevByIdx<Acc>(Idx{0});
+  std::cout << "Executing on GPU: " << alpaka::getName(dev) << std::endl;
+
+  QueueAcc queue(dev);
   
   BufHostGeoGpu geo_gpu_host = alpaka::allocBuf<GeoGpu,Idx>(alpaka::getDevByIdx<Host>(0u),Idx{1});
   GeoGpu* geo_gpu_ptr = alpaka::getPtrNative(geo_gpu_host);
@@ -343,7 +346,7 @@ bool GeoLoadGpu::LoadGpu_al() {
   geo_gpu_ptr->sample_index = SampleIndex_g;
 
 
-  std::cout << "GEO\n";
+  std::cout << "alpaka GEO\n";
   std::cout << "ncells: " << geo_gpu_ptr->ncells << "\n";
   std::cout << "regions: " << m_nregions << "\n";
   std::cout << "=================================\n";

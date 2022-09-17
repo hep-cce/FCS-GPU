@@ -4,9 +4,20 @@
 cmake_minimum_required( VERSION 3.10 )
 cmake_policy(SET CMP0074 NEW)
 
-# Set up the "modern" usage of CUDA with CMake.
-find_package(CUDA REQUIRED)
-enable_language( CUDA )
+set(FIND_CUDA ON)
+
+if(USE_ALPAKA)
+  if(${alpaka_ACC_GPU_CUDA_ENABLE} STREQUAL "OFF")
+    set(FIND_CUDA OFF)
+  endif()
+endif()
+
+if(FIND_CUDA)
+  find_package(CUDA REQUIRED)
+  enable_language( CUDA )
+  set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
+endif()
+
 
 #Need to do other way.
 # set(CMAKE_CUDA_FLAGS "-arch=sm_75")
@@ -18,7 +29,7 @@ if(USE_STDPAR)
 elseif(USE_KOKKOS)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx )
 elseif(USE_ALPAKA)
-  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx KernelWrapper_al.cxx Rand4Hits_al.cxx )
+  set(FastCaloGpu_Srcs CaloGpuGeneral.cxx KernelWrapper_al.cxx Rand4Hits_al.cxx )
 else()
   set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu Rand4Hits.cu ) 
 endif()
@@ -36,9 +47,6 @@ endif()
 #  MODULE ${FastCaloGpu_LIB}
 #  LINKDEF LinkDef.h
 #)
-
-#This seems to be a hack to avoid a cmake error 
-set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
 
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
