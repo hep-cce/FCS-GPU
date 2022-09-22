@@ -28,7 +28,7 @@ using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_omp {
 
-  void simulate_hits_master( float E, int nhits, Chain0_Args args ) {
+  inline void simulate_A( float E, int nhits, Chain0_Args args ) {
 
     const unsigned long ncells   = args.ncells;
     const unsigned long maxhitct = args.maxhitct;
@@ -40,17 +40,6 @@ namespace CaloGpuGeneral_omp {
     int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
 
-    /************* clean **********/	  
-
-    int tid; 
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
-    #pragma omp teams distribute parallel for simd num_teams(128) // num_teams default 1467, threads default 128
-    for(tid = 0; tid < ncells; tid++) {
-      //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
-      cells_energy[tid] = 0.;
-      if ( tid == 0 ) hitcells_ct[tid] = 0;
-    }
-   
     /************* A **********/
 
     long t;
@@ -161,8 +150,16 @@ namespace CaloGpuGeneral_omp {
       }
     }
 
-    /************* ct ***********/
+  }
+
+  inline void simulate_ct( Chain0_Args args ) {
+
+    const unsigned long ncells   = args.ncells;
+    
+    auto cells_energy = args.cells_energy;
+    auto hitcells_ct  = args.hitcells_ct;
     auto hitcells_E   = args.hitcells_E;
+    
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
     #pragma omp teams distribute parallel for num_teams(128) //thread_limit(128) //num_teams default 1467, threads default 128
     for ( int tid = 0; tid < ncells; tid++ ) {
@@ -181,81 +178,23 @@ namespace CaloGpuGeneral_omp {
 
   }
 
-
-  void simulate_A( float E, int nhits, Chain0_Args args ) {
-    
-    int m_default_device = omp_get_default_device();
-
-    long t;
-    const unsigned long ncells   = args.ncells;
-    const unsigned long maxhitct = args.maxhitct;
-    
-    auto cells_energy = args.cells_energy;
-    Hit hit;
-    //declare mapper for members of struct
-    #pragma omp target data map(to : args.extrapol_eta_ent, args.extrapol_phi_ent, args.extrapol_r_ent,\
-                  args.extrapol_z_ent, args.extrapol_eta_ext, args.extrapol_phi_ext, args.extrapol_r_ext,\
-                  args.extrapol_z_ext, args.extrapWeight, args.charge, args.rand[:3*nhits],\
-                  args.is_phi_symmetric, args.fh2d, args.fhs, args.geo, args.cs, args.nhits, hit,\
-                  args.ncells, cells_energy[:ncells] )
-    {
-      #pragma omp target //is_device_ptr( cells_energy )
-      #pragma omp teams distribute parallel for
-      for ( t = 0; t < nhits; t++ ) {
-//        Hit hit;
-        hit.E() = E;
-  
-	CenterPositionCalculation_d( hit, args );
-
-        HistoLateralShapeParametrization_d( hit, t, args );
-	
-        HitCellMappingWiggle_d( hit, args, t, cells_energy );
-
-      }
-    }
-
-  }
-
-  void simulate_ct( Chain0_Args args ) {
-
-    unsigned long tid;
-    const unsigned long ncells   = args.ncells;
-    const unsigned long maxhitct = args.maxhitct;
-    
-    auto cells_energy = args.cells_energy;
-    auto hitcells_ct  = args.hitcells_ct;
-    auto hitcells_E   = args.hitcells_E;
-
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
-    #pragma omp teams distribute parallel for
-    for ( tid = 0; tid < ncells; tid++ ) {
-      if ( args.cells_energy[tid] > 0 ) {
-        //unsigned int ct = atomicAdd( args.hitcells_ct, 1 );
-        unsigned int ct     = hitcells_ct[0];
-        Cell_E                ce;
-        ce.cellid           = tid;
-        ce.energy           = cells_energy[tid];
-        hitcells_E[ct]      = ce;
-        #pragma omp atomic update
-          hitcells_ct[0]++;
-      }
-    }
-  }
-
-  void simulate_clean( Chain0_Args args ) {
+  inline void simulate_clean( Chain0_Args args ) {
  
-    int tid; 
-    const unsigned long ncells = args.ncells;
-
     auto cells_energy = args.cells_energy;
     auto hitcells_ct  = args.hitcells_ct;
 
+    const unsigned long ncells   = args.ncells;
+
+    int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
-    #pragma omp teams distribute parallel for
+    #pragma omp teams distribute parallel for simd num_teams(128) thread_limit(1024) // num_teams default 1467, threads default 128
     for(tid = 0; tid < ncells; tid++) {
-      cells_energy[tid] = 0.0;
+      //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
+      cells_energy[tid] = 0.;
+      //hitcells_ct[0] = 0;
       if ( tid == 0 ) hitcells_ct[tid] = 0;
     }
+
   }
 
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
@@ -264,20 +203,13 @@ namespace CaloGpuGeneral_omp {
     int m_initial_device = omp_get_initial_device();
     std::size_t m_offset = 0;
 
-    const unsigned long ncells   = args.ncells;
-    const unsigned long maxhitct = args.maxhitct;
-  
     //TODO : args.hitcells_ct[0] = 0; //why does this give segfault
     //TODO : discuss memory allocation -- CPU or GPU? 18s vs 6s, correctness?
 
-    simulate_hits_master ( E, nhits, args );
+    simulate_clean ( args );
+    simulate_A ( E, nhits, args );
+    simulate_ct ( args );
     
-    //TODO : discuss 'target data' faster than 'target'
-    //simulate_clean ( args );
-    //simulate_A ( E, nhits, args );
-    //simulate_ct ( args );
- 
-    //omp target memcopy does not copy correctly to stack, only heap 
     int *ct = (int *) malloc( sizeof( int ) );
     if ( omp_target_memcpy( ct, args.hitcells_ct, sizeof( int ),
                                     m_offset, m_offset, m_initial_device, m_default_device ) ) { 
@@ -291,22 +223,9 @@ namespace CaloGpuGeneral_omp {
     } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
-////    std::cout << "count now is = " << ct[0] << std::endl;
     // pass result back
     args.ct = ct[0];
     //   args.hitcells_ct_h=hitcells_ct ;
-
-//    const int count = ct[0];
-//    auto hitcells_E   = args.hitcells_E;
-//    #pragma omp target is_device_ptr ( hitcells_E )
-//    #pragma omp teams distribute parallel for
-//    for ( int tid = 0; tid < count; tid++ ) {
-//      //if ( hitcells_E[tid].energy > 0. ) {
-//       printf ( " energy %f cellid %d \n", hitcells_E[tid].energy, hitcells_E[tid].cellid);
-//      //}
-//    }
-
-
 
 
   }
