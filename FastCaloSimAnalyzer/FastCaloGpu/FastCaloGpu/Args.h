@@ -7,6 +7,7 @@
 
 #include "FH_structs.h"
 #include "GpuGeneral_structs.h"
+#include <chrono>
 
 #define MAXHITS 200000
 #define MAXBINS 1024
@@ -65,6 +66,7 @@ typedef struct Chain0_Args {
   // int * hitcells_ct_h ; // host array of corresponding hit cell counts
   unsigned int ct; // cells got hit for the event
 
+  std::chrono::duration<double> time1, time2;
 } Chain0_Args;
 
 #endif

@@ -59,10 +59,12 @@ Rand4Hits::~Rand4Hits() {
 };
 
 void Rand4Hits::rd_regen() {
-  
+    std::cout << "rd regen "; 
   if ( m_useCPU ) {
+    std::cout << "cpu " << m_total_a_hits; 
     genCPU( 3 * m_total_a_hits );
-    if ( omp_target_memcpy( m_rand_ptr, m_rnd_cpu.data(), 3 * m_total_a_hits * sizeof( float ), m_offset, m_offset, m_default_device, m_initial_device ) ) {
+    if ( omp_target_memcpy( m_rand_ptr, m_rnd_cpu.data(), 3 * m_total_a_hits * sizeof( float ), 
+			    m_offset, m_offset, m_default_device, m_initial_device ) ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
   }
   } else {
@@ -82,7 +84,8 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
   if ( m_useCPU ) {
     createCPUGen( seed );
     genCPU( num );
-    if ( omp_target_memcpy( f, m_rnd_cpu.data(), num * sizeof( float ), m_offset, m_offset, m_default_device, m_initial_device ) ) {
+    if ( omp_target_memcpy( f, m_rnd_cpu.data(), num * sizeof( float ), 
+			    m_offset, m_offset, m_default_device, m_initial_device ) ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl; 
     }
 

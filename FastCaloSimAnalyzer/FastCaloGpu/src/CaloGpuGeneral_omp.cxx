@@ -20,6 +20,8 @@
 #endif
 
 #define BLOCK_SIZE 256
+#define GRID_SIZE 734
+#define GRID_SIZE1 5
 
 #define M_PI 3.14159265358979323846
 #define M_2PI 6.28318530717958647692
@@ -46,7 +48,7 @@ namespace CaloGpuGeneral_omp {
     //Hit hit;
     #pragma omp target is_device_ptr( cells_energy, rand ) map( to : args )
     {
-      #pragma omp teams distribute parallel for num_teams(128) //num_teams default 33
+      #pragma omp teams distribute parallel for //num_teams(20) num_threads(64) //num_teams default 33
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
@@ -161,7 +163,7 @@ namespace CaloGpuGeneral_omp {
     auto hitcells_E   = args.hitcells_E;
     
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
-    #pragma omp teams distribute parallel for num_teams(128) //thread_limit(128) //num_teams default 1467, threads default 128
+    #pragma omp teams distribute parallel for num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) //thread_limit(128) //num_teams default 1467, threads default 128
     for ( int tid = 0; tid < ncells; tid++ ) {
       if ( cells_energy[tid] > 0. ) {
 	 unsigned int ct;
@@ -187,7 +189,7 @@ namespace CaloGpuGeneral_omp {
 
     int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
-    #pragma omp teams distribute parallel for simd num_teams(128) thread_limit(1024) // num_teams default 1467, threads default 128
+    #pragma omp teams distribute parallel for simd num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
     for(tid = 0; tid < ncells; tid++) {
       //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
       cells_energy[tid] = 0.;

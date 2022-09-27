@@ -56,7 +56,9 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   Rand4Hits* rd4h = (Rand4Hits*)args.rd4h;
 
+  auto start = std::chrono::system_clock::now();
   float* r = rd4h->rand_ptr( nhits );
+  auto mid = std::chrono::system_clock::now();
 
   rd4h->add_a_hits( nhits );
   args.rand = r;
@@ -69,6 +71,8 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
 
+
+  auto mid1 = std::chrono::system_clock::now();
 #ifdef USE_KOKKOS
   CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
 #elif defined USE_OMPGPU
@@ -77,4 +81,7 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 #endif
 
+  auto end = std::chrono::system_clock::now();
+  args.time1 += mid - start;
+  args.time2 += end - mid1;
 }

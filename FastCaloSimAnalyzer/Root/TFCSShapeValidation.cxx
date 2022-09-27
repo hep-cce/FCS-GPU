@@ -108,22 +108,28 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 
   LoadGeo();
 
-  auto                          t_01 = std::chrono::system_clock::now();
-  std::chrono::duration<double> diff;
+  std::chrono::duration<double> time_before_particle_loop;
+  std::chrono::duration<double> time_particle_loop;
+  std::chrono::duration<double> time_before_validation;
+  std::chrono::duration<double> time_emplace_back;
+  std::chrono::duration<double> time_gpu_acts;
+  std::chrono::duration<double> time_simulate;
+
+
   time_o1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o2 = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_h  = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_nhits = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_mchain = std::chrono::duration<double, std::ratio<1>>::zero();
-  time_hitsim = std::chrono::duration<double, std::ratio<1>>::zero();
-
-  std::chrono::duration<double> t_c[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
-  std::chrono::duration<double> t_c1[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
-  std::chrono::duration<double> t_c2[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
-  std::chrono::duration<double> t_bc   = std::chrono::duration<double, std::ratio<1>>::zero();
-  std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_h  = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_nhits = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_mchain = std::chrono::duration<double, std::ratio<1>>::zero();
+//  time_hitsim = std::chrono::duration<double, std::ratio<1>>::zero();
+//
+//  std::chrono::duration<double> t_c[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
+//  std::chrono::duration<double> t_c1[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
+//  std::chrono::duration<double> t_c2[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
+//  std::chrono::duration<double> t_bc   = std::chrono::duration<double, std::ratio<1>>::zero();
+//  std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
 
 #if defined USE_GPU || defined USE_OMPGPU
   GeoLg();
@@ -131,7 +137,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   if ( m_gl->LoadGpu() ) std::cout << "GPU Geometry loaded!!!" << std::endl;
 
   // m_debug=1 ;
-  auto t1 = std::chrono::system_clock::now();
+  //auto t1 = std::chrono::system_clock::now();
 
   if ( 0 ) {
     std::cout << "Geo size: " << m_geo->get_cells()->size() << std::endl;
@@ -164,18 +170,18 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
             << std::endl;
 
   InitInputTree( m_chain, layer );
-#if defined USE_GPU || defined USE_OMPGPU
-  auto t_02 = std::chrono::system_clock::now();
-#endif
+//#if defined USE_GPU || defined USE_OMPGPU
+  //auto t_02 = std::chrono::system_clock::now();
+//#endif
 
   ///////////////////////////////////
   //// Initialize truth, extraplolation and all validation structures
   ///////////////////////////////////
   m_truthTLV.resize( nentries );
   m_extrapol.resize( nentries );
-#if defined USE_GPU || defined USE_OMPGPU
-  auto t_03 = std::chrono::system_clock::now();
-#endif
+//#if defined USE_GPU || defined USE_OMPGPU
+//  auto t_03 = std::chrono::system_clock::now();
+//#endif
 
   for ( auto& validation : m_validations ) {
     std::cout << "========================================================" << std::endl;
@@ -199,7 +205,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 #if defined USE_GPU || defined USE_OMPGPU
   TFCSSimulationState::EventStatus es = {-1, false, false};
 #endif
-  auto t2 = std::chrono::system_clock::now();
+  auto start_event_loop = std::chrono::system_clock::now();
+  std::chrono::duration<double> time_before_event_loop = start_event_loop - start;
 
   #pragma omp declare mapper(Chain0_Args args) map(to : args.extrapol_eta_ent, \
 		  args.extrapol_phi_ent, args.extrapol_r_ent, args.extrapol_z_ent, args.extrapol_eta_ext, \
@@ -210,9 +217,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   ///////////////////////////////////
   //// Event loop
   ///////////////////////////////////
-  //for ( int ievent = m_firstevent; ievent < 10; ievent++ ) {
+  //for ( int ievent = m_firstevent; ievent < 5000; ievent++ ) {
   for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
+    auto before_particle_loop_start  = std::chrono::system_clock::now();
 #if defined USE_GPU || defined USE_OMPGPU
     es.ievent = ievent;
 
@@ -221,27 +229,26 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 
     bool last  = ( ievent == ( nentries - 1 ) ) ? true : false;
     es.is_last = last;
-
 #endif
 
     if ( ievent % m_nprint == 0 ) std::cout << std::endl << "Event: " << ievent << std::endl;
-    auto    t6         = std::chrono::system_clock::now();
     int64_t localEntry = m_chain->LoadTree( ievent );
     for ( TBranch* branch : m_branches ) { branch->GetEntry( localEntry ); }
-    auto t7 = std::chrono::system_clock::now();
-    t_io += t7 - t6;
 
     if ( m_debug >= 1 ) { std::cout << "Number of particles: " << m_truthPDGID->size() << std::endl; }
 
     size_t particles = m_truthPDGID->size();
     // std::cout << std::endl << "Event: " << ievent <<"Number of Particles: "<< particles << std::endl;
 
+    auto before_particle_loop_end = std::chrono::system_clock::now();
+    time_before_particle_loop += before_particle_loop_end - before_particle_loop_start;
+
     ///////////////////////////////////
     //// Particle loop
     ///////////////////////////////////
     for ( size_t p = 0; p < particles; p++ ) {
 
-      auto t4 = std::chrono::system_clock::now();
+      auto start_particle_loop = std::chrono::system_clock::now();
 
       ///////////////////////////////////
       //// Initialize truth
@@ -384,8 +391,9 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
       //// run simulation chain
       ///////////////////////////////////
 
-      auto t5 = std::chrono::system_clock::now();
-      t_bc += t5 - t4;
+      auto before_validation = std::chrono::system_clock::now();
+      time_before_validation += before_validation - start_particle_loop;
+      
       int ii = 0;
       for ( auto& validation : m_validations ) {
 
@@ -409,20 +417,30 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 #endif
         //        std::cout<<"Start simulation of " << typeid(*validation.basesim()).name() <<std::endl ;
 
-        validation.basesim()->simulate( chain_simul, &truthTLV, &extrapol );
+        auto m1 = std::chrono::system_clock::now();
+        
+	validation.basesim()->simulate( chain_simul, &truthTLV, &extrapol );
         if ( m_debug >= 1 ) {
           chain_simul.Print();
           std::cout << "End simulate : " << validation.basesim()->GetTitle() << " event=" << ievent << std::endl
                     << std::endl;
         }
         auto e = std::chrono::system_clock::now();
-        t_c[ii++] += e - s;
-        t_c1[ii]  += m - s;
-        t_c2[ii]  += e - m;
+
+        time_emplace_back += m - s; 
+	time_gpu_acts     += m1 - m;
+        time_simulate     += e - m;	
+
+        //t_c[ii++] += e - s;
+        //t_c1[ii]  += m - s;
+        //t_c2[ii]  += e - m;
       }
+      auto end_particle_loop = std::chrono::system_clock::now();
+      time_particle_loop += end_particle_loop - start_particle_loop;
+
     } // end loop over particles
   }   // end loop over events
-  // auto t_04 = std::chrono::system_clock::now();
+  auto end_event_loop = std::chrono::system_clock::now();
 #if defined USE_GPU || defined USE_OMPGPU
   if ( m_rd4h ) CaloGpuGeneral::Rand4Hits_finish( m_rd4h );
 #endif
@@ -431,41 +449,60 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   if ( m_gl->UnloadGpu_omp() ) std::cout << "Successfully unload geometry from GPU!" << std::endl;
 #endif
 
-  auto                          t3    = std::chrono::system_clock::now();
-  std::chrono::duration<double> diff1 = t3 - t2;
-  diff                                = t_01 - start;
-  std::cout << "Time of  LoadGeo cpu IO:" << diff.count() << " s" << std::endl;
-  diff                                = t2 - t_01;
-  std::cout << "Time of InitInputTree, Truth, Extrapol., Valid. :" << diff.count() << " s" << std::endl;
-#if defined USE_GPU || defined USE_OMPGPU
-  diff = t1 - t_01;
-  std::cout << "Time of  GPU GeoLg() :" << diff.count() << " s" << std::endl;
-  diff = t_02 - t1;
-  std::cout << "Time of  InitInputTree :" << diff.count() << " s" << std::endl;
-  diff = t_03 - t_02;
-  std::cout << "Time of  resizeTruth :" << diff.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop GPU load FH  :" << time_o1.count() << " s" << std::endl;
-#endif
-  std::cout << "Time of  eventloop  :" << diff1.count() << " s" << std::endl;
+  //auto                          t3    = std::chrono::system_clock::now();
+  //std::chrono::duration<double> diff1 = t3 - t_04;
+  //diff                                = t_01 - start;
+  //std::cout << "Time of  LoadGeo cpu IO:" << diff.count() << " s" << std::endl;
+  //diff                                = t2 - t_01;
+  //std::cout << "Time of InitInputTree, Truth, Extrapol., Valid. :" << diff.count() << " s" << std::endl;
+//#if defined USE_GPU || defined USE_OMPGPU
+//  diff = t1 - t_01;
+//  std::cout << "Time of  GPU GeoLg() :" << diff.count() << " s" << std::endl;
+//  diff = t_02 - t1;
+//  std::cout << "Time of  InitInputTree :" << diff.count() << " s" << std::endl;
+//  diff = t_03 - t_02;
+//  std::cout << "Time of  resizeTruth :" << diff.count() << " s" << std::endl;
+//  std::cout << "Time of  eventloop GPU load FH  :" << time_o1.count() << " s" << std::endl;
+//#endif
+  //std::cout << "Time of  eventloop  :" << diff1.count() << " s" << std::endl;
+  //std::cout << "Time of  eventloop  I/O read from tree:" << t_io.count() << " s" << std::endl;
   //std::cout << "Time of  eventloop  GPU ChainA:" << time_g1.count() << " s" << std::endl;
   //std::cout << "Time of  eventloop  GPU ChainB:" << time_g2.count() << " s" << std::endl;
   //std::cout << "Time of  eventloop  host Chain0:" << time_h.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  I/O read from tree:" << t_io.count() << " s" << std::endl;
-  std::cout << "Time of  eventloop  before chain simul:" << t_bc.count() << " s" << std::endl;
+  //std::cout << "Time of  eventloop  before chain simul:" << t_bc.count() << " s" << std::endl;
 
-  for ( int ii = 0; ii < 5; ii++ ) {
-    std::cout << "Time for Chain " << ii << " is " << t_c[ii].count()  << " s" << std::endl;
-    std::cout << "-- Time for emplace_back is " << t_c1[ii].count() << " s" << std::endl;
-    std::cout << "-- Time for simulate is     " << t_c2[ii].count() << " s" << std::endl;
-  }
-  std::cout << "Time of eventloop LateralShapeParamHitChain :" << time_o2.count() << " s" << std::endl;
-  std::cout << "Time of get_number_of_hits :" << time_nhits.count() << " s" << std::endl;
-  std::cout << "Time of mchain loop :" << time_mchain.count() << " s" << std::endl;
-  std::cout << "Time of hitsim->simulate_hit :" << time_hitsim.count() << " s" << std::endl;
+  //for ( int ii = 0; ii < 5; ii++ ) {
+  //  std::cout << "Time for Chain " << ii << " is " << t_c[ii].count()  << " s" << std::endl;
+  //  std::cout << "-- Time for emplace_back is " << t_c1[ii].count() << " s" << std::endl;
+  //  std::cout << "-- Time for simulate is     " << t_c2[ii].count() << " s" << std::endl;
+  //}
+  //std::cout << "Time of eventloop LateralShapeParamHitChain :" << time_o2.count() << " s" << std::endl;
+  //std::cout << "Time of get_number_of_hits :" << time_nhits.count() << " s" << std::endl;
+  //std::cout << "Time of mchain loop :" << time_mchain.count() << " s" << std::endl;
+  //std::cout << "Time of hitsim->simulate_hit :" << time_hitsim.count() << " s" << std::endl;
 #ifdef FCS_DEBUG
   m_chain->GetTree()->PrintCacheStats();
 #endif
 
+  auto end = std::chrono::system_clock::now();
+  std::chrono::duration<double> total_event_loop = end - start;
+  std::chrono::duration<double> total_for_events = end_event_loop - start_event_loop;
+  std::cout << "* * * * * * * * * * * * * * * * * * * * * * * * * * * *" << std::endl;
+  std::cout << "Total time in EventLoop " << total_event_loop.count() << " s" << std::endl;
+  std::cout << "  Total before for events " << time_before_event_loop.count() << " s" << std::endl;
+  std::cout << "  Total time in for events " << total_for_events.count() << " s" << std::endl;
+  std::cout << "    Total time before particle loop " << time_before_particle_loop.count() << " s" << std::endl;
+  std::cout << "    Total time in for particle loop " << time_particle_loop.count() << " s" << std::endl;
+  std::cout << "      Total time before validation  " << time_before_validation.count() << " s" << std::endl;
+  std::cout << "      Total time emplace back       " << time_emplace_back.count() << " s" << std::endl;
+  std::cout << "      Total time gpu activities     " << time_gpu_acts.count() << " s" << std::endl;
+  std::cout << "      Total simulate                " << time_simulate.count() << " s" << std::endl;
+  std::cout << "        Total simulate Lateral else " << time_o1.count() << " s" << std::endl;
+  std::cout << "        Total simulate Lateral if   " << time_nhits.count() << " s" << std::endl;
+  std::cout << "          Total CaloGPU simulate_hits " << time_o2.count() << " s" << std::endl;
+  std::cout << "            Total CaloGPU args set    " << time_g1.count() << " s" << std::endl;
+  std::cout << "            Total CaloGPU simulatehit " << time_g2.count() << " s" << std::endl;
+  std::cout << "* * * * * * * * * * * * * * * * * * * * * * * * * * * *" << std::endl;
   /*
     TCanvas* c;
     c=new TCanvas(hist_cellSFvsE->GetName(),hist_cellSFvsE->GetTitle());

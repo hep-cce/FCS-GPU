@@ -74,10 +74,10 @@ int TFCSLateralShapeParametrizationHitChain::get_number_of_hits( TFCSSimulationS
 FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationState&          simulstate,
                                                                  const TFCSTruthState*         truth,
                                                                  const TFCSExtrapolationState* extrapol ) {
+  auto start = std::chrono::system_clock::now();
 
   auto ss0 = simulstate.cells().size();
   bool onGPU=false;
-  auto start = std::chrono::system_clock::now();
 
   int cs = calosample();
   // Call get_number_of_hits() only once, as it could contain a random number
@@ -134,6 +134,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
   //    if ( nhit > MIN_GPU_HITS && (our_chainA || our_chainB) ) {
   if ( nhit > MIN_GPU_HITS && our_chainA ) {
+   
+    auto start_nhits = std::chrono::system_clock::now();
+
     onGPU=true;
     GeoLoadGpu* gld = (GeoLoadGpu*)simulstate.get_geold();
 
@@ -216,7 +219,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       ichn++;
     }
 
-    //  auto t1 = std::chrono::system_clock::now();
+    auto t_sh = std::chrono::system_clock::now();
     //  std::chrono::duration<double> diff = t1-start;
     //  std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
@@ -231,6 +234,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
      simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
      //cm[args.hitcells_E_h[ii].cellid] = args.hitcells_E_h[ii].energy;
     }
+    auto t_eh = std::chrono::system_clock::now();
+    TFCSShapeValidation::time_o2 += ( t_eh - t_sh );
     
     //for (auto &em: cm) {
     //  std::cout << "  cell: " << em.first << "  " << em.second << std::endl;
@@ -240,22 +245,25 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     //  diff = t2-t1;
     //  std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" <<" CT="<<args.ct<<  std::endl ;
     //  TFCSShapeValidation::time_g += (t2-start) ;
+   auto end_nhits = std::chrono::system_clock::now();
+   TFCSShapeValidation::time_nhits += end_nhits - start_nhits;
+
+   TFCSShapeValidation::time_g1 += args.time1;
+   TFCSShapeValidation::time_g2 += args.time2;
+
   } else {
 #endif
-   auto end_nhits = std::chrono::system_clock::now();
-   TFCSShapeValidation::time_nhits += end_nhits - start;
   
     auto start_hit = std::chrono::system_clock::now();
-  
     for ( int i = 0; i < nhit; ++i ) {
    
-      auto start_mchain = std::chrono::system_clock::now();
+      //auto start_mchain = std::chrono::system_clock::now();
       TFCSLateralShapeParametrizationHitBase::Hit hit;
       hit.E() = Ehit;
       
       for ( TFCSLateralShapeParametrizationHitBase* hitsim : m_chain ) {
       
-        auto start_hitsim = std::chrono::system_clock::now();
+        //auto start_hitsim = std::chrono::system_clock::now();
         if ( debug ) {
           if ( i < 2 )
             hitsim->setLevel( MSG::DEBUG );
@@ -280,22 +288,24 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
                            << FCS_RETRY_COUNT << "retries" );
           }
         }
-        auto end_hitsim = std::chrono::system_clock::now();
-        TFCSShapeValidation::time_hitsim += end_hitsim - start_hitsim;
+        //auto end_hitsim = std::chrono::system_clock::now();
+        //TFCSShapeValidation::time_hitsim += end_hitsim - start_hitsim;
 
       }
-      auto end_mchain = std::chrono::system_clock::now();
-      TFCSShapeValidation::time_mchain += end_mchain - start_mchain; 
+      //auto end_mchain = std::chrono::system_clock::now();
+      //TFCSShapeValidation::time_mchain += end_mchain - start_mchain; 
     }
-    
+   
+    auto end_hit = std::chrono::system_clock::now(); 
+    TFCSShapeValidation::time_o1 += end_hit - start_hit; 
 #if defined USE_GPU || defined USE_OMPGPU
   }
 
   auto t2 = std::chrono::system_clock::now();
   if ( nhit > MIN_GPU_HITS && our_chainA ) {
-    TFCSShapeValidation::time_g1 += ( t2 - start );
+    //TFCSShapeValidation::time_g1 += ( t2 - start );
   } else if ( nhit > MIN_GPU_HITS && our_chainB ) {
-    TFCSShapeValidation::time_g2 += ( t2 - start );
+    //TFCSShapeValidation::time_g2 += ( t2 - start );
   } else
 #endif
   {
@@ -304,7 +314,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   }
   {
     auto t3 = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_o2 += ( t3 - start );
+    //TFCSShapeValidation::time_o2 += ( t3 - start );
   }
 
 
