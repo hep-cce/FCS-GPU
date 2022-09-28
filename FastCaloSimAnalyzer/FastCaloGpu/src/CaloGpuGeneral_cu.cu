@@ -47,6 +47,8 @@ namespace CaloGpuGeneral_cu {
     if (timing.count > 0) {
       std::cout << "kernel timing\n";
       std::cout << timing;
+      // std::cout << "\n\n\n";
+      // timing.printAll();
     } else {
       std::cout << "no kernel timing available" << std::endl;
     }
@@ -163,11 +165,10 @@ namespace CaloGpuGeneral_cu {
     }
 #endif
     
-    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     if (first) {
       first = false;
     } else{ 
-      timing += kt;
+      timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     }
     
   }

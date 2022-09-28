@@ -15,9 +15,59 @@
 static CaloGpuGeneral::KernelTime timing;
 static bool first{true};
 
+#define DO_ATOMIC_TESTS 0
+
 using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_stdpar {
+
+  void test_atomicAdd_int() {
+    std::cout << "---------- test_atomic<int>_add -------------\n";
+    std::atomic<int> *ii = new std::atomic<int>{0};
+    constexpr int N {10};
+    std::for_each_n(std::execution::par_unseq, counting_iterator(0), N,
+                    [=](int i) {
+                      int j = (*ii)++;
+                      printf("%d %d\n",i,j);
+                    } );
+    std::cout << "   after loop: " << *ii << " (should be " << N << ")" <<std::endl;
+    std::cout << "---------- done test_atomic<int>_add -------------\n\n";
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+  void test_atomicAdd_float() {
+    std::cout << "---------- test_atomicAdd_float -------------\n";
+    constexpr int N {10};
+
+    float ta[N]{0.}, tc[N]{0.};
+    for (int i=0; i<N; ++i) {
+      ta[i%2] += i;
+      tc[i] += i;
+    }
+
+    
+    float *fa = new float[N];
+    float *fb = new float[N];
+    float *fc = new float[N];
+    std::for_each_n(std::execution::par_unseq, counting_iterator(0), N,
+                    [=] (int i) {
+                      fb[i%2] += i;
+#if defined ( _NVHPC_STDPAR_NONE ) || defined ( _NVHPC_STDPAR_MULTICORE )
+                      fa[i % 2] += i;
+                      fc[i] += i;
+#else
+                      atomicAdd(&fa[i%2],float(i));
+                      atomicAdd(&fc[i],float(i));
+#endif
+                    });
+    for (int i=0; i<N; ++i) {
+      printf("%d : %2g [%2g] %g  %g [%g]\n",i, fa[i], ta[i], fb[i], fc[i], tc[i]);
+    }
+    std::cout << "---------- done test_atomicAdd_float -------------\n\n";
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
   void simulate_clean(Sim_Args args) {
     nvtxRangeId_t r;
@@ -121,6 +171,12 @@ namespace CaloGpuGeneral_stdpar {
   
   void simulate_hits_gr( Sim_Args& args ) {
 
+    if (DO_ATOMIC_TESTS) {
+      test_atomicAdd_int();
+      test_atomicAdd_float();
+      return;
+    }
+    
     auto t0 = std::chrono::system_clock::now();
     simulate_clean( args );
 
@@ -160,11 +216,10 @@ namespace CaloGpuGeneral_stdpar {
     }
 #endif
     
-    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     if (first) {
       first = false;
     } else {
-      timing += kt;
+      timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
     }
     
   }
@@ -179,6 +234,8 @@ namespace CaloGpuGeneral_stdpar {
     if (timing.count > 0) {
       std::cout << "kernel timing\n";
       std::cout << timing;
+      // std::cout << "\n\n\n";
+      // timing.printAll();
     } else {
       std::cout << "no kernel timing available" << std::endl;
     }
