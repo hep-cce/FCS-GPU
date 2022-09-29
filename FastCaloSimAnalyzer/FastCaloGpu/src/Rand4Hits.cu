@@ -4,7 +4,7 @@
 
 #include "Rand4Hits.h"
 #include "gpuQ.h"
-#include "CU_BigMem.h"
+#include "DEV_BigMem.h"
 
 #include <iostream>
 #include <curand.h>
@@ -45,8 +45,8 @@ void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_
   m_ct   = ct_ptr;
   m_ct_h = (int*)malloc( MAX_SIM * sizeof( int ) );
 
-  CU_BigMem* bm     = new CU_BigMem( M_SEG_SIZE );
-  CU_BigMem::bm_ptr = bm;
+  DEV_BigMem* bm     = new DEV_BigMem( M_SEG_SIZE );
+  DEV_BigMem::bm_ptr = bm;
   
   printf(" -- R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
@@ -70,7 +70,7 @@ Rand4Hits::~Rand4Hits() {
   deallocate();
 #else
   delete ( m_rnd_cpu );
-  if ( CU_BigMem::bm_ptr ) delete CU_BigMem::bm_ptr;
+  if ( DEV_BigMem::bm_ptr ) delete DEV_BigMem::bm_ptr;
 #endif
   
 #ifdef USE_STDPAR

@@ -10,7 +10,7 @@
 
 #include "gpuQ.h"
 #include "Args.h"
-#include "CU_BigMem.h"
+#include "DEV_BigMem.h"
 #include <chrono>
 #include <climits>
 #include <mutex>
@@ -39,8 +39,8 @@ namespace CaloGpuGeneral_cu {
     gpuQ( cudaMemGetInfo( &free, &total ) );
     std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
               << "  bm table allocate size(MB), used:  "
-              << CU_BigMem::bm_ptr->size() / 1000000 << ", "
-              << CU_BigMem::bm_ptr->used() / 1000000
+              << DEV_BigMem::bm_ptr->size() / 1000000 << ", "
+              << DEV_BigMem::bm_ptr->used() / 1000000
               << std::endl;
     //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 

@@ -5,9 +5,9 @@
 #include "LoadGpuFuncHist.h"
 #include <iostream>
 #include "gpuQ.h"
-#include "CU_BigMem.h"
+#include "DEV_BigMem.h"
 
-CU_BigMem* CU_BigMem::bm_ptr;
+DEV_BigMem* DEV_BigMem::bm_ptr;
 
 LoadGpuFuncHist::LoadGpuFuncHist() {}
 
@@ -33,7 +33,7 @@ void LoadGpuFuncHist::LD2D() {
   hf.nbinsx = ( *m_hf2d ).nbinsx;
   hf.nbinsy = ( *m_hf2d ).nbinsy;
 
-  CU_BigMem* p = CU_BigMem::bm_ptr;
+  DEV_BigMem* p = DEV_BigMem::bm_ptr;
 
   hf.h_bordersx = (float*)( p->cu_bm_alloc( ( hf.nbinsx + 1 ) * sizeof( float ) ) );
   hf.h_bordersy = (float*)( p->cu_bm_alloc( ( hf.nbinsy + 1 ) * sizeof( float ) ) );
@@ -69,7 +69,7 @@ void LoadGpuFuncHist::LD() {
   hf.nhist            = ( *m_hf ).nhist;
   unsigned int* h_szs = ( *m_hf ).h_szs; // already allocateded on host ;
 
-  CU_BigMem* p = CU_BigMem::bm_ptr;
+  DEV_BigMem* p = DEV_BigMem::bm_ptr;
 
   hf.low_edge = (float*)( p->cu_bm_alloc( ( hf.nhist + 1 ) * sizeof( float ) ) );
   gpuQ( cudaMemcpy( hf.low_edge, ( *m_hf ).low_edge, ( hf.nhist + 1 ) * sizeof( float ), cudaMemcpyHostToDevice ) );
