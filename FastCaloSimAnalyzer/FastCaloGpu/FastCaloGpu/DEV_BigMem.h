@@ -15,7 +15,14 @@ public :
   DEV_BigMem( size_t s ) ;
   ~DEV_BigMem() ;
 
-  void * cu_bm_alloc(size_t s) ;
+  void * dev_bm_alloc(size_t s) {
+    if (s  > (m_seg_size-m_used[m_seg]))  add_seg() ;
+    long * q = (long *) m_ptrs[m_seg] ;
+    int offset = m_used[m_seg]/sizeof(long) ;
+    void * p = (void * )   &(q[offset])  ;
+    m_used[m_seg] += ((s+sizeof(long)-1)/sizeof(long)  ) * sizeof(long)    ;
+    return p  ;
+  };
 
   size_t  size() { return (m_seg+1) * m_seg_size ; } ;
   size_t  used() { return m_seg * m_seg_size + m_used[m_seg] ; };

@@ -19,17 +19,6 @@ DEV_BigMem::~DEV_BigMem() {
   for(int i=0 ; i<m_ptrs.size() ; i++) gpuQ(cudaFree( m_ptrs[i]) ) ; 
 }  ;
 
-
-void *
-DEV_BigMem::cu_bm_alloc(size_t s) {
-  if (s  > (m_seg_size-m_used[m_seg]))  add_seg() ;
-  long * q = (long *) m_ptrs[m_seg] ;
-  int offset = m_used[m_seg]/sizeof(long) ;
-  void * p = (void * )   &(q[offset])  ;
-  m_used[m_seg] += ((s+sizeof(long)-1)/sizeof(long)  ) * sizeof(long)    ;
-  return p  ;
-	};
-
 void DEV_BigMem::add_seg() { 
   void * p ; 
   gpuQ(cudaMalloc((void**)&p , m_seg_size )) ;
