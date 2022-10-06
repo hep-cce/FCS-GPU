@@ -2,6 +2,7 @@
 
 # "First-class" CUDA support needs at least CMake 3.10.
 cmake_minimum_required( VERSION 3.10 )
+cmake_policy(SET CMP0074 NEW)
 
 # Set up the "modern" usage of CUDA with CMake.
 find_package(CUDA REQUIRED)
