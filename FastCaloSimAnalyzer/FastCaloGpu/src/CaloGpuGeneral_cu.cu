@@ -3,10 +3,12 @@
 */
 
 #include "CaloGpuGeneral_cu.h"
+#include "CaloGpuGeneral_al.h"
 #include "GeoRegion.h"
 #include "GeoGpu_structs.h"
 #include "Hit.h"
 #include "Rand4Hits.h"
+//#include "helloWorld.h"
 
 #include "gpuQ.h"
 #include "Args.h"

@@ -47,6 +47,11 @@ private:
   FHs_v*            m_hf_v{0};
   Kokkos::View<FHs> m_hf_dv;
 #endif
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl{nullptr};
+#endif
 };
 
 #endif

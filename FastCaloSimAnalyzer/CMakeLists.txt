@@ -18,6 +18,7 @@ set(USE_STDPAR OFF CACHE BOOL "Use std::par")
 set(STDPAR_TARGET "gpu" CACHE STRING "target for std::par. should be gpu,multicore or cpu")
 set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
 set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
+set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
 
 if ( USE_STDPAR )
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )
@@ -43,6 +44,10 @@ endif()
 
 if(USE_KOKKOS)
   find_package(Kokkos) 
+endif()
+
+if(USE_ALPAKA)
+  find_package(alpaka REQUIRED)
 endif()
 
 include(FastCaloSim)

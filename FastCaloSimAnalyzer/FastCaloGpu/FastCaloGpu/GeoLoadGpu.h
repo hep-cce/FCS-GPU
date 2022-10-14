@@ -39,12 +39,21 @@ public:
   void                       set_max_sample( int s ) { m_max_sample = s; };
   void                       set_sample_index_h( Rg_Sample_Index* s ) { m_sample_index_h = s; };
   const CaloDetDescrElement* index2cell( unsigned long index ) { return ( *m_cells )[m_cellid_array[index]]; };
+
+  Rg_Sample_Index* get_sample_index_h();
+  Rg_Sample_Index* get_sample_index_h_al();
+  GeoRegion* get_regions();
+  GeoRegion* get_regions_al();
+
+  long long* get_cell_grid(int neta, int nphi);
+  long long* get_cell_grid_al(int neta, int nphi);
   
   bool LoadGpu();
   
   bool LoadGpu_kk();
   bool LoadGpu_cu();
   bool LoadGpu_sp();
+  bool LoadGpu_al();
 
   void    set_geoPtr( GeoGpu* ptr ) { m_geo_d = ptr; }
   GeoGpu* get_geoPtr() const { return m_geo_d; }
@@ -79,5 +88,12 @@ protected:
 
   std::vector<Kokkos::View<long long*>*> m_reg_vec;
 #endif
+
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl{nullptr};
+#endif
+
 };
 #endif

@@ -468,11 +468,16 @@ void TFCSShapeValidation::GeoLg() {
   m_gl->set_nregions( nrgns );
   m_gl->set_cellmap( m_geo->get_cells() );
 
-  GeoRegion* GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
+  GeoRegion* GR_ptr = m_gl->get_regions();
+  if(!GR_ptr) {
+    GR_ptr = (GeoRegion*)malloc( nrgns * sizeof( GeoRegion ) );
+  }
   m_gl->set_regions( GR_ptr );
 
-  Rg_Sample_Index* si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
-
+  Rg_Sample_Index* si = m_gl->get_sample_index_h();
+  if(!si) {
+    si = (Rg_Sample_Index*)malloc( CaloGeometry::MAX_SAMPLING * sizeof( Rg_Sample_Index ) );
+  }
   m_gl->set_sample_index_h( si );
 
   int i = 0;
@@ -523,7 +528,10 @@ void TFCSShapeValidation::region_data_cpy( CaloGeometryLookup* glkup, GeoRegion*
 
   // now cell array copy from GeoLookup Object
   // new cell_grid is a unsigned long array
-  long long* cells = (long long*)malloc( sizeof( long long ) * neta * nphi );
+  long long* cells = m_gl->get_cell_grid(neta,nphi);
+  if(!cells) {
+    cells = (long long*)malloc( sizeof( long long ) * neta * nphi );
+  }
   gr->set_cell_grid( cells );
 
   if ( neta != (int)( *( glkup->cell_grid() ) ).size() )

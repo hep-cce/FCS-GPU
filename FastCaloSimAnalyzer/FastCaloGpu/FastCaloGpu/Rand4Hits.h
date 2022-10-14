@@ -17,15 +17,29 @@
 #   include <atomic>
 #endif
 
+
+#ifdef USE_ALPAKA
+#  include "AlpakaDefs.h"
+#endif
+
+
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
-public:  
-  
-  Rand4Hits() {
-    m_rand_ptr     = 0;
-    m_total_a_hits = 0;
-  };
+ public:  
+
+#ifdef USE_ALPAKA
+   Rand4Hits()
+    : m_queue(alpaka::getDevByIdx<Acc>(Idx{0}))
+    , m_bufAcc(alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(1u)}))
+    , m_bufAccEngine(alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(NUM_STATES)}))
+    , m_cellsEnergy{alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+    , m_cellE{alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+    , m_cT{alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1u)})}
+  {}
+#else
+  Rand4Hits() = default;
+#endif
   ~Rand4Hits();
 
   float* rand_ptr( int nhits ) {
@@ -54,9 +68,16 @@ public:
   
   CELL_ENE_T*  get_cells_energy() { return m_cells_energy; };
   Cell_E* get_cell_e()            { return m_cell_e; };
+#ifdef USE_ALPAKA
+  CellE& get_cell_E() { return m_cellE; };
+#endif
   Cell_E* get_cell_e_h()          { return m_cell_e_h; };
 
   CELL_CT_T* get_ct() { return m_ct; };
+#ifdef USE_ALPAKA
+  CellCtT& get_cT() { return m_cT; };
+#endif
+
 
   unsigned long* get_hitcells()    { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };
@@ -80,15 +101,15 @@ private:
   void   destroyCPUGen();
 
   float*       m_rand_ptr{nullptr};
-  unsigned int m_total_a_hits;
+  unsigned int m_total_a_hits{0};
   unsigned int m_current_hits;
   void*        m_gen{nullptr};
   bool         m_useCPU{false};
 
   // patch in some GPU pointers for cudaMalloc
-  CELL_ENE_T*  m_cells_energy {0};
-  Cell_E*      m_cell_e {0};
-  CELL_CT_T*   m_ct {0};
+  CELL_ENE_T*  m_cells_energy {nullptr};
+  Cell_E*      m_cell_e {nullptr};
+  CELL_CT_T*   m_ct {nullptr};
 
   // host side ;
   unsigned long* m_hitcells{nullptr};
@@ -103,6 +124,16 @@ private:
   Kokkos::View<int>     m_ct_v;
   Kokkos::View<float*>  m_rand_ptr_v;
 #endif
+
+#ifdef USE_ALPAKA
+  BufAcc m_bufAcc;
+  BufAccEngine m_bufAccEngine;
+  QueueAcc m_queue;
+  CellsEnergy m_cellsEnergy;
+  CellE m_cellE;
+  CellCtT m_cT;
+#endif
+
 };
 
 #endif

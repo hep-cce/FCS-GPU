@@ -9,6 +9,10 @@
 #include "Args.h"
 #include "HostDevDef.h"
 
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
+#endif
+
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
     
@@ -240,8 +244,11 @@ namespace CaloGpuGeneral_fnc {
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+#ifdef USE_ALPAKA
+  __DEVICE__ void HitCellMapping_d( Acc const& acc, Hit& hit, unsigned long t, Chain0_Args args ) {
+#else
   __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long t, Chain0_Args args ) {
+#endif
 
     //    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
@@ -265,7 +272,8 @@ namespace CaloGpuGeneral_fnc {
     args.cells_energy[cellele] += int( CELL_ENE_FAC*hit.E() );
   #endif
     //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
-
+#elif defined (USE_ALPAKA)
+    alpaka::atomicAdd(acc,&args.cells_energy[cellele], hit.E());
 #else
     atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
@@ -283,14 +291,20 @@ namespace CaloGpuGeneral_fnc {
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+#ifdef USE_ALPAKA
+  __DEVICE__ void HitCellMappingWiggle_d( Acc const& acc, Hit& hit, Chain0_Args args, unsigned long t ) {
+#else
   __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args args, unsigned long t ) {
-
+#endif
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
 
     float eta = fabs( hit.eta() );
+#ifdef USE_ALPAKA
+    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( acc, hit, t, args ); }
+#else
     if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args ); }
+#endif
     
     int bin = nhist;
     for ( int i = 0; i < nhist + 1; ++i ) {
@@ -316,8 +330,11 @@ namespace CaloGpuGeneral_fnc {
 
     float hit_phi_shifted = hit.phi() + wiggle;
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
-
+#ifdef USE_ALPAKA
+    HitCellMapping_d( acc, hit, t, args );
+#else
     HitCellMapping_d( hit, t, args );
+#endif
   }
 } // namespace CaloGpuGeneral_fnc
 
