@@ -10,7 +10,34 @@ bool GeoLoadGpu::LoadGpu() {
     return LoadGpu_kk();
 #elif defined USE_STDPAR
     return LoadGpu_sp();
+#elif defined USE_ALPAKA
+    return LoadGpu_al();
 #else
     return LoadGpu_cu();
+#endif
+}
+
+Rg_Sample_Index* GeoLoadGpu::get_sample_index_h() {
+#ifdef USE_ALPAKA
+  return get_sample_index_h_al();
+#else
+  return nullptr;
+#endif
+}
+
+GeoRegion* GeoLoadGpu::get_regions() {
+#ifdef USE_ALPAKA
+  return get_regions_al();
+#else
+  return nullptr;
+#endif
+}
+
+long long* GeoLoadGpu::get_cell_grid(int neta, int nphi)
+{
+#ifdef USE_ALPAKA
+  return get_cell_grid_al(neta, nphi);
+#else
+  return nullptr;
 #endif
 }

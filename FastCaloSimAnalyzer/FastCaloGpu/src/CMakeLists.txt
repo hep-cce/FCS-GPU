@@ -4,9 +4,20 @@
 cmake_minimum_required( VERSION 3.10 )
 cmake_policy(SET CMP0074 NEW)
 
-# Set up the "modern" usage of CUDA with CMake.
-find_package(CUDA REQUIRED)
-enable_language( CUDA )
+set(FIND_CUDA ON)
+
+if(USE_ALPAKA)
+  if(${alpaka_ACC_GPU_CUDA_ENABLE} STREQUAL "OFF")
+    set(FIND_CUDA OFF)
+  endif()
+endif()
+
+if(FIND_CUDA)
+  find_package(CUDA REQUIRED)
+  enable_language( CUDA )
+  set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
+endif()
+
 
 #Need to do other way.
 # set(CMAKE_CUDA_FLAGS "-arch=sm_75")
@@ -17,6 +28,8 @@ if(USE_STDPAR)
 #  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper.cu Rand4Hits.cu ) 
 elseif(USE_KOKKOS)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx )
+elseif(USE_ALPAKA)
+  set(FastCaloGpu_Srcs CaloGpuGeneral.cxx KernelWrapper_al.cxx Rand4Hits_al.cxx )
 else()
   set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu Rand4Hits.cu ) 
 endif()
@@ -35,16 +48,23 @@ endif()
 #  LINKDEF LinkDef.h
 #)
 
-#This seems to be a hack to avoid a cmake error 
-set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
-
 # Define and build the library
 message(STATUS "Creating library target '${FastCaloGpu_LIB}'")
-add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
+if(USE_ALPAKA)
+  alpaka_add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
+else()
+  add_library(${FastCaloGpu_LIB} SHARED ${FastCaloGpu_Srcs}  )
+endif()
 
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
 
-target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} ${CUDA_nvToolsExt_LIBRARY})
+if(USE_ALPAKA)
+  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} alpaka::alpaka)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE ${FCS_CommonDefinitions})
+else()
+  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} ${CUDA_nvToolsExt_LIBRARY})
+endif()
+
 if(USE_STDPAR)
   target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
