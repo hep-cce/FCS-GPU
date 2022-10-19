@@ -66,23 +66,36 @@ namespace CaloGpuGeneral {
         s_ct += t_sim_ct[i].count();
         s_cp += t_sim_cp[i].count();
       }
-      
+
+      double ss_cl{0.}, ss_A{0.}, ss_ct{0.}, ss_cp{0.};
+      for ( size_t i=1; i<t_sim_clean.size()-1; ++i) {
+        ss_cl += pow(t_sim_clean[i].count()-s_cl/(count-2),2);
+        ss_A  += pow(t_sim_A[i].count()-s_A/(count-2),2);
+        ss_ct += pow(t_sim_ct[i].count() - s_ct/(count-2),2);
+        ss_cp += pow(t_sim_cp[i].count() - s_cp/(count-2),2);
+      }
+
+      ss_cl = 1000000 * sqrt(ss_cl / (count-2));
+      ss_A  = 1000000 * sqrt(ss_A / (count-2));
+      ss_ct = 1000000 * sqrt(ss_ct / (count-2));
+      ss_cp = 1000000 * sqrt(ss_cp / (count-2));
+
         
       std::string out;
       char buf[100];
-      sprintf(buf,"%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      sprintf(buf,"%12s %15s %15s %15s\n","kernel","total /s","avg launch /us", "standard dev /us");
       out += buf;
-      sprintf(buf,"%12s %15.8f %15.1f\n","sim_clean", s_cl,
-              s_cl * 1000000 / (count-2) );
+      sprintf(buf,"%12s %15.8f %15.1f %15.1f\n","sim_clean", s_cl,
+              s_cl * 1000000 / (count-2), ss_cl );
       out += buf;
-      sprintf(buf,"%12s %15.8f %15.1f\n","sim_A", s_A,
-              s_A * 1000000 / (count-2) );
+      sprintf(buf,"%12s %15.8f %15.1f %15.1f\n","sim_A", s_A,
+              s_A * 1000000 / (count-2), ss_A );
       out += buf;
-      sprintf(buf,"%12s %15.8f %15.1f\n","sim_ct", s_ct,
-              s_ct * 1000000 / (count-2) );
+      sprintf(buf,"%12s %15.8f %15.1f %15.1f\n","sim_ct", s_ct,
+              s_ct * 1000000 / (count-2), ss_ct );
       out += buf;
-      sprintf(buf,"%12s %15.8f %15.1f\n","sim_cp", s_cp,
-              s_cp * 1000000 / (count-2) );
+      sprintf(buf,"%12s %15.8f %15.1f %15.1f\n","sim_cp", s_cp,
+              s_cp * 1000000 / (count-2), ss_cp );
       out += buf;
       sprintf(buf,"%12s %15d +2\n","launch count",count-2);
       out += buf;

@@ -247,8 +247,8 @@ __host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){
    std::cout << "kernel timing:\n";
    std::cout << timing;
    std::cout << "\n";
-   std::cout << "all kernel timings:\n";
-   timing.printAll();
+   // std::cout << "all kernel timings:\n";
+   // timing.printAll();
  } else {
    std::cout << "no kernel timing available" << std::endl;
  }

@@ -86,7 +86,8 @@ bool GeoLoadGpu::LoadGpu()
     gpuQ( hipGetDeviceProperties( &prop, 0 ) );
     std::string gn(prop.name);
     if (gn == "") {
-      gn = "UNKNOWN";
+      //      gn = "UNKNOWN";
+      gn = "AMD " + std::to_string(prop.gcnArch);
     }
     std::cout << "Executing on GPU: " << gn << std::endl;
 
