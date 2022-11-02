@@ -40,7 +40,7 @@ namespace CaloGpuGeneral_fnc {
 
     if ( sampling < 21 ) {
       for ( int skip_range_check = 0; skip_range_check <= 1; ++skip_range_check ) {
-        for ( unsigned int j = sample_index; j < sample_index + sample_size; ++j ) {
+        for ( int j = sample_index; j < sample_index + sample_size; ++j ) {
           if ( !skip_range_check ) {
             if ( eta < gr[j].mineta() ) continue;
             if ( eta > gr[j].maxeta() ) continue;
@@ -155,7 +155,7 @@ namespace CaloGpuGeneral_fnc {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __DEVICE__ float rnd_to_fct1d( float rnd, uint32_t* contents, float* borders, int nbins, uint32_t s_MaxValue,
-                                 unsigned long t ) {
+                                 unsigned long /*t*/ ) {
 
     uint32_t int_rnd = s_MaxValue * rnd;
     int      ibin    = find_index_uint32( contents, nbins, int_rnd );
@@ -175,7 +175,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void CenterPositionCalculation_g_d( const HitParams hp, Hit& hit, long tid, const Sim_Args args ) {
+  __DEVICE__ void CenterPositionCalculation_g_d( const HitParams hp, Hit& hit, long /* tid */, const Sim_Args /* args */ ) {
     
     hit.setCenter_r( ( 1. - hp.extrapWeight ) * hp.extrapol_r_ent + hp.extrapWeight * hp.extrapol_r_ext );
     hit.setCenter_z( ( 1. - hp.extrapWeight ) * hp.extrapol_z_ent + hp.extrapWeight * hp.extrapol_z_ext );
@@ -251,7 +251,7 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void HitCellMapping_g_d( HitParams hp, Hit& hit, unsigned long t, Sim_Args args ) {
+  __DEVICE__ void HitCellMapping_g_d( HitParams hp, Hit& hit, unsigned long /*t*/, Sim_Args args ) {
 
     long long cellele = getDDE( args.geo, hp.cs, hit.eta(), hit.phi() );
 
@@ -269,6 +269,9 @@ namespace CaloGpuGeneral_fnc {
 #  endif
     //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
 
+#elif defined ( USE_KOKKOS )
+    Kokkos::View<float*> cellE_v( args.cells_energy, MAX_SIM*args.ncells );
+    Kokkos::atomic_fetch_add( &cellE_v( cellele + args.ncells*hp.index ), hit.E() );
 #else
     atomicAdd( &args.cells_energy[cellele + args.ncells * hp.index], hit.E() );
 #endif
@@ -312,7 +315,6 @@ namespace CaloGpuGeneral_fnc {
     float hit_phi_shifted = hit.phi() + wiggle;
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
 
-    //    HitCellMapping_g_d( hp, hit, t, args );
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

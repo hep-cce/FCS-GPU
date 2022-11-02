@@ -12,6 +12,9 @@ typedef struct FHs {
   unsigned int* h_szs{nullptr};
   uint32_t**    h_contents{nullptr};
   float**       h_borders{nullptr};
+  uint32_t*     d_contents1D{nullptr};
+  float*        d_borders1D{nullptr};
+
 } FHs;
 
 typedef struct FH2D {

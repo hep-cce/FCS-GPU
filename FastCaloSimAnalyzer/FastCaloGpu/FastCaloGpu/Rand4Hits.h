@@ -52,18 +52,26 @@ public:
 #endif
 
   CELL_ENE_T* get_cells_energy() { return m_cells_energy; };
-  Cell_E*     get_cell_e() { return m_cell_e; };
-  Cell_E*     get_cell_e_h() { return m_cell_e_h; };
+  Cell_E*     get_cell_e()       { return m_cell_e; };
+  Cell_E*     get_cell_e_h()     { return m_cell_e_h; };
 
   CELL_CT_T*  get_ct() { return m_ct; };
-  int* get_ct_h() { return m_ct_h; };
+  int* get_ct_h()      { return m_ct_h; };
 
-  unsigned long* get_hitcells() { return m_hitcells; };
+  unsigned long* get_hitcells()    { return m_hitcells; };
   int*           get_hitcells_ct() { return m_hitcells_ct; };
 
-  HitParams* get_hitparams() { return m_hitparams; };
-  long*      get_simbins() { return m_simbins; };
+  // void       set_hitparams_h( HitParams* hp ) { m_hitparams_h = hp; }
+  
+  HitParams* get_hitparams()   { return m_hitparams; };
+  // HitParams* get_hitparams_h() { return m_hitparams_h; };
+  long*      get_simbins()     { return m_simbins; };
 
+#ifdef USE_KOKKOS
+  Kokkos::View<HitParams*>* get_hitparams_v() { return &m_hitparams_v; };
+  Kokkos::View<long*>*      get_simbins_v()   { return &m_simbins_v; };
+#endif
+  
   void rd_regen();
 
   void add_a_hits( int nhits ) {
@@ -93,7 +101,8 @@ private:
   Cell_E*     m_cell_e{0};
   CELL_CT_T*  m_ct{0};
 
-  HitParams* m_hitparams;
+  HitParams* m_hitparams;                        // on device
+  // HitParams* m_hitparams_h;                      // on host
   long*      m_simbins;
 
   // host side ;
@@ -105,10 +114,12 @@ private:
   std::vector<float>* m_rnd_cpu{nullptr};
 
 #ifdef USE_KOKKOS
-  Kokkos::View<float*>  m_cells_energy_v;
-  Kokkos::View<Cell_E*> m_cell_e_v;
-  Kokkos::View<int>     m_ct_v;
-  Kokkos::View<float*>  m_rand_ptr_v;
+  Kokkos::View<CELL_ENE_T*> m_cells_energy_v;
+  Kokkos::View<Cell_E*>     m_cell_e_v;
+  Kokkos::View<int*>        m_ct_v;
+  Kokkos::View<float*>      m_rand_ptr_v;
+  Kokkos::View<long*>       m_simbins_v;
+  Kokkos::View<HitParams*>  m_hitparams_v;
 #endif
 };
 

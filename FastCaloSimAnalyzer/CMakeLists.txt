@@ -32,6 +32,8 @@ if ( USE_STDPAR )
     message(FATAL_ERROR "unknown stdpar target ${STDPAR_TARGET}")
   endif()
   message (STATUS "Will target ${STDPAR_TARGET} for std::par with ${STDPAR_DIRECTIVE}")
+elseif( USE_KOKKOS )
+  find_package(Kokkos) 
 endif()
 
 include(FastCaloSim)

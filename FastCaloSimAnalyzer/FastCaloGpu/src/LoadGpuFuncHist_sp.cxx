@@ -17,7 +17,7 @@ LoadGpuFuncHist::~LoadGpuFuncHist() {
   free( m_hf_d );
 
   free( m_hf2d );
-  free( m_hf2d_d );
+  free( m_hf2d_h );
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -43,9 +43,9 @@ void LoadGpuFuncHist::LD2D() {
   std::memcpy( hf.h_contents, ( *m_hf2d ).h_contents, ( hf.nbinsx * hf.nbinsy ) * sizeof( float ) );
 
   *( hf_ptr ) = hf;
-  m_hf2d_d    = hf_ptr;
+  m_hf2d_h    = hf_ptr;
 
-  m_d_hf2d = m_hf2d_d;
+  m_hf2d_d = m_hf2d_h;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -88,7 +88,7 @@ void LoadGpuFuncHist::LD() {
   std::memcpy( hf_ptr->h_contents, contents_ptr, hf_ptr->nhist * sizeof( uint32_t* ) );
   std::memcpy( hf_ptr->h_borders, borders_ptr, hf_ptr->nhist * sizeof( float* ) );
 
-  m_d_hf = hf_ptr;
+  m_hf_h = hf_ptr;
   m_hf_d = hf_ptr;
 
   // FHs* hf_ptr = new FHs;

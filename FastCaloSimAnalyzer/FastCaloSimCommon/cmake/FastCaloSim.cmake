@@ -52,7 +52,11 @@ endif()
 
 if(ENABLE_GPU) 
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
-endif() 
+endif()
+
+if(USE_KOKKOS)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
+endif()
 
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes

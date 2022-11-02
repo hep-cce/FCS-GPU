@@ -59,18 +59,19 @@ namespace CaloGpuGeneral_cu {
 
   __global__ void simulate_hits_de( const Sim_Args args ) {
 
-    long t = threadIdx.x + blockIdx.x * blockDim.x;
-    if ( t < args.nhits ) {
+    long tid = threadIdx.x + blockIdx.x * blockDim.x;
+    if ( tid < args.nhits ) {
+      
       Hit hit;
 
-      int bin = find_index_long( args.simbins, args.nbins, t );
+      int bin = find_index_long( args.simbins, args.nbins, tid );
       HitParams hp = args.hitparams[bin];
       hit.E() = hp.E;
 
-      CenterPositionCalculation_g_d( hp, hit, t, args );
-      HistoLateralShapeParametrization_g_d( hp, hit, t, args );
-      if ( hp.cmw ) HitCellMappingWiggle_g_d( hp, hit, t, args );
-      HitCellMapping_g_d( hp, hit, t, args );
+      CenterPositionCalculation_g_d( hp, hit, tid, args );
+      HistoLateralShapeParametrization_g_d( hp, hit, tid, args );
+      if ( hp.cmw ) HitCellMappingWiggle_g_d( hp, hit, tid, args );
+      HitCellMapping_g_d( hp, hit, tid, args );
     }
   }
 
@@ -187,6 +188,12 @@ __host__ void load_hitsim_params( void* rd4h, HitParams* hp, long* simbins, int 
 
   gpuQ( cudaMemcpy( hp_g, hp, bins * sizeof( HitParams ), cudaMemcpyHostToDevice ) );
   gpuQ( cudaMemcpy( simbins_g, simbins, bins * sizeof( long ), cudaMemcpyHostToDevice ) );
+
+  printf("BINS: %d\n",bins);
+  for (int i=0; i<bins; ++i) {
+    printf("SIMB: %d %ld\n", i, simbins[i]);
+  }
+  
 }
 
 } // namespace CaloGpuGeneral_cu

@@ -7,6 +7,9 @@
 function(fcs_add_library)
   message(STATUS "Creating library target '${ARGV0}'")
   add_library(${ARGV})
+  if(USE_KOKKOS) 
+    target_link_libraries(${ARGV0} Kokkos::kokkos) 
+  endif() 
   target_compile_definitions(${ARGV0} PRIVATE ${FCS_CommonDefinitions})
   target_include_directories(${ARGV0} PRIVATE . ${CMAKE_SOURCE_DIR})
 endfunction()
@@ -66,6 +69,8 @@ function(fcs_make_task)
     target_compile_options(${_target} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
       ${STDPAR_DIRECTIVE}> )
     target_link_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
+  elseif(USE_KOKKOS)
+    target_link_libraries(${_target} Kokkos::kokkos) 
   endif()
 
   

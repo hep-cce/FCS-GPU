@@ -6,8 +6,10 @@
 
 bool GeoLoadGpu::LoadGpu() {
 
-#ifdef USE_STDPAR
+#if defined (USE_STDPAR)
     return LoadGpu_sp();
+#elif defined (USE_KOKKOS)
+    return LoadGpu_kk();
 #else
     return LoadGpu_cu();
 #endif

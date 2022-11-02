@@ -5,6 +5,7 @@
 #include "CaloGpuGeneral.h"
 #include "CaloGpuGeneral_cu.h"
 #include "CaloGpuGeneral_sp.h"
+#include "CaloGpuGeneral_kk.h"
 
 #include "Rand4Hits.h"
 #include <chrono>
@@ -67,11 +68,13 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, int maxbin, unsigned lo
 }
 
 void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
-  #ifdef USE_STDPAR
+#ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::Rand4Hits_finish( rd4h );
-  #else
+#elif defined (USE_KOKKOS)
+  CaloGpuGeneral_kk::Rand4Hits_finish( rd4h );
+#else
   CaloGpuGeneral_cu::Rand4Hits_finish( rd4h );
-  #endif  
+#endif  
   
 //   if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 }
@@ -98,6 +101,8 @@ void CaloGpuGeneral::simulate_hits_gr( Sim_Args& args ) {
 
 #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::simulate_hits_gr( args );
+#elif defined USE_KOKKOS
+  CaloGpuGeneral_kk::simulate_hits_gr( args );
 #else
   CaloGpuGeneral_cu::simulate_hits_gr( args );
 #endif
@@ -110,9 +115,13 @@ void CaloGpuGeneral::load_hitsim_params( void* rd4h, HitParams* hp, long* simbin
     std::cout << "Error load hit simulation params ! ";
     exit( 2 );
   }
+
+  // rd4h->set_hitparams_h( hp );
   
 #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::load_hitsim_params( rd4h, hp, simbins, bins );
+#elif defined ( USE_KOKKOS )
+  CaloGpuGeneral_kk::load_hitsim_params( rd4h, hp, simbins, bins );
 #else
   CaloGpuGeneral_cu::load_hitsim_params( rd4h, hp, simbins, bins );
 #endif

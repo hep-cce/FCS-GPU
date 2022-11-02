@@ -7,7 +7,7 @@
 #include <algorithm>
 #include "CountingIterator.h"
 
-void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_cells ) {
+void Rand4Hits::allocate_simulation( int /*maxbins*/, int maxhitct, unsigned long n_cells ) {
 
   // if ( 1 ) {
   //   std::cout << "R4H::allocate_simulation\n";

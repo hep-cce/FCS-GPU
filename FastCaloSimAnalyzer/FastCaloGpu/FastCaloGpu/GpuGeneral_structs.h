@@ -27,6 +27,11 @@
 #endif
 
 #include "FH_structs.h"
+
+#ifdef USE_KOKKOS
+#include "FH_views.h"
+#endif
+
 typedef struct Cell_E {
   unsigned long cellid;
   float         energy;
@@ -42,6 +47,10 @@ typedef struct HitParams {
   long   nhits;
   FHs*   f1d;
   FH2D*  f2d;
+#ifdef USE_KOKKOS
+  FHs_v*  f1d_v;
+  FH2D_v* f2d_v;
+#endif
   double extrapol_eta_ent;
   double extrapol_eta_ext;
   double extrapol_phi_ent;
@@ -52,5 +61,6 @@ typedef struct HitParams {
   double extrapol_z_ext;
   float  extrapWeight;
   bool   cmw; // Do CellMapingWiggle or direct CellMapping
+  bool   bin_used {false};
 } HitParams;
 #endif

@@ -12,6 +12,10 @@
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
 
+#ifdef USE_KOKKOS
+#  include <Kokkos_Core.hpp>
+#endif
+
 using namespace std;
 
 float       init_eta;
@@ -355,7 +359,15 @@ int main(int argc, char **argv)
   bool        png          = args["--png"].asBool();
   bool        earlyReturn  = args["--earlyReturn"].asBool();
 
+#ifdef USE_KOKKOS
+  Kokkos::initialize( argc, argv );
+#endif
+
   int ret=runTFCSSimulation(pdgId, energy, etamin, layer, output, seed,nEvents,firstEvent,selectPCAbin,debug,png,earlyReturn);
-  
+
+#ifdef USE_KOKKOS
+  Kokkos::finalize();
+#endif
+
   return ret;
 }

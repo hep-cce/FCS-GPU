@@ -13,10 +13,10 @@ LoadGpuFuncHist::LoadGpuFuncHist() {}
 
 LoadGpuFuncHist::~LoadGpuFuncHist() {
   free( m_hf );
-  cudaFree( m_hf_d );
+  cudaFree( m_hf_h );
 
   free( m_hf2d );
-  free( m_hf2d_d );
+  free( m_hf2d_h );
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -47,17 +47,17 @@ void LoadGpuFuncHist::LD2D() {
                     cudaMemcpyHostToDevice ) );
 
   *( hf_ptr ) = hf;
-  m_hf2d_d    = hf_ptr;
+  m_hf2d_h    = hf_ptr;
 
-  m_d_hf2d = (FH2D*)( p->dev_bm_alloc( sizeof( FH2D ) ) );
-  gpuQ( cudaMemcpy( m_d_hf2d, m_hf2d_d, sizeof( FH2D ), cudaMemcpyHostToDevice ) );
+  m_hf2d_d = (FH2D*)( p->dev_bm_alloc( sizeof( FH2D ) ) );
+  gpuQ( cudaMemcpy( m_hf2d_d, m_hf2d_h, sizeof( FH2D ), cudaMemcpyHostToDevice ) );
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void LoadGpuFuncHist::LD() {
   // this call  assume  already have Histofuncs set in m_hf
-  // this function allocate memory of GPU and deep copy m_hf to m_hf_d
+  // this function allocate memory of GPU and deep copy m_hf to m_hf_h
 
   if ( !m_hf ) {
     std::cout << "Error Load WiggleHistoFunctions " << std::endl;
@@ -103,13 +103,13 @@ void LoadGpuFuncHist::LD() {
   gpuQ( cudaMemcpy( hf.h_contents, contents_ptr, hf.nhist * sizeof( uint32_t* ), cudaMemcpyHostToDevice ) );
   gpuQ( cudaMemcpy( hf.h_borders, borders_ptr, hf.nhist * sizeof( float* ), cudaMemcpyHostToDevice ) );
 
-  m_d_hf = (FHs*)( p->dev_bm_alloc( sizeof( FHs ) ) );
-  gpuQ( cudaMemcpy( m_d_hf, &hf, sizeof( FHs ), cudaMemcpyHostToDevice ) );
+  m_hf_d = (FHs*)( p->dev_bm_alloc( sizeof( FHs ) ) );
+  gpuQ( cudaMemcpy( m_hf_d, &hf, sizeof( FHs ), cudaMemcpyHostToDevice ) );
 
   free( contents_ptr );
   free( borders_ptr );
 
-  m_hf_d = &hf;
+  m_hf_h = &hf;
 
   // std::cout << "LD1D: nhist: "<<hf.nhist<<"   memeory: " <<s << " M of FHs str: "<< sizeof(FHs)  <<std::endl ;
 

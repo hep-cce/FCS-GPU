@@ -12,8 +12,10 @@ enable_language( CUDA )
 
 if(USE_STDPAR)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu Rand4Hits_sp.cxx )
+elseif(USE_KOKKOS)
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx DEV_BigMem_kk.cxx)
 else()
-  set(FastCaloGpu_Srcs gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu DEV_BigMem.cu Rand4Hits.cu )
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx gpuQ.cu CaloGpuGeneral.cxx  KernelWrapper_cu.cu DEV_BigMem.cu Rand4Hits.cu )
 endif()
 
 # # Global include is needed for dictionary generation to work
@@ -51,7 +53,16 @@ if(USE_STDPAR)
   endif()
     
   target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})
-
+elseif(USE_KOKKOS)
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -g -G -O0 > )
+  endif()
+else()
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -g -G -O0 > )
+  endif()
 endif()
 
 if(RNDGEN_CPU)

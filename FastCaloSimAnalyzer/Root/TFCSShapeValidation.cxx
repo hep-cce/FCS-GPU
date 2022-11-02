@@ -36,6 +36,10 @@
 #  include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
 
+#ifdef USE_KOKKOS
+#  include <Kokkos_Core.hpp>
+#endif
+
 std::chrono::duration<double> TFCSShapeValidation::time_o1;
 std::chrono::duration<double> TFCSShapeValidation::time_o2;
 std::chrono::duration<double> TFCSShapeValidation::time_g1;
@@ -432,7 +436,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         if ( index >= MAX_SIM || tot_hits > ( MAXHITS - 100000 ) || es.is_last ) {
 
           //   here need to do GPU simulation !!!!.
-
+          
           auto tg_s = std::chrono::system_clock::now();
           CaloGpuGeneral::load_hitsim_params( m_rd4h, &( hitparams[0] ), &( simbins[0] ), n_simbins );
           auto tg_s_A = std::chrono::system_clock::now();
@@ -448,16 +452,26 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
           args.ct           = nullptr;
           args.ct_h         = nullptr;
           args.hitparams    = nullptr;
+          args.hitparams_h  = hitparams;
           args.simbins      = nullptr;
           args.nbins        = n_simbins;
           args.nsims        = index;
           args.nhits        = tot_hits;
           args.ncells       = GeoLoadGpu::num_cells;
 
+
+          
+
           CaloGpuGeneral::simulate_hits_gr( args );
           auto tg_s_B = std::chrono::system_clock::now();
           t_g_sim_B += tg_s_B - tg_s;
 
+          std::cout << "=----------> reset used bins. index: " << index << "\n";
+          for (int i=0; i<MAX_SIMBINS; ++i) {
+            hitparams[i].bin_used = false;
+          }
+
+          
           for ( int isim = 0; isim < index; isim++ ) {
             TFCSSimulationState& sim = m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]];
             //  std::cout << "gpucellCT["<<isim<<"]=" << args.ct_h[isim] <<std::endl ;
