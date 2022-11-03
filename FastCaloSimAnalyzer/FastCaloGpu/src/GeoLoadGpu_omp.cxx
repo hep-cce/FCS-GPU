@@ -140,6 +140,8 @@ bool GeoLoadGpu::LoadGpu_omp() {
   //  Geo_g = Gptr;
   m_geo_d = Gptr;
 
+  std::cout << "\n\n m_cells_d " << m_cells_d << " m_regions_d " << m_regions_d
+	  << " SampleIngex_g " << SampleIndex_g <<  " \n\n" << std::endl;
   // more test for region grids
   if ( 0 ) { return TestGeo(); }
 

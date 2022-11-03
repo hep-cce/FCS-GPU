@@ -211,13 +211,12 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   #pragma omp declare mapper(Chain0_Args args) map(to : args.extrapol_eta_ent, \
 		  args.extrapol_phi_ent, args.extrapol_r_ent, args.extrapol_z_ent, args.extrapol_eta_ext, \
 		  args.extrapol_phi_ext, args.extrapol_r_ext, args.extrapol_z_ext, args.extrapWeight, \
-		  args.charge, args.is_phi_symmetric, args.fh2d, args.fhs, args.geo, args.cs, args.nhits, \
+		  args.charge, args.is_phi_symmetric, args.fh2d, args.fhs, args.cs, args.nhits, \
 		  args.ncells ) use_by_default
- 
+
   ///////////////////////////////////
   //// Event loop
   ///////////////////////////////////
-  //for ( int ievent = m_firstevent; ievent < 5000; ievent++ ) {
   for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
     auto before_particle_loop_start  = std::chrono::system_clock::now();

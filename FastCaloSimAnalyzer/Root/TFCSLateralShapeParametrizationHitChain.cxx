@@ -223,7 +223,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     //  std::chrono::duration<double> diff = t1-start;
     //  std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
+    #pragma omp target enter data map (to : args)  
     CaloGpuGeneral::simulate_hits( Ehit, nhit, args );
+    #pragma omp target exit data map (release : args)  
 
     //std::map<unsigned int,float> cm;
     for ( unsigned int ii = 0; ii < args.ct; ++ii ) {
@@ -317,7 +319,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     //TFCSShapeValidation::time_o2 += ( t3 - start );
   }
 
-
   std::call_once(calledGetEnv, [](){
         if(const char* env_p = std::getenv("FCS_DUMP_HITCOUNT")) {
           if  (strcmp(env_p,"1") == 0) {
@@ -325,7 +326,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
           }
         }
   });
-  
+
   if (FCS_dump_hitcount) {
     printf(" HitCellCount: %3lu / %3lu   nhit: %4d%3s\n", simulstate.cells().size()-ss0,
            simulstate.cells().size(), nhit, (onGPU ? "  *" : "") );

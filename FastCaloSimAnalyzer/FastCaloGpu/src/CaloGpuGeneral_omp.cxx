@@ -38,6 +38,7 @@ namespace CaloGpuGeneral_omp {
     auto cells_energy = args.cells_energy;
     auto hitcells_ct  = args.hitcells_ct;
     auto rand         = args.rand;
+    auto geo          = args.geo;
 
     int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
@@ -46,9 +47,10 @@ namespace CaloGpuGeneral_omp {
 
     long t;
     //Hit hit;
-    #pragma omp target is_device_ptr( cells_energy, rand ) map( to : args )
+    #pragma omp target is_device_ptr( cells_energy, rand, geo ) //map( to : args )
+    //#pragma omp target is_device_ptr( cells_energy, rand, geo ) nowait //depend( in : args )
     {
-      #pragma omp teams distribute parallel for //num_teams(20) num_threads(64) //num_teams default 33
+      #pragma omp teams distribute parallel for num_teams(60) //num_threads(64) //num_teams default 33
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
@@ -58,7 +60,7 @@ namespace CaloGpuGeneral_omp {
         hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
         hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
         hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
- 
+
       //HistoLateralShapeParametrization_d( hit, t, args );
         // int     pdgId    = args.pdgId;
         float charge = args.charge;
@@ -151,6 +153,7 @@ namespace CaloGpuGeneral_omp {
 
       }
     }
+    //#pragma omp taskwait
 
   }
 
@@ -162,7 +165,7 @@ namespace CaloGpuGeneral_omp {
     auto hitcells_ct  = args.hitcells_ct;
     auto hitcells_E   = args.hitcells_E;
     
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) 
+    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) //nowait
     #pragma omp teams distribute parallel for num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) //thread_limit(128) //num_teams default 1467, threads default 128
     for ( int tid = 0; tid < ncells; tid++ ) {
       if ( cells_energy[tid] > 0. ) {
@@ -177,10 +180,11 @@ namespace CaloGpuGeneral_omp {
          //printf ( "ct %d %d energy %f cellid %d \n", ct, hitcells_ct[0], hitcells_E[ct].energy, hitcells_E[ct].cellid);
       }
     }
+    //#pragma omp taskwait
 
   }
 
-  inline void simulate_clean( Chain0_Args args ) {
+  inline void simulate_clean( Chain0_Args& args ) {
  
     auto cells_energy = args.cells_energy;
     auto hitcells_ct  = args.hitcells_ct;
@@ -188,8 +192,8 @@ namespace CaloGpuGeneral_omp {
     const unsigned long ncells   = args.ncells;
 
     int tid; 
-    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct )            
-    #pragma omp teams distribute parallel for simd num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
+    #pragma omp target is_device_ptr ( cells_energy, hitcells_ct ) //nowait
+    #pragma omp teams distribute parallel for num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
     for(tid = 0; tid < ncells; tid++) {
       //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
       cells_energy[tid] = 0.;
@@ -204,9 +208,6 @@ namespace CaloGpuGeneral_omp {
     int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
     std::size_t m_offset = 0;
-
-    //TODO : args.hitcells_ct[0] = 0; //why does this give segfault
-    //TODO : discuss memory allocation -- CPU or GPU? 18s vs 6s, correctness?
 
     simulate_clean ( args );
     simulate_A ( E, nhits, args );
