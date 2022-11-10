@@ -23,9 +23,9 @@ namespace alpaka {
 #elif defined(ALPAKA_ACC_CPU_B_TBB_T_SEQ_ENABLED)
     using FccDefaultAcc = alpaka::AccCpuTbbBlocks<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_THREADS_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccCpuThreads<TDim, TIdx>;
+    using FccDefaultAcc = alpaka::AccCpuThreads<TDim, TIdx>;
 #elif defined(ALPAKA_ACC_CPU_B_SEQ_T_SEQ_ENABLED)
-    using ExampleDefaultAcc = alpaka::AccCpuSerial<TDim, TIdx>;
+    using FccDefaultAcc = alpaka::AccCpuSerial<TDim, TIdx>;
 #else
     class FccDefaultAcc;
 #   warning "No supported backend selected for default Alpaka accelerator"

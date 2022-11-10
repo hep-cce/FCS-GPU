@@ -94,6 +94,13 @@ if(USE_ATOMIC_ADD)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_ATOMICADD )
 endif()
 
+# This is a hack to prevent the exposure of alpaka definitions outside
+# FastCaloGpu library via HostDevDef.h
+if(USE_ALPAKA)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DALPAKA_LOCAL )
+endif()
+
+
 # Install library
 install(TARGETS ${FastCaloGpu_LIB}
   DESTINATION ${CMAKE_INSTALL_LIBDIR}
