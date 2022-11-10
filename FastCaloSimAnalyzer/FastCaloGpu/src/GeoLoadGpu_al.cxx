@@ -47,7 +47,7 @@ struct TestHelloKernel
 struct TestCellKernel
 {
   template<typename TAcc>
-  ALPAKA_FN_ACC auto operator()(TAcc const& acc
+  ALPAKA_FN_ACC auto operator()(TAcc const& /*acc*/
 				, const CaloDetDescrElement* cells
 				, unsigned long index) const -> void
   {
@@ -70,11 +70,11 @@ struct TestCellKernel
 struct TestGeoKernel
 {
   template<typename TAcc>
-  ALPAKA_FN_ACC auto operator()(TAcc const& acc
+  ALPAKA_FN_ACC auto operator()(TAcc const& /*acc*/
 				, const CaloDetDescrElement* cells
 				, const GeoRegion* regions
-				, unsigned int nregions
-				, unsigned long ncells
+				, unsigned int /*nregions*/
+				, unsigned long /*ncells*/
 				, int r, int ir, int ip) const -> void
   {
     int                neta  = regions[r].cell_grid_eta();
@@ -121,7 +121,7 @@ struct TestGeoKernel
 struct TestGeoKernel_G
 {
   template<typename TAcc>
-  ALPAKA_FN_ACC auto operator()(TAcc const& acc
+  ALPAKA_FN_ACC auto operator()(TAcc const& /*acc*/
 				, const GeoGpu* geo
 				, int r, int ir, int ip) const -> void
   {

@@ -114,7 +114,7 @@ namespace CaloGpuGeneral_fnc {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __DEVICE__ void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D* hf2d,
-                                unsigned long i, float ene) {
+                                unsigned long /*i*/, float /*ene*/) {
 
     int    nbinsx        = ( *hf2d ).nbinsx;
     int    nbinsy        = ( *hf2d ).nbinsy;
@@ -245,9 +245,9 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 #ifdef USE_ALPAKA
-  __DEVICE__ void HitCellMapping_d( Acc const& acc, Hit& hit, unsigned long t, Chain0_Args args ) {
+  __DEVICE__ void HitCellMapping_d( Acc const& acc, Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
 #else
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long t, Chain0_Args args ) {
+    __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
 #endif
 
     //    printf("start HCM_d %lu\n",t);
