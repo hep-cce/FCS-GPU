@@ -126,9 +126,9 @@ private:
 #endif
 
 #ifdef USE_ALPAKA
+  QueueAcc m_queue;
   BufAcc m_bufAcc;
   BufAccEngine m_bufAccEngine;
-  QueueAcc m_queue;
   CellsEnergy m_cellsEnergy;
   CellE m_cellE;
   CellCtT m_cT;

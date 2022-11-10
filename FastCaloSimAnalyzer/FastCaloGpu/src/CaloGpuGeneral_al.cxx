@@ -42,7 +42,7 @@ namespace CaloGpuGeneral_al {
 				  ) const -> void
     {
       auto const idx = alpaka::getIdx<alpaka::Grid, alpaka::Threads>(acc)[0];
-      if(idx < nhits) {
+      if(idx < (unsigned)nhits) {
 	Hit hit;
 	hit.E() = E;
 	
@@ -180,7 +180,7 @@ namespace CaloGpuGeneral_al {
 #ifdef DUMP_HITCELLS
     std::cout << "hitcells: " << args.ct << "  nhits: " << nhits << "  E: " << E << "\n";
     std::map<unsigned int,float> cm;
-    for (int i=0; i<args.ct; ++i) {
+    for (unsigned i=0; i<args.ct; ++i) {
       cm[args.hitcells_E_h[i].cellid] = args.hitcells_E_h[i].energy;
     }
     for (auto &em: cm) {

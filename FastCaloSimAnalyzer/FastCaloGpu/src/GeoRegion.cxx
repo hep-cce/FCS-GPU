@@ -40,10 +40,14 @@ __HOSTDEV__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, fl
 #ifdef USE_STDPAR
   using std::max;
 #endif
+#ifdef USE_ALPAKA
+  using std::max;
+#endif
   dist_eta0           = ( eta - m_all_cells[DDE].eta() ) / m_deta_double;
   dist_phi0           = ( Phi_mpi_pi( phi - m_all_cells[DDE].phi() ) ) / m_dphi_double;
   float abs_dist_eta0 = abs( dist_eta0 );
   float abs_dist_phi0 = abs( dist_phi0 );
+
   return max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
 }
 
