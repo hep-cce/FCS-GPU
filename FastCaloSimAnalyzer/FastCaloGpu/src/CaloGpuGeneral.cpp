@@ -11,7 +11,7 @@
 #include <chrono>
 
 static CaloGpuGeneral::KernelTime timing;
-
+static bool first{true};
 
 #define BLOCK_SIZE 256
 
@@ -351,10 +351,12 @@ __host__ void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
 
   if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
-  std::cout << "time kernel sim_clean: " << timing.t_sim_clean.count() << std::endl;
-  std::cout << "time kernel sim_A:     " << timing.t_sim_A.count() << std::endl;
-  std::cout << "time kernel sim_ct:    " << timing.t_sim_ct.count() << std::endl;
-  std::cout << "time kernel sim_cp:    " << timing.t_sim_cp.count() << std::endl;
+  if (timing.count > 0) {
+    std::cout << "kernel timing\n";
+    std::cout << timing;
+  } else {
+    std::cout << "no kernel timing available" << std::endl;
+  }
   
 }
 
@@ -435,13 +437,11 @@ __host__ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& ar
   auto t4 = std::chrono::system_clock::now();
 
   CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
-  
-  // kt.t_sim_clean = t1-t0;
-  // kt.t_sim_A = t2-t1;
-  // kt.t_sim_ct = t3-t2;
-  // kt.t_sim_cp = t4-t3;
-
+  if (first) {
+    first = false;
+  } else {
   timing += kt;
+  }
   
   // pass result back
   args.ct = ct;
