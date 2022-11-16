@@ -7,14 +7,7 @@
 #include "Hit.h"
 #include "Rand4Hits.h"
 #include "Args.h"
-
-#ifdef USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#  include <Kokkos_Random.hpp>
-#  define __DEVICE__ KOKKOS_INLINE_FUNCTION
-#else
-#  define __DEVICE__ __device__
-#endif
+#include "HostDevDef.h"
 
 namespace CaloGpuGeneral_fnc {
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
