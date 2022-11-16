@@ -65,7 +65,7 @@ TH1D* EnergyParametrizationValidation::refill( TH1D* h_in, double min, double ma
         for ( int b = h_clone->FindBin( min ); b <= h_clone->FindBin( max ); b++ ) Nbins++;
         if ( Nbins < 120 && Nbins > 50 ) {
           h_in->Rebin( rebin );
-          cout << "*decide for rebin=" << rebin << "*" << endl;
+//          cout << "*decide for rebin=" << rebin << "*" << endl;
           break;
         }
         delete h_clone;
