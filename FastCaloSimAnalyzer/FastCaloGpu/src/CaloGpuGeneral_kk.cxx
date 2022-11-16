@@ -11,6 +11,9 @@
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
 
+static CaloGpuGeneral::KernelTime timing;
+static bool first{true};
+
 using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_kk {
@@ -235,12 +238,19 @@ namespace CaloGpuGeneral_kk {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
+    auto t0 = std::chrono::system_clock::now();
     simulate_clean( args );
-
+    Kokkos::fence();
+ 
+    auto t1 = std::chrono::system_clock::now();
     simulate_A( E, nhits, args );
-
+    Kokkos::fence();
+ 
+    auto t2 = std::chrono::system_clock::now();
     simulate_ct( args );
-
+    Kokkos::fence();
+ 
+    auto t3 = std::chrono::system_clock::now();
     Kokkos::View<int>             ctd( args.hitcells_ct );
     Kokkos::View<int>::HostMirror cth = Kokkos::create_mirror_view( ctd );
     Kokkos::deep_copy( cth, ctd );
@@ -248,10 +258,32 @@ namespace CaloGpuGeneral_kk {
     Kokkos::View<Cell_E*>                    cev( args.hitcells_E, cth() );
     Kokkos::View<Cell_E*, Kokkos::HostSpace> cevh( args.hitcells_E_h, cth() );
     Kokkos::deep_copy( cevh, cev );
-
+    Kokkos::fence();
+    
     // pass result back
     args.ct = cth();
-    //   args.hitcells_ct_h=hitcells_ct ;
+    auto t4 = std::chrono::system_clock::now();
+
+    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
+    if (first) {
+      first = false;
+    } else {
+      timing += kt;
+    }
+
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+  void Rand4Hits_finish( void* rd4h ) {
+    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+
+    if (timing.count > 0) {
+      std::cout << "kernel timing\n";
+      std::cout << timing;
+    } else {
+      std::cout << "no kernel timing available" << std::endl;
+    }
+  }
+
 
 } // namespace CaloGpuGeneral_kk

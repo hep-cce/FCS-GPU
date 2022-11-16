@@ -22,6 +22,9 @@
 #define M_PI 3.14159265358979323846
 #define M_2PI 6.28318530717958647692
 
+static CaloGpuGeneral::KernelTime timing;
+static bool first{true};
+
 using namespace CaloGpuGeneral_fnc;
 
 namespace CaloGpuGeneral_cu {
@@ -38,6 +41,8 @@ namespace CaloGpuGeneral_cu {
     }
   }
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
   __global__ void simulate_ct( Chain0_Args args ) {
 
     unsigned long tid = threadIdx.x + blockIdx.x * blockDim.x;
@@ -52,11 +57,15 @@ namespace CaloGpuGeneral_cu {
     }
   }
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
   __global__ void simulate_clean( Chain0_Args args ) {
     unsigned long tid = threadIdx.x + blockIdx.x * blockDim.x;
     if ( tid < args.ncells ) { args.cells_energy[tid] = 0.0; }
     if ( tid == 0 ) args.hitcells_ct[0] = 0;
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __host__ void simulate_A_cu( float E, int nhits, Chain0_Args& args ) {
     int blocksize   = BLOCK_SIZE;
@@ -64,6 +73,8 @@ namespace CaloGpuGeneral_cu {
     int nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __host__ void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
@@ -74,47 +85,57 @@ namespace CaloGpuGeneral_cu {
     int           threads_tot = args.ncells;
     int           nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
 
+    auto t0 = std::chrono::system_clock::now();
     simulate_clean<<<nblocks, blocksize>>>( args );
-    // 	cudaDeviceSynchronize() ;
-    // if (err != cudaSuccess) {
-    //       std::cout<< "simulate_clean "<<cudaGetErrorString(err)<< std::endl;
-    //}
-
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
+    
     blocksize   = BLOCK_SIZE;
     threads_tot = nhits;
     nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
 
-    //	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize
-    //               << ", total Threads: " << threads_tot << std::endl ;
-
-    //  int fh_size=args.fh2d_h.nbinsx+args.fh2d_h.nbinsy+2+(args.fh2d_h.nbinsx+1)*(args.fh2d_h.nbinsy+1) ;
-    // if(args.debug) std::cout<<"2DHisto_Func_size: " << args.fh2d_h.nbinsx << ", " << args.fh2d_h.nbinsy << "= " <<
-    // fh_size <<std::endl ;
-
+    auto t1 = std::chrono::system_clock::now();
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
-
-    //  cudaDeviceSynchronize() ;
-    //  err = cudaGetLastError();
-    // if (err != cudaSuccess) {
-    //        std::cout<< "simulate_A "<<cudaGetErrorString(err)<< std::endl;
-    //}
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
 
     nblocks = ( ncells + blocksize - 1 ) / blocksize;
+    auto t2 = std::chrono::system_clock::now();
     simulate_ct<<<nblocks, blocksize>>>( args );
-    //  cudaDeviceSynchronize() ;
-    // err = cudaGetLastError();
-    // if (err != cudaSuccess) {
-    //        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
-    //}
-
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
+    
     int ct;
+    auto t3 = std::chrono::system_clock::now();
     gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
-    // std::cout<< "ct="<<ct<<std::endl;
     gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
+    auto t4 = std::chrono::system_clock::now();
     // pass result back
     args.ct = ct;
-    //   args.hitcells_ct_h=hitcells_ct ;
+
+
+    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
+    if (first) {
+      first = false;
+    } else {
+      timing += kt;
+    }
+    
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+  __host__ void Rand4Hits_finish( void* rd4h ) {
+    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+
+    if (timing.count > 0) {
+      std::cout << "kernel timing\n";
+      std::cout << timing;
+    } else {
+      std::cout << "no kernel timing available" << std::endl;
+    }
+  }
+
 
 } // namespace CaloGpuGeneral_cu

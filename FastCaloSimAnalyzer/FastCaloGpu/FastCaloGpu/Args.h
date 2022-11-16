@@ -7,12 +7,63 @@
 
 #include "FH_structs.h"
 #include "GpuGeneral_structs.h"
+#include <chrono>
 
 #define MAXHITS 200000
 #define MAXBINS 1024
 #define MAXHITCT 2000
 
 class GeoGpu;
+
+namespace CaloGpuGeneral {
+  struct KernelTime {
+    std::chrono::duration<double> t_sim_clean{0};
+    std::chrono::duration<double> t_sim_A{0};
+    std::chrono::duration<double> t_sim_ct{0};
+    std::chrono::duration<double> t_sim_cp{0};
+    unsigned int                  count{0};
+    KernelTime() = default;
+    KernelTime( std::chrono::duration<double> t1, std::chrono::duration<double> t2, std::chrono::duration<double> t3,
+                std::chrono::duration<double> t4 )
+        : t_sim_clean( t1 ), t_sim_A( t2 ), t_sim_ct( t3 ), t_sim_cp( t4 ) {}
+    KernelTime& operator+=( const KernelTime& rhs ) {
+      t_sim_clean += rhs.t_sim_clean;
+      t_sim_A += rhs.t_sim_A;
+      t_sim_ct += rhs.t_sim_ct;
+      t_sim_cp += rhs.t_sim_cp;
+      count ++;
+      return *this;
+    }
+    
+    std::string print() const {
+      std::string out;
+      char buf[100];
+      sprintf(buf,"%12s %15s %15s\n","kernel","total /s","avg launch /us");
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_clean",this->t_sim_clean.count(),
+              this->t_sim_clean.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_A",this->t_sim_A.count(),
+              this->t_sim_A.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_ct",this->t_sim_ct.count(),
+              this->t_sim_ct.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15.8f %15.1f\n","sim_cp",this->t_sim_cp.count(),
+              this->t_sim_cp.count() * 1000000 /this->count);
+      out += buf;
+      sprintf(buf,"%12s %15d\n","launch count",this->count);
+      out += buf;
+      
+      return out;
+    }
+    
+    friend std::ostream& operator<< (std::ostream& ost, const KernelTime& k) {
+      return ost << k.print();
+    }
+    
+  };
+} // namespace CaloGpuGeneral
 
 typedef struct Chain0_Args {
 
