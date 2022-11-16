@@ -17,6 +17,12 @@ bool GeoLoadGpu::LoadGpu_kk() {
     return false;
   }
 
+  std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
+            << std::endl;
+  // std::ostringstream ost;
+  // Kokkos::print_configuration( ost );
+  // std::cout << ost.str() << std::endl;
+  
   // Allocate Device memory for cells and copy cells as array
   // move cells on host to a array first
   m_cells_vd = Kokkos::View<CaloDetDescrElement*>( "cells", m_ncells );
