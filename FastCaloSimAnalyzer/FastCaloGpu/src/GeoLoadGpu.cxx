@@ -18,7 +18,25 @@ bool GeoLoadGpu::LoadGpu_kk() {
   }
 
   std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
-            << std::endl;
+            << " device ";
+
+#ifdef KOKKOS_ENABLE_CUDA
+  cudaDeviceProp prop;
+  if ( cudaGetDeviceProperties( &prop, 0 ) == cudaSuccess ) {
+    std::cout << prop.name;
+  } else {
+    std::cout << "UNKNOWN";
+  }
+#elif defined (KOKKOS_ENABLE_HIP)
+  hipDeviceProp_t prop;
+  if (hipGetDeviceProperties( &prop, 0 ) == hipSuccess) {
+    std::cout << prop.name;
+  } else {
+    std::cout << "UNKOWN";
+  }
+#endif
+  std::cout << std::endl;
+
   // std::ostringstream ost;
   // Kokkos::print_configuration( ost );
   // std::cout << ost.str() << std::endl;
