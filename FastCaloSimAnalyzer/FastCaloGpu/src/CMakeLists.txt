@@ -4,14 +4,14 @@
 cmake_minimum_required( VERSION 3.10 )
 cmake_policy(SET CMP0074 NEW)
 
-# Set up the "modern" usage of CUDA with CMake.
-find_package(CUDA REQUIRED)
-enable_language( CUDA )
+# don't check for CUDA w/ Kokkos incase backend is something else
+if(NOT USE_KOKKOS)
+  # Set up the "modern" usage of CUDA with CMake.
+  find_package(CUDA REQUIRED)
+  enable_language( CUDA )
+endif()
 
-#Need to do other way.
-# set(CMAKE_CUDA_FLAGS "-arch=sm_75")
 # Sources
-
 if(USE_KOKKOS)
   set(FastCaloGpu_Srcs KokkosWrapper.cxx)
 else()
