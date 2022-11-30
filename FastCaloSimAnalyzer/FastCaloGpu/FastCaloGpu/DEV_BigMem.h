@@ -16,13 +16,13 @@ public:
   ~DEV_BigMem();
 
   void* dev_bm_alloc( size_t s ) {
-    std::cout << "BM alloc size " << s << std::endl;
     if ( s > ( m_seg_size - m_used[m_seg] ) ) add_seg();
     long* q      = (long*)m_ptrs[m_seg];
     int   offset = m_used[m_seg] / sizeof( long );
     void* p      = (void*)&( q[offset] );
     m_used[m_seg] += ( ( s + sizeof( long ) - 1 ) / sizeof( long ) ) * sizeof( long );
-    std::cout << "   used now " << m_used[m_seg] << " in seg " << m_seg << std::endl;
+    // std::cout << "BM alloc size " << s << "  total " << m_used[m_seg]
+    //           << " in seg " << m_seg << std::endl;
 
     return p;
   };

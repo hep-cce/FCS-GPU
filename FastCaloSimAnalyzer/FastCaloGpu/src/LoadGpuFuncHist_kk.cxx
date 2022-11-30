@@ -65,22 +65,7 @@ void LoadGpuFuncHist::LD2D() {
   Kokkos::View<FH2D, Kokkos::HostSpace> hfv( m_hf2d_h );
   Kokkos::deep_copy( m_hf2d_dv, hfv );
   m_hf2d_d = m_hf2d_dv.data();
-
-
-  std::cout << "LD2D -----\n";
-  FH2D_v ff = *m_hf2d_v;
-  Kokkos::parallel_for(
-                       1, KOKKOS_LAMBDA( int i ) {
-                         printf("%d %d",i,ff.nbinsx());
-                         for ( int j=0; j< ff.nbinsx(); ++j) {
-                           printf(" %f",ff.bordersx[j]);
-                           }
-                         printf("\n");  
-                         }
-                         );
-  Kokkos::fence();
   
-
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -103,34 +88,6 @@ void LoadGpuFuncHist::LD() {
   unsigned int* h_szs = m_hf->h_szs; // already allocateded on host ;
 
   DEV_BigMem* p = DEV_BigMem::bm_ptr;
-
-  //  std::cout << "DEV: " << p << p->size() << " " << p->used() << std::endl;
-  
-  //  unsigned int sz{0};
-  //  sz = hf_ptr->nhist * sizeof(float);
-
-
-  // Kokkos::View<int*, Kokkos::HostSpace> vh("test",10);
-  // for (int i=0; i<10; ++i) {
-  //     vh(i) = i;
-  //     std::cout << "--> vh " << i << ": " << vh(i) << std::endl;
-  // }
-  // void* bm = p->dev_bm_alloc( sizeof(int)*10 );
-  // std::cout << "bm: " << bm << " sz: " << p->size() << "  us: " << p->used() << std::endl;
-  // Kokkos::View<int*, KMTU> vd ( (int*) p->dev_bm_alloc( sizeof(int)*10), 10  );
-
-  // Kokkos::deep_copy(vd, vh);
-
-  // Kokkos::parallel_for( 10, KOKKOS_LAMBDA(int tid ) {
-  //    vd(tid) = vd(tid) + 100;
-  //    printf("  --> %d %d\n",tid,vd(tid));
-  //    } );
-
-  // Kokkos::View<int*, Kokkos::HostSpace> vh2("test2",10);
-  // Kokkos::deep_copy(vh2, vd);
-  // for (int i=0; i<10; ++i) {
-  //    std::cout << "===?> vh2 " << i << " " << vh2(i) << std::endl;
-  // }
 
   Kokkos::View<unsigned int, Kokkos::HostSpace> vnh(&hf_ptr->nhist);
   m_hf_v->nhist = Kokkos::View<unsigned int, KMTU>
@@ -174,11 +131,6 @@ void LoadGpuFuncHist::LD() {
   Kokkos::View<unsigned int*, Kokkos::HostSpace> sz( m_hf->h_szs, hf_ptr->nhist );
 
   Kokkos::deep_copy( m_hf_v->low_edge, le );
-
-  // Kokkos::View<float*> kv = m_hf_v->low_edge;
-  // Kokkos::parallel_for( hf_ptr->nhist+1, KOKKOS_LAMBDA(int tid ) {
-  //     printf("le: %d %f\n",tid,kv(tid));
-  //     } );
   
   Kokkos::deep_copy( m_hf_v->h_szs, sz );
 
@@ -206,20 +158,5 @@ void LoadGpuFuncHist::LD() {
   Kokkos::View<FHs, Kokkos::HostSpace> hfv( m_hf_h );    // wrap host ptr
   Kokkos::deep_copy( m_hf_dv, hfv );                     // copy to device
   m_hf_d = m_hf_dv.data();                               // ptr on device
-
-  Kokkos::View<FHs_v, Kokkos::HostSpace> hv( m_hf_v );
-  m_hfv_v = Kokkos::View<FHs_v>( "FHs_v on device" );
-  Kokkos::deep_copy(m_hfv_v, hv);
-  m_hf_v_d = m_hfv_v.data();
-
-
-  std::cout << "+++ LD() \n";
-  FHs_v ff = *m_hf_v;
-  Kokkos::parallel_for ( 1 , KOKKOS_LAMBDA(int bin) {
-     printf("%d %d\n",bin,ff.nhist());
-     }
-  );
-  Kokkos::fence();
-
 
 }

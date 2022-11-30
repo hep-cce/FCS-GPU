@@ -30,7 +30,7 @@ public:
 
 #ifdef USE_KOKKOS
   FHs_v*               hf_v()    const { return m_hf_v; }     // on device
-  Kokkos::View<FHs>    hf_dv()   const { return m_hf_dv; }      // on device
+  //  Kokkos::View<FHs>    hf_dv()   const { return m_hf_dv; }      // on device
   FH2D_v*              hf2d_v()  const { return m_hf2d_v; }
   Kokkos::View<FH2D>   hf2d_dv() const { return m_hf2d_dv; }
 #endif
@@ -54,7 +54,6 @@ private:
   FHs_v*            m_hf_v{0};    // on host with device ptrs
   FHs_v*            m_hf_v_d{0};  // on device
   Kokkos::View<FHs> m_hf_dv;      // on device
-  Kokkos::View<FHs_v> m_hfv_v;
 #endif
   
 };

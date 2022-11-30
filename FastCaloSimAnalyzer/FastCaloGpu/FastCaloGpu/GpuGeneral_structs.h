@@ -61,6 +61,5 @@ typedef struct HitParams {
   double extrapol_z_ext;
   float  extrapWeight;
   bool   cmw; // Do CellMapingWiggle or direct CellMapping
-  bool   bin_used {false};
 } HitParams;
 #endif

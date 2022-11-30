@@ -185,9 +185,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     htparams[n_simbins].extrapol_z_ext   = extrapol->z( cs, SUBPOS_EXT );
     htparams[n_simbins].cmw              = false;
 
-    htparams[n_simbins].bin_used         = true;
-    std::cout << "  =====> bin " << n_simbins << " used=true\n";
-
     ( *es ).n_simbins += 1;
     ( *es ).gpu = true;
 
@@ -298,8 +295,6 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
         htparams[n_simbins].f1d_v = ( (TFCSHitCellMappingWiggle*)hitsim )->LdFH()->hf_v();
 #  endif
         htparams[n_simbins].cmw = true;
-        std::cout << " htparams 1d: " << n_simbins << "  " << htparams[n_simbins].f1d
-                  << " " << htparams[n_simbins].f1d_v << std::endl;
       }
 
       ichn++;

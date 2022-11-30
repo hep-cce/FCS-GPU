@@ -20,8 +20,8 @@ bool GeoLoadGpu::LoadGpu_kk() {
     return false;
   }
 
-
-  std::cout << "Executing on device: FIXME" << std::endl;
+  std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
+            << " device ";
 
   num_cells = m_ncells;
 

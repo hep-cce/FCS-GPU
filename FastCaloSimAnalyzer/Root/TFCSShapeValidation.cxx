@@ -466,11 +466,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
           auto tg_s_B = std::chrono::system_clock::now();
           t_g_sim_B += tg_s_B - tg_s;
 
-          std::cout << "=----------> reset used bins. index: " << index << "\n";
-          for (int i=0; i<MAX_SIMBINS; ++i) {
-            hitparams[i].bin_used = false;
-          }
-
           
           for ( int isim = 0; isim < index; isim++ ) {
             TFCSSimulationState& sim = m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]];
