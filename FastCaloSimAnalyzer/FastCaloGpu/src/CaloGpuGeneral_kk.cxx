@@ -240,6 +240,7 @@ namespace CaloGpuGeneral_kk {
     Kokkos::View<int*>   hitcells_ct_v( args.ct, args.nsims );
     Kokkos::deep_copy( cellE_v, 0. );
     Kokkos::deep_copy( hitcells_ct_v, 0 );
+    Kokkos::fence();
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -312,7 +313,7 @@ namespace CaloGpuGeneral_kk {
           }
         } );
 
-
+    Kokkos::fence();
   }
   
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
