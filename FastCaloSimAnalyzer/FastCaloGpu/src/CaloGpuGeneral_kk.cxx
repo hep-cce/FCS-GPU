@@ -72,7 +72,7 @@ namespace CaloGpuGeneral_kk {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   
-  KOKKOS_INLINE_FUNCTION void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D_v fh2d_v ) {
+  KOKKOS_INLINE_FUNCTION void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, const FH2D_v& fh2d_v ) {
 
     int nbinsx = fh2d_v.nbinsx();
     int nbinsy = fh2d_v.nbinsy();
@@ -98,8 +98,8 @@ namespace CaloGpuGeneral_kk {
 
   KOKKOS_INLINE_FUNCTION void HistoLateralShapeParametrization_g_d( const HitParams hp, Hit& hit,
                                                                     unsigned long tid,
-                                                                    Sim_Args args,
-                                                                    FH2D_v fh2d_v,
+                                                                    const Sim_Args &args,
+                                                                    const FH2D_v& fh2d_v,
                                                                     Kokkos::View<float*> rand_v )
   
   {
@@ -199,7 +199,7 @@ namespace CaloGpuGeneral_kk {
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   KOKKOS_INLINE_FUNCTION void HitCellMappingWiggle_g_d( HitParams hp, Hit& hit, unsigned long t,
-                                                        Sim_Args args, FHs_v fhs_v ) {
+                                                        const Sim_Args& args, const FHs_v& fhs_v ) {
 
     
     int                  nhist        = fhs_v.nhist();
@@ -250,18 +250,18 @@ namespace CaloGpuGeneral_kk {
     auto                 maxhits = rd4h->get_t_a_hits();
     Kokkos::View<float*> rand_v( args.rand, 3 * maxhits );
 
-    FH2D_v a_f2d[100];
-    FHs_v  a_f1d[100];
-
-    // Need to do this to make the structs visibile to the labmda capture
+    Kokkos::View<FHs_v*, Kokkos::HostSpace> f1v ("FHS_v",args.nbins);
+    Kokkos::View<FH2D_v*, Kokkos::HostSpace> f2v ("FH2D_v", args.nbins);
     for (int i=0; i<args.nbins; ++i) {
-      a_f2d[i] = *(args.hitparams_h[i].f2d_v);
+      f2v(i) = *(args.hitparams_h[i].f2d_v);
       if (args.hitparams_h[i].cmw) {
-        a_f1d[i] = *(args.hitparams_h[i].f1d_v);
-      } else {
-        a_f1d[i] = FHs_v{};
-      }    
+        f1v(i) = *(args.hitparams_h[i].f1d_v);
+      }
     }
+    Kokkos::View<FHs_v*> f1d("FHS_v_d",args.nbins);
+    Kokkos::View<FH2D_v*> f2d("FH2D_v_d",args.nbins);
+    Kokkos::deep_copy(f1d,f1v);
+    Kokkos::deep_copy(f2d,f2v);
     
     Kokkos::parallel_for(
         args.nhits, KOKKOS_LAMBDA( long tid ) {
@@ -272,12 +272,15 @@ namespace CaloGpuGeneral_kk {
           hit.E() = hp.E;
           
           CenterPositionCalculation_g_d( hp, hit, tid, args );
-          HistoLateralShapeParametrization_g_d( hp, hit, tid, args, a_f2d[bin], rand_v );
-          if ( hp.cmw ) HitCellMappingWiggle_g_d( hp, hit, tid, args, a_f1d[bin] );
+          
+          HistoLateralShapeParametrization_g_d( hp, hit, tid, args, f2d(bin), rand_v );
+          if ( hp.cmw ) HitCellMappingWiggle_g_d( hp, hit, tid, args, f1d(bin) );
+          
           HitCellMapping_g_d( hp, hit, tid, args );
         } );
 
     Kokkos::fence();
+    std::cout << "done DE\n";
 
   }
 
