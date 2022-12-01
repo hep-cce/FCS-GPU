@@ -21,7 +21,7 @@ bool GeoLoadGpu::LoadGpu_kk() {
   }
 
   std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
-            << " device ";
+            << " device\n";
 
   num_cells = m_ncells;
 

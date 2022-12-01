@@ -6,13 +6,14 @@
 #define FH_VIEWS_H
 
 #include "FH_structs.h"
+#include "HostDevDef.h"
 #include <Kokkos_Core.hpp>
 
 typedef Kokkos::MemoryTraits<Kokkos::Unmanaged> KMTU;
 
 typedef struct FHs_v {
 
-  FHs_v(){};
+  __HOSTDEV__ FHs_v(){};
   FHs_v( FHs* f1_h, FHs* f1_d ) {
     s_MaxValue = Kokkos::View<uint32_t>( &f1_h->s_MaxValue );
     nhist      = Kokkos::View<unsigned int>( &f1_d->nhist );
@@ -49,7 +50,7 @@ typedef struct FHs_v {
 
 typedef struct FH2D_v {
 
-  FH2D_v(){};
+  __HOSTDEV__ FH2D_v(){};
   FH2D_v( FH2D *f2_h, FH2D *f2_d ) {
 
     nbinsx = Kokkos::View<int>( &f2_d->nbinsx );
