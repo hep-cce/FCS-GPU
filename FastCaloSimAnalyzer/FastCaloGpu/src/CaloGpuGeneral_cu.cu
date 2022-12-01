@@ -146,7 +146,7 @@ namespace CaloGpuGeneral_cu {
     // copy back to host
     auto t3 = std::chrono::system_clock::now();
     gpuQ( cudaMemcpy( args.ct_h, args.ct, args.nsims * sizeof( int ), cudaMemcpyDeviceToHost ) );
-    gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
+    gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * args.nsims * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
     auto t4 = std::chrono::system_clock::now();
 
