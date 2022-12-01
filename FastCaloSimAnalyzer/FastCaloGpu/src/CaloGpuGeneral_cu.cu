@@ -188,11 +188,6 @@ __host__ void load_hitsim_params( void* rd4h, HitParams* hp, long* simbins, int 
 
   gpuQ( cudaMemcpy( hp_g, hp, bins * sizeof( HitParams ), cudaMemcpyHostToDevice ) );
   gpuQ( cudaMemcpy( simbins_g, simbins, bins * sizeof( long ), cudaMemcpyHostToDevice ) );
-
-  printf("BINS: %d\n",bins);
-  for (int i=0; i<bins; ++i) {
-    printf("SIMB: %d %ld\n", i, simbins[i]);
-  }
   
 }
 

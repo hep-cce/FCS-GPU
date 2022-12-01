@@ -119,9 +119,7 @@ typedef struct Sim_Args {
   unsigned long ncells{0};
   unsigned int  maxhitct{0};
   float*        rand{nullptr};
-
-  bool          used_bin[MAX_SIMBINS];
-
+  
 } Sim_Args;
 
 #endif
