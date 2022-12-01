@@ -280,7 +280,6 @@ namespace CaloGpuGeneral_kk {
         } );
 
     Kokkos::fence();
-    std::cout << "done DE\n";
 
   }
 
@@ -337,13 +336,14 @@ namespace CaloGpuGeneral_kk {
     Kokkos::View<int*, Kokkos::HostSpace> cth( args.ct_h, args.nsims );
     Kokkos::deep_copy( cth, ctd );
 
-    Kokkos::View<Cell_E*>                    cev( args.hitcells_E, MAXHITCT*args.nsims );
+    Kokkos::View<Cell_E*>                    cev(  args.hitcells_E,   MAXHITCT*args.nsims );
     Kokkos::View<Cell_E*, Kokkos::HostSpace> cevh( args.hitcells_E_h, MAXHITCT*args.nsims );
     Kokkos::deep_copy( cevh, cev );
 
     auto t4 = std::chrono::system_clock::now();
     
 #ifdef DUMP_HITCELLS
+    std::cout << "========= Listing HitCells =========\n";
     std::cout << "nsim: " << args.nsims << "\n";
     for (int isim=0; isim<args.nsims; ++isim) {
       std::cout << "  nhit: " << args.ct_h[isim] << "\n";
@@ -357,6 +357,7 @@ namespace CaloGpuGeneral_kk {
         std::cout << "   " << isim << " " << i++ << "  cell: " << em.first << "  " << em.second << std::endl;
       }
     }
+    std::cout << "====================================\n";
 #endif
     
     if (first) {

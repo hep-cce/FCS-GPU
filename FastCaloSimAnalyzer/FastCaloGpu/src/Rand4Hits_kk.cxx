@@ -19,7 +19,7 @@ void Rand4Hits::allocate_simulation( int /*maxbins*/, int maxhitct, unsigned lon
   m_cell_e_v = Kokkos::View<Cell_E*>( "Cells", MAX_SIM * maxhitct );
   m_cell_e   = m_cell_e_v.data();
 
-  m_cell_e_h = new Cell_E[maxhitct];
+  m_cell_e_h = new Cell_E[MAX_SIM * maxhitct];
 
   m_simbins_v = Kokkos::View<long*>( "sim bins", MAX_SIMBINS );
   m_simbins   = m_simbins_v.data();
