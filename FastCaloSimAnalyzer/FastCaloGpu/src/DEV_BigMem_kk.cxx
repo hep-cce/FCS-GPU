@@ -33,7 +33,7 @@ void DEV_BigMem::add_seg() {
     std::cerr << "unable to allocate " << m_seg_size << " bytes for bigmem buffer\n";
     return;
   }
-  std::cout << "DEV_BM add_seg() " << m_seg << " " << p << std::endl;
+  // std::cout << "DEV_BM add_seg() " << m_seg << " " << p << std::endl;
   m_ptrs.push_back(p) ;
   m_seg++;
   m_used.push_back(0);

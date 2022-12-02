@@ -45,6 +45,12 @@ Rand4Hits::~Rand4Hits() {
   } else {
     delete (kok_randgen_t*)m_gen;
   }
+  if ( DEV_BigMem::bm_ptr ) {
+    std::cout << "BigMem allocated: " << DEV_BigMem::bm_ptr->size() 
+              << "  used: " << DEV_BigMem::bm_ptr->used()
+              << "  lost: " << DEV_BigMem::bm_ptr->lost() << std::endl;
+    delete DEV_BigMem::bm_ptr;
+  }
   delete m_cell_e_h;
 };
 

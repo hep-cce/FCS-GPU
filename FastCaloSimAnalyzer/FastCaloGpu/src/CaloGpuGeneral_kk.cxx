@@ -7,6 +7,7 @@
 #include "Rand4Hits.h"
 #include "FH_views.h"
 #include "Hit.h"
+#include "DEV_BigMem.h"
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
@@ -24,16 +25,18 @@ static CaloGpuGeneral::KernelTime timing;
 
 namespace CaloGpuGeneral_kk {
 
-  void Rand4Hits_finish( void* /*rd4h*/ ) {
+  void Rand4Hits_finish( void* rd4h ) {
 
-    // size_t free, total;
-    // gpuQ( cudaMemGetInfo( &free, &total ) );
-    // std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
-    //           << "  bm table allocate size(MB), used:  "
-    //           << DEV_BigMem::bm_ptr->size() / 1000000 << ", "
-    //           << DEV_BigMem::bm_ptr->used() / 1000000
-    //           << std::endl;
-    // //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+    size_t free{0}, total{0};
+    #ifdef KOKKOS_ENABLE_CUDA
+      cudaMemGetInfo( &free, &total );
+    #elif defined KOKKOS_ENABLE_HIP
+      auto err = hipMemGetInfo( &free, &total );
+    #endif
+    std::cout << "GPU memory used(MB): "
+              << ( total - free ) / 1000000
+              << std::endl;
+    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
     if (timing.count > 0) {
       std::cout << "kernel timing\n";

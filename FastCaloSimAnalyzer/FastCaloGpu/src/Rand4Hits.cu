@@ -70,7 +70,12 @@ Rand4Hits::~Rand4Hits() {
   deallocate();
 #else
   delete ( m_rnd_cpu );
-  if ( DEV_BigMem::bm_ptr ) delete DEV_BigMem::bm_ptr;
+  if ( DEV_BigMem::bm_ptr ) {
+    std::cout << "BigMem allocated: " << DEV_BigMem::bm_ptr->size() 
+              << "  used: " << DEV_BigMem::bm_ptr->used()
+              << "  lost: " << DEV_BigMem::bm_ptr->lost() << std::endl;
+    delete DEV_BigMem::bm_ptr;
+  }
 #endif
   
 #ifdef USE_STDPAR

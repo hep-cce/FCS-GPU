@@ -37,11 +37,8 @@ namespace CaloGpuGeneral_cu {
     size_t free, total;
     gpuQ( cudaMemGetInfo( &free, &total ) );
     std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
-              << "  bm table allocate size(MB), used:  "
-              << DEV_BigMem::bm_ptr->size() / 1000000 << ", "
-              << DEV_BigMem::bm_ptr->used() / 1000000
               << std::endl;
-    //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
     if (timing.count > 0) {
       std::cout << "kernel timing\n";
