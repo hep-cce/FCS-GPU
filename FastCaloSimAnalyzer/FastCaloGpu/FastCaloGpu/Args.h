@@ -46,6 +46,7 @@ namespace CaloGpuGeneral {
                
     
     std::string print() const {
+      // Ignore first and last timing entries
       double s_cl{0.}, s_A{0.}, s_ct{0.}, s_cp{0.};
       for ( size_t i=1; i<t_sim_clean.size()-1; ++i) {
         s_cl += t_sim_clean[i].count();
