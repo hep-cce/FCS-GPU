@@ -523,14 +523,27 @@ __host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   auto t3 = std::chrono::system_clock::now();
   gpuQ(hipMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), hipMemcpyDeviceToHost));
   
-  gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*MAX_SIM*sizeof(Cell_E), hipMemcpyDeviceToHost));
+  gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E, MAXHITCT*args.nsims*sizeof(Cell_E), hipMemcpyDeviceToHost));
   auto t4 = std::chrono::system_clock::now();
+
+#ifdef DUMP_HITCELLS
+    std::cout << "nsim: " << args.nsims << "\n";
+    for (int isim=0; isim<args.nsims; ++isim) {
+      std::cout << "  nhit: " << args.ct_h[isim] << "\n";
+      std::map<unsigned int,float> cm;
+      for (int ihit=0; ihit<args.ct_h[isim]; ++ihit) {
+        cm[args.hitcells_E_h[ihit+isim*MAXHITCT].cellid] = args.hitcells_E_h[ihit+isim*MAXHITCT].energy;
+      }
+
+      int i=0;
+      for (auto &em: cm) {
+        std::cout << "   " << isim << " " << i++ << "  cell: " << em.first << "  " << em.second << std::endl;
+      }
+    }
+#endif
+
   
-  // if (first) {
-  //   first = false;
-  // } else {
     timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
-  // }
   
   //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
   //     gpuQ(hipMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT], args.ct_h[isim]*sizeof(Cell_E), hipMemcpyDeviceToHost));
