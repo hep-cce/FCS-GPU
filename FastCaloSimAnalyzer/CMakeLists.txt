@@ -1,6 +1,7 @@
 # Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 
-cmake_minimum_required(VERSION 3.8 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
+cmake_policy(SET CMP0074 NEW)
 
 # Add additional CMake macros and definitions
 set(CMAKE_MODULE_PATH
@@ -11,6 +12,7 @@ set(CMAKE_MODULE_PATH
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
+set(RNDGEN_CPU OFF CACHE BOOL "Generate Random Numbers on CPU")
 
 include(FastCaloSim)
 include(XRootD)
