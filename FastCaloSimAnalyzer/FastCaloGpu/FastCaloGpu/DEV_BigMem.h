@@ -16,6 +16,9 @@ public:
   ~DEV_BigMem();
 
   void* dev_bm_alloc( size_t s ) {
+    constexpr size_t ALIGN = 128;
+    size_t pad = (ALIGN - s % ALIGN) % ALIGN;
+    s += pad;
     if ( s > ( m_seg_size - m_used[m_seg] ) ) add_seg();
     long* q      = (long*)m_ptrs[m_seg];
     int   offset = m_used[m_seg] / sizeof( long );
