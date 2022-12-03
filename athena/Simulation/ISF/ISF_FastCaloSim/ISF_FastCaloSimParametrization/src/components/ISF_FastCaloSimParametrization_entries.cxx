@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "GaudiKernel/DeclareFactoryEntries.h"
 #include "ISF_FastCaloSimParametrization/FastCaloSimParamAlg.h"
 #include "ISF_FastCaloSimParametrization/ISF_HitAnalysis.h"

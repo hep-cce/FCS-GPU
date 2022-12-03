@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #ifndef TFCS1DFunctionFactory_h
 #define TFCS1DFunctionFactory_h
 

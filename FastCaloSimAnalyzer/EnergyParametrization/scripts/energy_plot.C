@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 void energy_plot();
 void get_energy(int,double &energy_val_g4, double &energy_val_fast, double &energy_rms_g4, double &energy_rms_fast);
 void get_totalEhisto(int,TH1D* h_input, TH1D* h_output);

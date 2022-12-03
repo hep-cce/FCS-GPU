@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "TH1D.h"
 #include "TFile.h"
 #include "TROOT.h"

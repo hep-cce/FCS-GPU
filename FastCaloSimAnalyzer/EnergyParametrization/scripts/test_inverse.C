@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 TH1D* get_cumul(TH1D*);
 double get_inverse1(double rnd);
 double get_inverse2(double rnd);

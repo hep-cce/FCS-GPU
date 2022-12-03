@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "TROOT.h"
 
 void runZVertexStudies(int dsid,int dsid_zv0,bool do2Dparameterization,bool isPhisymmetry,bool doMeanRz,bool useMeanRz,bool doZVertexStudies) {

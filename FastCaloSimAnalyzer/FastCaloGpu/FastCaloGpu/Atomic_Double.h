@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #ifndef  ATOMIC_DOUBLE
 #define ATOMIC_DOUBLE
 #if !defined(__CUDA_ARCH__) || __CUDA_ARCH__ >= 600
