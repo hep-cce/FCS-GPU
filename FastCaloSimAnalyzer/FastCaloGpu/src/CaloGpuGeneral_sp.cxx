@@ -195,7 +195,7 @@ namespace CaloGpuGeneral_stdpar {
     // for (int i=0; i<args.nsims; ++i) {
     //   args.ct_h[i] = args.ct[i];
     // }
-    std::memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ));
+    std::memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * args.nsims * sizeof( Cell_E ));
     if (!first) nvtxRangeEnd(r);
     
     auto t4 = std::chrono::system_clock::now();
