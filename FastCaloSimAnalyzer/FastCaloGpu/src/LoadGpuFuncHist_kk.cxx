@@ -91,21 +91,21 @@ void LoadGpuFuncHist::LD() {
 
   Kokkos::View<unsigned int, Kokkos::HostSpace> vnh(&hf_ptr->nhist);
   m_hf_v->nhist = Kokkos::View<unsigned int, KMTU>
-     ( (unsigned int*) p->dev_bm_alloc( sizeof(unsigned int) ), 1 );
+     ( p->dev_bm_alloc<unsigned int>( 1 ), 1 );
   Kokkos::deep_copy(m_hf_v->nhist, vnh);
 
   Kokkos::View<uint32_t, Kokkos::HostSpace> vmx( &hf_ptr->s_MaxValue );
-  m_hf_v->s_MaxValue = Kokkos::View<uint32_t, KMTU> (
-     (uint32_t*) p->dev_bm_alloc( sizeof(uint32_t) ), 1);
+  m_hf_v->s_MaxValue = Kokkos::View<uint32_t, KMTU> 
+          ( p->dev_bm_alloc<uint32_t>( 1 ), 1);
   Kokkos::deep_copy(m_hf_v->s_MaxValue, vmx);
 
   
   m_hf_v->low_edge = Kokkos::View<float*, KMTU >
-    ( (float*) p->dev_bm_alloc( (hf_ptr->nhist+1)*sizeof(float)),
+    ( p->dev_bm_alloc<float>( hf_ptr->nhist+1 ),
       hf_ptr->nhist+1 );
   
   m_hf_v->h_szs = Kokkos::View<unsigned int*, KMTU >
-    ( (unsigned int*) p->dev_bm_alloc( (hf_ptr->nhist)*sizeof(unsigned int)),
+    ( p->dev_bm_alloc<unsigned int>( hf_ptr->nhist ),
       hf_ptr->nhist );
 
   unsigned int mxsz{0};
@@ -118,12 +118,12 @@ void LoadGpuFuncHist::LD() {
   m_hf_v->max_sz = mxsz;
   
   m_hf_v->d_contents1D = Kokkos::View<uint32_t*, KMTU >
-    ( (uint32_t*) p->dev_bm_alloc( (hf_ptr->nhist)*mxsz*sizeof(uint32_t) ),
+    ( p->dev_bm_alloc<uint32_t>( (hf_ptr->nhist)*mxsz ),
       hf_ptr->nhist * mxsz );
 
 
   m_hf_v->d_borders1D = Kokkos::View<float*, KMTU >
-    ( (float*) p->dev_bm_alloc( (hf_ptr->nhist)*mxsz*sizeof(float) ),
+    ( p->dev_bm_alloc<float>( (hf_ptr->nhist)*mxsz ),
       hf_ptr->nhist * mxsz );
 
 

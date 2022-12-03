@@ -35,9 +35,9 @@ void LoadGpuFuncHist::LD2D() {
 
   DEV_BigMem* p = DEV_BigMem::bm_ptr;
 
-  hf.h_bordersx = (float*)( p->dev_bm_alloc( ( hf.nbinsx + 1 ) * sizeof( float ) ) );
-  hf.h_bordersy = (float*)( p->dev_bm_alloc( ( hf.nbinsy + 1 ) * sizeof( float ) ) );
-  hf.h_contents = (float*)( p->dev_bm_alloc( hf.nbinsy * hf.nbinsx * sizeof( float ) ) );
+  hf.h_bordersx = p->dev_bm_alloc<float>( ( hf.nbinsx + 1 ) );
+  hf.h_bordersy = p->dev_bm_alloc<float>( ( hf.nbinsy + 1 ) );
+  hf.h_contents = p->dev_bm_alloc<float>( hf.nbinsy * hf.nbinsx );
 
   gpuQ( cudaMemcpy( hf.h_bordersx, ( *m_hf2d ).h_bordersx, ( hf.nbinsx + 1 ) * sizeof( float ),
                     cudaMemcpyHostToDevice ) );
@@ -49,7 +49,7 @@ void LoadGpuFuncHist::LD2D() {
   *( hf_ptr ) = hf;
   m_hf2d_h    = hf_ptr;
 
-  m_hf2d_d = (FH2D*)( p->dev_bm_alloc( sizeof( FH2D ) ) );
+  m_hf2d_d = p->dev_bm_alloc<FH2D>( 1 );
   gpuQ( cudaMemcpy( m_hf2d_d, m_hf2d_h, sizeof( FH2D ), cudaMemcpyHostToDevice ) );
 }
 
@@ -71,22 +71,22 @@ void LoadGpuFuncHist::LD() {
 
   DEV_BigMem* p = DEV_BigMem::bm_ptr;
 
-  hf.low_edge = (float*)( p->dev_bm_alloc( ( hf.nhist + 1 ) * sizeof( float ) ) );
+  hf.low_edge = p->dev_bm_alloc<float>( ( hf.nhist + 1 ) );
   gpuQ( cudaMemcpy( hf.low_edge, ( *m_hf ).low_edge, ( hf.nhist + 1 ) * sizeof( float ), cudaMemcpyHostToDevice ) );
 
-  hf.h_szs = (unsigned int*)( p->dev_bm_alloc( hf.nhist * sizeof( float ) ) );
+  hf.h_szs = p->dev_bm_alloc<unsigned int>( hf.nhist );
   gpuQ( cudaMemcpy( hf.h_szs, ( *m_hf ).h_szs, hf.nhist * sizeof( unsigned int ), cudaMemcpyHostToDevice ) );
 
-  hf.h_contents = (uint32_t**)( p->dev_bm_alloc( hf.nhist * sizeof( uint32_t* ) ) );
-  hf.h_borders  = (float**)( p->dev_bm_alloc( hf.nhist * sizeof( float* ) ) );
+  hf.h_contents = p->dev_bm_alloc<uint32_t*>( hf.nhist );
+  hf.h_borders  = p->dev_bm_alloc<float*>( hf.nhist );
 
   uint32_t** contents_ptr = (uint32_t**)malloc( hf.nhist * sizeof( uint32_t* ) );
   float**    borders_ptr  = (float**)malloc( hf.nhist * sizeof( float* ) );
 
   for ( unsigned int i = 0; i < hf.nhist; ++i ) {
 
-    contents_ptr[i] = (uint32_t*)( p->dev_bm_alloc( h_szs[i] * sizeof( uint32_t ) ) );
-    borders_ptr[i]  = (float*)( p->dev_bm_alloc( ( h_szs[i] + 1 ) * sizeof( float ) ) );
+    contents_ptr[i] = p->dev_bm_alloc<uint32_t>( h_szs[i] );
+    borders_ptr[i]  = p->dev_bm_alloc<float>( ( h_szs[i] + 1 ) );
 
     gpuQ(
         cudaMemcpy( contents_ptr[i], ( *m_hf ).h_contents[i], h_szs[i] * sizeof( uint32_t ), cudaMemcpyHostToDevice ) );
@@ -103,7 +103,7 @@ void LoadGpuFuncHist::LD() {
   gpuQ( cudaMemcpy( hf.h_contents, contents_ptr, hf.nhist * sizeof( uint32_t* ), cudaMemcpyHostToDevice ) );
   gpuQ( cudaMemcpy( hf.h_borders, borders_ptr, hf.nhist * sizeof( float* ), cudaMemcpyHostToDevice ) );
 
-  m_hf_d = (FHs*)( p->dev_bm_alloc( sizeof( FHs ) ) );
+  m_hf_d = p->dev_bm_alloc<FHs>( 1 );
   gpuQ( cudaMemcpy( m_hf_d, &hf, sizeof( FHs ), cudaMemcpyHostToDevice ) );
 
   free( contents_ptr );

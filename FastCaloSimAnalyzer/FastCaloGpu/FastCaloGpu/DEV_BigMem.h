@@ -15,7 +15,9 @@ public:
   DEV_BigMem( size_t s );
   ~DEV_BigMem();
 
-  void* dev_bm_alloc( size_t s ) {
+  template <typename T>
+  T* dev_bm_alloc( size_t s ) {
+    s = s*sizeof(T);
     constexpr size_t ALIGN = 128;
     size_t pad = (ALIGN - s % ALIGN) % ALIGN;
     s += pad;
@@ -26,7 +28,7 @@ public:
     void* p      = (void*)&( q[offset] );
     m_used[m_seg] += ( ( s + sizeof( long ) - 1 ) / sizeof( long ) ) * sizeof( long );
 
-    return p;
+    return (T*) p;
   };
 
   size_t size() const { return ( m_seg + 1 ) * m_seg_size; };
