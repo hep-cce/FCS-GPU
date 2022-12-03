@@ -21,7 +21,22 @@ bool GeoLoadGpu::LoadGpu_kk() {
   }
 
   std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
-            << " device\n";
+            << " device ";
+  std::string devname{"UNKNOWN"};
+#ifdef KOKKOS_ENABLE_CUDA
+  cudaDeviceProp prop;
+  cudaGetDeviceProperties( &prop, 0 );
+  devname = prop.name;
+#elif defined KOKKOS_ENABLE_HIP
+  hipDeviceProp_t prop;
+  auto err = hipGetDeviceProperties( &prop, 0 );
+  devname = prop.name;
+  if (devname == "") {
+    devname = "AMD " + std::to_string(prop.gcnArch);
+  }
+#endif
+  std::cout << devname << std::endl;
+
 
   num_cells = m_ncells;
 
