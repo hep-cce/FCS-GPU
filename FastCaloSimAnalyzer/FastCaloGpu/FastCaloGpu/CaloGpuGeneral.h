@@ -10,12 +10,12 @@
 
 namespace CaloGpuGeneral {
 
-  void* Rand4Hits_init( long long, int, unsigned long long, bool );
-  void  Rand4Hits_finish( void* );
+void *Rand4Hits_init(long long, int, unsigned long long, bool);
+void Rand4Hits_finish(void *);
 
-  void load_hitsim_params( void*, HitParams*, long*, int );
+void load_hitsim_params(void *, HitParams *, long *, int);
 
-  void simulate_hits_gr( Sim_Args& );
+void simulate_hits_gr(Sim_Args &);
 
 } // namespace CaloGpuGeneral
 #endif

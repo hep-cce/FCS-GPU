@@ -8,12 +8,11 @@
 #ifndef ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
 #define ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
 
-
 #include "Identifier_g.h"
 
 class CaloDetDescrElement {
- public:
-__HOSTDEV__  CaloDetDescrElement() {
+public:
+  __HOSTDEV__ CaloDetDescrElement() {
     m_identify = 0;
     m_hash_id = 0;
     m_calosample = 0;
@@ -39,74 +38,74 @@ __HOSTDEV__  CaloDetDescrElement() {
 
   /** @brief virtual destructor
    */
-__HOSTDEV__    virtual ~CaloDetDescrElement() {};
+  __HOSTDEV__ virtual ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */
-__HOSTDEV__    float eta() const;
+  __HOSTDEV__ float eta() const;
   /** @brief cell phi
    */
-__HOSTDEV__    float phi() const;
+  __HOSTDEV__ float phi() const;
   /** @brief cell r
    */
-__HOSTDEV__    float r() const;
+  __HOSTDEV__ float r() const;
   /** @brief cell eta_raw
    */
-__HOSTDEV__    float eta_raw() const;
+  __HOSTDEV__ float eta_raw() const;
   /** @brief cell phi_raw
    */
-__HOSTDEV__    float phi_raw() const;
+  __HOSTDEV__ float phi_raw() const;
   /** @brief cell r_raw
    */
-__HOSTDEV__    float r_raw() const;
+  __HOSTDEV__ float r_raw() const;
   /** @brief cell dphi
    */
-__HOSTDEV__    float dphi() const;
+  __HOSTDEV__ float dphi() const;
   /** @brief cell deta
    */
-__HOSTDEV__    float deta() const;
+  __HOSTDEV__ float deta() const;
   /** @brief cell dr
    */
-__HOSTDEV__    float dr() const;
+  __HOSTDEV__ float dr() const;
 
   /** @brief cell x
    */
-__HOSTDEV__    float x() const;
+  __HOSTDEV__ float x() const;
   /** @brief cell y
    */
-__HOSTDEV__    float y() const;
+  __HOSTDEV__ float y() const;
   /** @brief cell z
    */
-__HOSTDEV__    float z() const;
+  __HOSTDEV__ float z() const;
   /** @brief cell x_raw
    */
-__HOSTDEV__    float x_raw() const;
+  __HOSTDEV__ float x_raw() const;
   /** @brief cell y_raw
    */
-__HOSTDEV__    float y_raw() const;
+  __HOSTDEV__ float y_raw() const;
   /** @brief cell z_raw
    */
-__HOSTDEV__    float z_raw() const;
+  __HOSTDEV__ float z_raw() const;
   /** @brief cell dx
    */
-__HOSTDEV__    float dx() const;
+  __HOSTDEV__ float dx() const;
   /** @brief cell dy
    */
-__HOSTDEV__    float dy() const;
+  __HOSTDEV__ float dy() const;
   /** @brief cell dz
    */
-__HOSTDEV__    float dz() const;
+  __HOSTDEV__ float dz() const;
 
   /** @brief cell identifier
    */
-__HOSTDEV__    Identifier identify() const;
+  __HOSTDEV__ Identifier identify() const;
 
-__HOSTDEV__    unsigned long long calo_hash() const;
+  __HOSTDEV__ unsigned long long calo_hash() const;
 
-__HOSTDEV__    int getSampling() const ;
+  __HOSTDEV__ int getSampling() const;
 
- //ACH protected:
- //
+  // ACH protected:
+  //
   long long m_identify;
   long long m_hash_id;
 
@@ -119,11 +118,11 @@ __HOSTDEV__    int getSampling() const ;
    */
   float m_phi;
 
- /** @brief this one is cached for algorithm working in transverse Energy
-    */
+  /** @brief this one is cached for algorithm working in transverse Energy
+     */
   float m_sinTh;
-   /** @brief this one is cached for algorithm working in transverse Energy
-   */
+  /** @brief this one is cached for algorithm working in transverse Energy
+  */
   float m_cosTh;
 
   /** @brief cylindric coordinates : delta eta
@@ -189,33 +188,53 @@ __HOSTDEV__    int getSampling() const ;
   /** @brief cartesian coordinates : delta Z
    */
   float m_dz;
-
 };
 
 __HOSTDEV__ __INLINE__ Identifier CaloDetDescrElement::identify() const {
-	Identifier id((unsigned long long) m_identify);
-	return id;
+  Identifier id((unsigned long long)m_identify);
+  return id;
 }
 
-__HOSTDEV__ __INLINE__ unsigned long long CaloDetDescrElement::calo_hash() const { return m_hash_id; }
+__HOSTDEV__ __INLINE__ unsigned long long
+CaloDetDescrElement::calo_hash() const {
+  return m_hash_id;
+}
 
-__HOSTDEV__ __INLINE__ int   CaloDetDescrElement::getSampling() const { return m_calosample; }
+__HOSTDEV__ __INLINE__ int CaloDetDescrElement::getSampling() const {
+  return m_calosample;
+}
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::eta() const { return m_eta; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::phi() const { return m_phi; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::r() const { return m_r; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::eta_raw() const { return m_eta_raw; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::phi_raw() const { return m_phi_raw; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::r_raw() const { return m_r_raw; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::deta() const { return m_deta; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::dphi() const { return m_dphi; }
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::eta_raw() const {
+  return m_eta_raw;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::phi_raw() const {
+  return m_phi_raw;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::r_raw() const {
+  return m_r_raw;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::deta() const {
+  return m_deta;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::dphi() const {
+  return m_dphi;
+}
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::dr() const { return m_dr; }
 
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::x() const { return m_x; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::y() const { return m_y; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::z() const { return m_z; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::x_raw() const { return m_x_raw; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::y_raw() const { return m_y_raw; }
-__HOSTDEV__ __INLINE__ float CaloDetDescrElement::z_raw() const { return m_z_raw; }
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::x_raw() const {
+  return m_x_raw;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::y_raw() const {
+  return m_y_raw;
+}
+__HOSTDEV__ __INLINE__ float CaloDetDescrElement::z_raw() const {
+  return m_z_raw;
+}
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::dx() const { return m_dx; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::dy() const { return m_dy; }
 __HOSTDEV__ __INLINE__ float CaloDetDescrElement::dz() const { return m_dz; }
