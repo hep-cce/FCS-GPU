@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 struct counting_iterator {
 
   typedef size_t Index_t;

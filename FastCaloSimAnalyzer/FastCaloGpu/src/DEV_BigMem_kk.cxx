@@ -1,3 +1,7 @@
+/*
+  Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
+*/
+
 #include "DEV_BigMem.h"
 #include <vector>
 #include <Kokkos_Core.hpp>
