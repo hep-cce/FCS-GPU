@@ -38,7 +38,7 @@ public:
 
   /** @brief virtual destructor
    */
-  __HOSTDEV__ virtual ~CaloDetDescrElement() {};
+  __HOSTDEV__  ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */

@@ -6,6 +6,7 @@
 #define FH_STRUCT_H
 
 typedef struct FHs {
+  ~FHs(){};
   uint32_t s_MaxValue{ 0 };
   float *low_edge{ nullptr };
   unsigned int nhist{ 0 };
@@ -18,6 +19,7 @@ typedef struct FHs {
 } FHs;
 
 typedef struct FH2D {
+  ~FH2D(){};
   int nbinsx{ 0 };
   int nbinsy{ 0 };
   float *h_bordersx{ nullptr };

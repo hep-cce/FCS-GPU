@@ -33,11 +33,13 @@
 #endif
 
 typedef struct Cell_E {
+  ~Cell_E(){};
   unsigned long cellid;
   float energy;
 } Cell_E;
 
 typedef struct HitParams {
+  ~HitParams(){};
   int index; // simulate index for gpu simulation
   int cs;
   float E;

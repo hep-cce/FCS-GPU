@@ -288,8 +288,8 @@ __DEVICE__ void HitCellMapping_g_d(HitParams hp, Hit &hit, unsigned long /*t*/,
   long long cellele = getDDE(args.geo, hp.cs, hit.eta(), hit.phi());
 
   if (cellele < 0) {
-    printf("HitCellMapping_g_d: cellele not found  eta: %f  phi: %f\n",
-           hit.eta(), hit.phi());
+//    printf("HitCellMapping_g_d: cellele not found  eta: %f  phi: %f\n",
+//           hit.eta(), hit.phi());
     return;
   }
 
