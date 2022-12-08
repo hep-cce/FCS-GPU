@@ -80,6 +80,8 @@ void Rand4Hits::create_gen(unsigned long long seed, size_t num, bool useCPU) {
   m_useCPU = useCPU;
 
   if (m_useCPU) {
+    m_rnd_cpu = new std::vector<float>;
+    m_rnd_cpu->resize(num);
     createCPUGen(seed);
     genCPU(num);
     Kokkos::View<float *, Kokkos::HostSpace> rhst(m_rnd_cpu->data(), num);
