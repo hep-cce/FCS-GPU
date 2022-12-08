@@ -18,7 +18,7 @@ bool GeoLoadGpu::LoadGpu_kk() {
   }
 
   std::cout << "Executing on Kokkos: " << Kokkos::DefaultExecutionSpace().name()
-            << " device ";
+            << " device\n";
 
 #ifdef KOKKOS_ENABLE_CUDA
   cudaDeviceProp prop;
