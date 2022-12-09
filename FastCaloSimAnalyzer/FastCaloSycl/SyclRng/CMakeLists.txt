@@ -12,7 +12,8 @@ elseif (SYCL_RNG_GPU)
   set(MKL_RNG_LIB onemkl)
 endif()
 
-set(LINK_LIBS onemkl)
+#set(LINK_LIBS onemkl)
+set(LINK_LIBS OpenCL)
 
 target_sources(
   SyclRng
@@ -30,6 +31,9 @@ target_link_libraries(
   SyclRng
   PRIVATE SyclCommon
           ${LINK_LIBS})
+
+target_link_options(
+  SyclRng PRIVATE -lsycl -qmkl )
 
 install(TARGETS SyclRng
   DESTINATION ${CMAKE_INSTALL_LIBDIR})
