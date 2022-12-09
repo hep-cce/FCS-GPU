@@ -7,7 +7,7 @@
 #ifndef FASTCALOSYCL_SYCLCOMMON_HISTO_H_
 #define FASTCALOSYCL_SYCLCOMMON_HISTO_H_
 #define HIPSYCL_EXT_FP_ATOMICS
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace fastcalosycl::syclcommon {
 
@@ -44,7 +44,7 @@ struct Histo2DFunction {
 class Histo {
  public:
   Histo();
-  Histo(cl::sycl::context* ctx);
+  Histo(sycl::context* ctx);
   ~Histo();
 
   bool Init();
@@ -70,7 +70,7 @@ class Histo {
   void RandomToH2DF(float& val_x, float& val_y, float rand_x,
                                   float rand_y);
 
-  inline cl::sycl::queue GetDeviceQueue() { return queue_; }
+  inline sycl::queue GetDeviceQueue() { return queue_; }
 
   void set_h1df(Histo1DFunction* h1df);
   void set_h1df_dev(Histo1DFunction* h1df);
@@ -87,7 +87,7 @@ class Histo {
   unsigned int FindIndexH2DF(float* contents, unsigned int size,
                                            float rand_x);
   bool is_initialized_;
-  cl::sycl::async_handler exception_handler;
+  sycl::async_handler exception_handler;
   Histo1DFunction h1df_;  // Cached histograms; copied to 1D function device
   Histo1DFunction* h1df_ptr_;  // Pointer to host-side function histograms
   Histo1DFunction* h1df_dev_;  // Pointer to device-side 1D function histograms
@@ -95,9 +95,9 @@ class Histo {
   Histo2DFunction* h2df_ptr_;  // Pointer to a host-side 2D function histograms
   Histo2DFunction* h2df_dev_;  // Pointer to a device-side 2D function histogram
 
-  cl::sycl::device device_;
-  cl::sycl::queue queue_;   // SYCL queue; needed for context
-  cl::sycl::context* ctx_;  // SYCL device context; needed for freeing memory in
+  sycl::device device_;
+  sycl::queue queue_;   // SYCL queue; needed for context
+  sycl::context* ctx_;  // SYCL device context; needed for freeing memory in
                             // the destructor
 };
 
