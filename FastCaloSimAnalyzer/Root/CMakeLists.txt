@@ -40,7 +40,6 @@ root_generate_dictionary(
 message(STATUS "Creating library target '${FastCaloSimAnalyzer_LIB}'")
 add_library(${FastCaloSimAnalyzer_LIB} SHARED ${FastCaloSimAnalyzer_Srcs} ${FastCaloSimAnalyzer_LIB}Dict.cxx)
 target_compile_definitions(${FastCaloSimAnalyzer_LIB} PRIVATE ${FCS_CommonDefinitions})
-target_compile_options(${FastCaloSimAnalyzer_LIB} PRIVATE -fsycl )
 target_link_libraries(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB} ROOT::Core ROOT::Graf ROOT::Tree ROOT::TMVA)
 
 if(ENABLE_XROOTD)
@@ -59,6 +58,9 @@ elseif(ENABLE_SYCL)
   # set(CMAKE_C_COMPILER "clang")
   # set(CMAKE_CXX_COMPILER "clang++")
   # set(CMAKE_CXX_FLAGS "-g -O2 -fsycl -Wno-unknown-cuda-version -fno-sycl-early-optimizations")
+  target_compile_options(${FastCaloSimAnalyzer_LIB} PRIVATE -fsycl )
+  target_link_options(${FastCaloSimAnalyzer_LIB} PRIVATE -fsycl )
+  
   fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloSycl_LIB})
   fcs_add_dependency(${FastCaloSimAnalyzer_LIB} SyclRng)
   fcs_add_dependency(${FastCaloSimAnalyzer_LIB} SyclGeo)
