@@ -40,12 +40,15 @@ root_generate_dictionary(
 message(STATUS "Creating library target '${FastCaloSimAnalyzer_LIB}'")
 add_library(${FastCaloSimAnalyzer_LIB} SHARED ${FastCaloSimAnalyzer_Srcs} ${FastCaloSimAnalyzer_LIB}Dict.cxx)
 target_compile_definitions(${FastCaloSimAnalyzer_LIB} PRIVATE ${FCS_CommonDefinitions})
+target_compile_options(${FastCaloSimAnalyzer_LIB} PRIVATE -fsycl )
 target_link_libraries(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB} ROOT::Core ROOT::Graf ROOT::Tree ROOT::TMVA)
 
 if(ENABLE_XROOTD)
   target_include_directories(${FastCaloSimAnalyzer_LIB} PRIVATE ${XROOTD_INCLUDE_DIR})
   target_link_libraries(${FastCaloSimAnalyzer_LIB} ${XROOTD_LIBRARIES})
 endif()
+
+target_link_libraries(${FastCaloSimAnalyzer_LIB} sycl)
 
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${FastCaloSimCommon_LIB})
 fcs_add_dependency(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB})
