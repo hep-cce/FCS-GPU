@@ -2,11 +2,12 @@
   Copyright (C) 2002-2018 CERN for the benefit of the ATLAS collaboration
 */
 
-using namespace std;
 #include "ISF_FastCaloSimEvent/TFCS1DFunctionHistogram.h"
 #include "TMath.h"
 #include "TFile.h"
 #include <iostream>
+#include <vector>
+using namespace std;
 
 //=============================================
 //======= TFCS1DFunctionHistogram =========

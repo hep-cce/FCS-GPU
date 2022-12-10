@@ -2,7 +2,6 @@
   Copyright (C) 2002-2017 CERN for the benefit of the ATLAS collaboration
 */
 
-using namespace std;
 #include "ISF_FastCaloSimEvent/TFCS1DFunctionRegressionTF.h"
 #include "TFile.h"
 #include "TString.h"

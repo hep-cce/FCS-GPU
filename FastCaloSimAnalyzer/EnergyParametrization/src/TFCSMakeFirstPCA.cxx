@@ -1,4 +1,3 @@
-using namespace std;
 
 #include "TMatrixD.h"
 #include "TVectorD.h"
@@ -21,6 +20,7 @@ using namespace std;
 #include <CLHEP/Random/RandFlat.h>
 
 #include <iostream>
+using namespace std;
 
 #define LAYERMAX 24
 

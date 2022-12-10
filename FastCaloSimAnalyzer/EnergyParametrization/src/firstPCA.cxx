@@ -1,4 +1,3 @@
-using namespace std;
 
 #include "TMatrixD.h"
 #include "TVectorD.h"
@@ -19,6 +18,8 @@ using namespace std;
 #include "TChain.h"
 
 #include <iostream>
+using namespace std;
+
 
 firstPCA::firstPCA() {
   // default parameters:

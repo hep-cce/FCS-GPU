@@ -1,4 +1,3 @@
-using namespace std;
 
 #include "TMatrixD.h"
 #include "TVectorD.h"
@@ -22,6 +21,7 @@ using namespace std;
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
 #include <iostream>
+using namespace std;
 
 TFCSApplyFirstPCA::TFCSApplyFirstPCA(string MakeFirstPCA_rootfilename) {
   // default parameters:
