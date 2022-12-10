@@ -50,6 +50,8 @@ endif()
 if(NOT INPUT_PATH STREQUAL "")
   message(STATUS "Overriding all inputs path to '${INPUT_PATH}'")
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DFCS_INPUT_PATH=\"${INPUT_PATH}\")
+else()
+  message(WARNING "datafile INPUT_PATH undefined. Will use 'root://eosatlas.cern.ch///eos/atlas/atlascerngroupdisk/proj-simul'")
 endif()
 
 if(ENABLE_GPU) 
