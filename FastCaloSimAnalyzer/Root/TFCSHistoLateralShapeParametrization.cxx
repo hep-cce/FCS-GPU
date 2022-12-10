@@ -202,7 +202,7 @@ void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
   m_LdFH->LD2D();
 }
 #elif defined USE_SYCL
-bool TFCSHistoLateralShapeParametrization::InitHisto(cl::sycl::context* ctx) {
+bool TFCSHistoLateralShapeParametrization::InitHisto(sycl::context* ctx) {
   if (m_histo) {
     return true;
   }

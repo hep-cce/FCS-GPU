@@ -229,7 +229,7 @@ void TFCSHitCellMappingWiggle::LoadHistFuncs() {
   return;
 }
 #elif defined USE_SYCL
-bool TFCSHitCellMappingWiggle::InitHisto(cl::sycl::context* ctx) {
+bool TFCSHitCellMappingWiggle::InitHisto(sycl::context* ctx) {
   if (m_histo) {
     return true;
   }

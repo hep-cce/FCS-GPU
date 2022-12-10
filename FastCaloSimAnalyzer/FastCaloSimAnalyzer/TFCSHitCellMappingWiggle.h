@@ -64,7 +64,7 @@ class TFCSHitCellMappingWiggle : public TFCSHitCellMapping {
   void LoadHistFuncs();
   LoadGpuFuncHist* LdFH() { return m_LdFH; };
 #elif defined USE_SYCL
-  bool InitHisto(cl::sycl::context* ctx);
+  bool InitHisto(sycl::context* ctx);
   syclcommon::Histo* GetHisto() { return m_histo; }
 #endif
 

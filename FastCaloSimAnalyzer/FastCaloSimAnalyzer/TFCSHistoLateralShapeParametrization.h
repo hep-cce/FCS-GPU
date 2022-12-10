@@ -67,7 +67,7 @@ class TFCSHistoLateralShapeParametrization
   LoadGpuFuncHist* LdFH() { return m_LdFH; };
   void LoadHistFuncs();
 #elif defined USE_SYCL
-  bool InitHisto(cl::sycl::context* ctx);
+  bool InitHisto(sycl::context* ctx);
   syclcommon::Histo* GetHisto() { return m_histo; }
 #endif
 

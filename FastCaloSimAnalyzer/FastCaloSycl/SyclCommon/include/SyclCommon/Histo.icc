@@ -9,11 +9,11 @@ inline bool Histo::Init() {
     return true;
   }
   // Catch asynchronous exceptions
-  exception_handler = [](cl::sycl::exception_list exceptions) {
+  exception_handler = [](sycl::exception_list exceptions) {
     for (std::exception_ptr const& e : exceptions) {
       try {
         std::rethrow_exception(e);
-      } catch (cl::sycl::exception const& e) {
+      } catch (sycl::exception const& e) {
         std::cout << "Caught asynchronous SYCL exception:\n"
                   << e.what() << std::endl;
       }
@@ -22,19 +22,19 @@ inline bool Histo::Init() {
   // Initialize device, queue and context
   if (!ctx_) {
     device_ = fastcalosycl::syclcommon::GetTargetDevice();
-    queue_ = cl::sycl::queue(device_);
-    ctx_ = new cl::sycl::context(queue_.get_context());
+    queue_ = sycl::queue(device_);
+    ctx_ = new sycl::context(queue_.get_context());
   } else {
     device_ = ctx_->get_devices()[0];
-    queue_ = cl::sycl::queue(*ctx_, device_);
+    queue_ = sycl::queue(*ctx_, device_);
   }
 
   // Ensure device can handle USM device allocations.
 #ifndef SYCL_TARGET_HIP
   // Not support by syclcc (Mar 22, 2021)
-  // if (!device_.get_info<cl::sycl::info::device::usm_device_allocations>()) {
+  // if (!device_.get_info<sycl::info::device::usm_device_allocations>()) {
   //   std::cout << "ERROR :: device \""
-  //             << device_.get_info<cl::sycl::info::device::name>()
+  //             << device_.get_info<sycl::info::device::name>()
   //             << "\" does not support usm_device_allocations!" << std::endl;
   //   is_initialized_ = false;
   // }
@@ -42,7 +42,7 @@ inline bool Histo::Init() {
 
   // #if defined SYCL_DEBUG
   // Name of the device running on
-  // std::string dev_name = device_.get_info<cl::sycl::info::device::name>();
+  // std::string dev_name = device_.get_info<sycl::info::device::name>();
   // std::cout << "SyclCommon::Histo  Using device \"" << dev_name << "\""
   //           << std::endl;
   // #endif  // SYCL_DEBUG

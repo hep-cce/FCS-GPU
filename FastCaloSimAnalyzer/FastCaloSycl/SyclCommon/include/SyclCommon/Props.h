@@ -60,7 +60,7 @@ struct SimProps {
   unsigned int max_unique_hits;    // Maximum number of hit cells
   Histo1DFunction* h1df_dev;
   Histo2DFunction* h2df_dev;
-  cl::sycl::queue* queue;
+  sycl::queue* queue;
 
   void* rng;    // The RNG
   void* histo;  // Histo{1,2}DFunction
