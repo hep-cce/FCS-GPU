@@ -3,7 +3,7 @@
 #ifndef FASTCALOSYCL_SYCLCOMMON_DEVICECOMMON_H_
 #define FASTCALOSYCL_SYCLCOMMON_DEVICECOMMON_H_
 #define HIPSYCL_EXT_FP_ATOMICS
-#include <CL/sycl.hpp>
+#include <sycl/sycl.hpp>
 
 namespace fastcalosycl::syclcommon {
 
@@ -25,13 +25,13 @@ class CUDASelector : public cl::sycl::device_selector {
 };
 #endif
 #ifdef SYCL_TARGET_HIP
-class AMDSelector : public cl::sycl::device_selector {
+class AMDSelector : public sycl::device_selector {
  public:
-  int operator()(const cl::sycl::device& device) const override {
-    const std::string device_vendor = device.get_info<cl::sycl::info::device::vendor>();
+  int operator()(const sycl::device& device) const override {
+    const std::string device_vendor = device.get_info<sycl::info::device::vendor>();
     const std::string device_driver =
-        device.get_info<cl::sycl::info::device::driver_version>();
-    const std::string device_name = device.get_info<cl::sycl::info::device::name>();
+        device.get_info<sycl::info::device::driver_version>();
+    const std::string device_name = device.get_info<sycl::info::device::name>();
 
     if (device.is_gpu() && (device_vendor.find("AMD") != std::string::npos)) {
       return 1;
@@ -98,53 +98,53 @@ static const CONSTANT char kHistoPrintContents[] = "  contents[%d][%d]: %lu\n";
 static const CONSTANT char kHistoPrintBorders[] = "  borders[%d][%d]: %f\n";
 
 // Gets the target device, as defined in the cmake configuration.
-static inline cl::sycl::device GetTargetDevice() {
-  cl::sycl::device dev;
+static inline sycl::device GetTargetDevice() {
+  sycl::device dev;
 #if defined SYCL_TARGET_CUDA
   CUDASelector cuda_selector;
   try {
-    dev = cl::sycl::device(cuda_selector);
+    dev = sycl::device(cuda_selector);
   } catch (...) {
   }
 #elif defined SYCL_TARGET_HIP
   AMDSelector selector;
   try {
-    dev = cl::sycl::device(selector);
+    dev = sycl::device(selector);
   } catch (...) {
   }
 #elif defined SYCL_TARGET_DEFAULT
-  dev = cl::sycl::device(cl::sycl::default_selector());
+  dev = sycl::device(sycl::default_selector_v);
 #elif defined SYCL_TARGET_CPU
-  dev = cl::sycl::device(cl::sycl::cpu_selector());
+  dev = sycl::device(sycl::cpu_selector_v);
 #elif defined SYCL_TARGET_GPU
-  dev = cl::sycl::device(cl::sycl::gpu_selector());
+  dev = sycl::device(sycl::gpu_selector_v);
 #else
-  dev = cl::sycl::device(cl::sycl::host_selector());
+  dev = sycl::device(sycl::cpu_selector_v);
 #endif
 
   return dev;
 }
 
-static inline cl::sycl::context GetSharedContext() {
-  cl::sycl::platform platform;
+static inline sycl::context GetSharedContext() {
+  sycl::platform platform;
 #if defined SYCL_TARGET_CUDA
   CUDASelector cuda_selector;
   try {
-    platform = cl::sycl::platform(cuda_selector);
+    platform = sycl::platform(cuda_selector);
   } catch (...) {
   }
 #elif defined SYCL_TARGET_DEFAULT
-  platform = cl::sycl::platform(cl::sycl::default_selector());
+  platform = sycl::platform(sycl::default_selector_v);
 #elif defined SYCL_TARGET_CPU
-  platform = cl::sycl::platform(cl::sycl::cpu_selector());
+  platform = sycl::platform(sycl::cpu_selector_v);
 #elif defined SYCL_TARGET_GPU
-  platform = cl::sycl::platform(cl::sycl::gpu_selector());
+  platform = sycl::platform(sycl::gpu_selector_v);
 #else
-  platform = cl::sycl::platform(cl::sycl::host_selector());
+  platform = sycl::platform(sycl::cpu_selector_v);
 
 #endif
 
-  return cl::sycl::context(platform);
+  return sycl::context(platform);
 }
 
 }  // namespace fastcalosycl::syclcommon
