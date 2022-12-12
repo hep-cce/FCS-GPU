@@ -76,6 +76,7 @@ class TFCSSampleDiscovery {
 
   const FCS::DSIDInfo m_invalid;
   std::vector<FCS::DSIDInfo> m_dbDSID;
+  std::string m_dsidDB;
 };
 
 #endif  // TFCS_SAMPLEDISCOVERY_H

@@ -9,7 +9,7 @@
 #include "TFCSSampleDiscovery.h"
 
 TFCSSampleDiscovery::TFCSSampleDiscovery(std::string fileName, bool debug)
-    : m_invalid(FCS::DSIDInfo(-1)) {
+  : m_invalid(FCS::DSIDInfo(-1)), m_dsidDB(fileName) {
   std::cout << "Initialising DSID DB..." << std::endl;
 
   // init the DB
@@ -49,6 +49,10 @@ const FCS::DSIDInfo &TFCSSampleDiscovery::findDSID(int pdgId, int energy,
     }
   }
 
+  std::cerr << " Error: no DSID matching pid " << pdgId << " energy " << energy
+            << " eta " << eta << " zVertex " << zVertex << " found in DSID DB \'"
+            << m_dsidDB << "\'" << std::endl;
+  
   return m_invalid;
 }
 
@@ -80,8 +84,8 @@ FCS::SampleInfo TFCSSampleDiscovery::findSample(
 
   std::ifstream file = openFile(fileName);
   if (!file) {
-    std::cerr << " Error: Unable to open file with input samples data"
-              << std::endl;
+    std::cerr << " Error: Unable to open file \'" << fileName
+              << "\' with input samples data" << std::endl;
     exit(1);
   }
 
@@ -96,6 +100,9 @@ FCS::SampleInfo TFCSSampleDiscovery::findSample(
     }
   }
 
+  std::cerr << " Error: DSID " << inDSID << " not found in input sample file \'"
+            << fileName << "\'" << std::endl;
+  
   return FCS::SampleInfo(-1);
 }
 

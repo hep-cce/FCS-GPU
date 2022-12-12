@@ -221,7 +221,17 @@ int runTFCSSimulation(int pdgid = 22, int int_E = 65536, double etamin = 0.2,
   auto t01_A = std::chrono::system_clock::now();
   auto sample = std::make_unique<TFCSSampleDiscovery>();
   int dsid = sample->findDSID(pdgid, int_E, etamin * 100, 0).dsid;
+  if (dsid == -1) {
+    std::cerr << "ERROR: no suitable DSID found\n";
+    exit(1);
+  }
   FCS::SampleInfo sampleInfo = sample->findSample(dsid);
+  if (sampleInfo.dsid == -1) {
+    std::cerr << "ERROR: unable to find DSID " << dsid
+              << " in inputSample file for pid " << pdgid << " energy " << int_E
+              <<std::endl;
+    exit(1);
+  }
   TString inputSample = sampleInfo.location;
   TString shapefile = sample->getShapeName(dsid);
   TString energyfile = sample->getSecondPCAName(dsid);
@@ -232,10 +242,10 @@ int runTFCSSimulation(int pdgid = 22, int int_E = 65536, double etamin = 0.2,
 #if defined(__linux__)
   std::cout << "* Running on linux system " << std::endl;
 #endif
-  std::cout << dsid << "\t" << inputSample << std::endl;
+  std::cout << "DSID: " << dsid << "\t  inputSample: " << inputSample << std::endl;
   TChain* inputChain = new TChain("FCS_ParametrizationInput");
   if (inputChain->Add(inputSample, -1) == 0) {
-    std::cerr << "Error: Could not open file '" << inputSample << "'"
+    std::cerr << "Error: Could not open inputSample file '" << inputSample << "'"
               << std::endl;
     return 1;
   }
