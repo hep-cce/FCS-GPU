@@ -211,26 +211,35 @@ int runTFCSSimulation(int pdgid = 22,
   std::string eta_label( eta );
   eta_label.erase( 0, 3 );
   std::cout << " eta_label = " << eta_label << std::endl;
-  std::string     etamin_label = eta_label.substr( 0, eta_label.find( "_" ) );
-  std::string     etamax_label = eta_label.substr( 4, eta_label.find( "_" ) );
-  auto            t01_A        = std::chrono::system_clock::now();
-  auto            sample       = std::make_unique<TFCSSampleDiscovery>();
-  int             dsid         = sample->findDSID( pdgid, int_E, etamin * 100, 0 ).dsid;
-  FCS::SampleInfo sampleInfo   = sample->findSample( dsid );
-  TString         inputSample  = sampleInfo.location;
-  TString         shapefile    = sample->getShapeName( dsid );
-  TString         energyfile   = sample->getSecondPCAName( dsid );
-  TString         pcaSample    = sample->getFirstPCAAppName( dsid );
-  TString         avgSample    = sample->getAvgSimShapeName( dsid );
+  std::string etamin_label = eta_label.substr( 0, eta_label.find( "_" ) );
+  std::string etamax_label = eta_label.substr( 4, eta_label.find( "_" ) );
+  auto        t01_A        = std::chrono::system_clock::now();
+  auto        sample       = std::make_unique<TFCSSampleDiscovery>();
+  int         dsid         = sample->findDSID( pdgid, int_E, etamin * 100, 0 ).dsid;
+  if ( dsid == -1 ) {
+    std::cerr << "ERROR: no suitable DSID found\n";
+    exit( 1 );
+  }
+  FCS::SampleInfo sampleInfo = sample->findSample( dsid );
+  if ( sampleInfo.dsid == -1 ) {
+    std::cerr << "ERROR: unable to find DSID " << dsid << " in inputSample file for pid " << pdgid << " energy "
+              << int_E << std::endl;
+    exit( 1 );
+  }
+  TString inputSample = sampleInfo.location;
+  TString shapefile   = sample->getShapeName( dsid );
+  TString energyfile  = sample->getSecondPCAName( dsid );
+  TString pcaSample   = sample->getFirstPCAAppName( dsid );
+  TString avgSample   = sample->getAvgSimShapeName( dsid );
   set_prefix( analyze_layer, -1 );
   auto t01_B = std::chrono::system_clock::now();
 #if defined( __linux__ )
   std::cout << "* Running on linux system " << std::endl;
 #endif
-  std::cout << dsid << "\t" << inputSample << std::endl;
+  std::cout << "DSID: " << dsid << "\t  inputSample: " << inputSample << std::endl;
   TChain* inputChain = new TChain( "FCS_ParametrizationInput" );
   if ( inputChain->Add( inputSample, -1 ) == 0 ) {
-    std::cerr << "Error: Could not open file '" << inputSample << "'" << std::endl;
+    std::cerr << "Error: Could not open inputSample file '" << inputSample << "'" << std::endl;
     return 1;
   }
   int nentries = inputChain->GetEntries();
