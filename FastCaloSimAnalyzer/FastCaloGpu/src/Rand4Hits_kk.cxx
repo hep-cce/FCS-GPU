@@ -52,7 +52,7 @@ Rand4Hits::~Rand4Hits() {
               << "  lost: " << DEV_BigMem::bm_ptr->lost() << std::endl;
     delete DEV_BigMem::bm_ptr;
   }
-  delete m_cell_e_h;
+  //  delete m_cell_e_h;   // FIXME: this causes segfault w/ SYCL backend
 };
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

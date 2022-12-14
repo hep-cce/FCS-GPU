@@ -52,7 +52,7 @@ GeoRegion::calculate_distance_eta_phi(const long long DDE, float eta, float phi,
   dist_phi0 = (Phi_mpi_pi(phi - m_all_cells[DDE].phi())) / m_dphi_double;
   float abs_dist_eta0 = abs(dist_eta0);
   float abs_dist_phi0 = abs(dist_phi0);
-  return fmax(abs_dist_eta0, abs_dist_phi0) - 0.5;
+  return Kokkos::fmax(abs_dist_eta0, abs_dist_phi0) - 0.5;
 }
 
 __HOSTDEV__ long long GeoRegion::getDDE(float eta, float phi, float *distance,
@@ -131,8 +131,8 @@ __HOSTDEV__ long long GeoRegion::getDDE(float eta, float phi, float *distance,
           bestdist = *distance;
         }
       } else {
-//        printf("GeoRegin::getDDE, windows search ieta=%d iphi=%d is empty\n",
- //              ieta, iphi);
+        KOKKOS_IMPL_DO_NOT_USE_PRINTF("GeoRegin::getDDE, windows search ieta=%d iphi=%d is empty\n",
+            ieta, iphi);
       }
     }
   }

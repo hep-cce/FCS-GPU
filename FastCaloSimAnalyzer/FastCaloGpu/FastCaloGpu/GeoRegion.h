@@ -47,7 +47,9 @@ public:
   };
 
   __HOSTDEV__ ~GeoRegion() {
-    free(m_cells);
+    KOKKOS_IF_ON_HOST((
+       free(m_cells);
+    ))
   };
 
   __HOSTDEV__ void set_all_cells(CaloDetDescrElement *c) {
