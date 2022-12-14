@@ -116,7 +116,12 @@ namespace CaloGpuGeneral_omp {
         float* bin_low_edge = ( *( args.fhs ) ).low_edge;
     
         float eta = fabs( hit.eta() );
-        if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args, cells_energy ); }
+        if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { 
+           //HitCellMapping_d( hit, t, args, cells_energy ); 
+	     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
+	     #pragma omp atomic update
+             cells_energy[cellele] += (float)(E);
+	}
     
         int bin = nhist;
         for ( int i = 0; i < nhist + 1; ++i ) {

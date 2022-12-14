@@ -258,13 +258,13 @@ namespace CaloGpuGeneral_fnc {
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
-#elif defined USE_OMPGPU
-    #pragma omp target is_device_ptr ( cells_energy )
-    #pragma omp atomic update
-      cells_energy[cellele] += hit.E();
-//      args.cells_energy[cellele] += hit.E();
-#else
-    atomicAdd( &args.cells_energy[cellele], hit.E() );
+//#elif defined USE_OMPGPU
+//    #pragma omp target is_device_ptr ( cells_energy )
+//    #pragma omp atomic update
+//      cells_energy[cellele] += hit.E();
+////      args.cells_energy[cellele] += hit.E();
+//#else
+//    atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
   }

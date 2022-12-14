@@ -18,25 +18,27 @@ if(USE_KOKKOS)
   find_package(Kokkos) 
 endif()
 
-include(FastCaloSim)
-include(XRootD)
-
 # Add OpenMP
 find_package(OpenMP)
 if(OPENMP_FOUND)
-	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_70 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64 -fopenmp-target-debug=0x5" )
-	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_80 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64") ##alpha1
-	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_70 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64") ##lambda1
-	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_86 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64") ##lambda2
-	set(OpenMP_FLAGS "-Xopenmp-target=amdgcn -march=gfx906 -fopenmp -fopenmp-targets=amdgcn")             ##lambda3
-	##set(OpenMP_FLAGS "-Xopenmp-target -march=sm_75 -fopenmp -fopenmp-cuda-mode -fopenmp-targets=nvptx64") ##lambda4
-	##set(OpenMP_FLAGS "-mp=gpu -cuda -Minfo=mp") ## for nvc++
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS} -maxrregcount=64")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS}")
+	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-cuda-mode")
+	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -foffload-lto")
+	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-assume-no-thread-state")
+	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-assume-no-nested-parallelism")
+	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -maxrregcount=64")
+	set(OpenMP_OPT_RMRKS "-Rpass=openmp-opt -Rpass-analysis=openmp-opt -Rpass-missed=openmp-opt " )
+	##set(OpenMP_DBG_FLAGS "-fopenmp-target-debug=0x5" )
+	set(OpenMP_FLAGS "-fopenmp --offload-arch=sm_86 ") ##lambda2
+	#set(OpenMP_FLAGS "-fopenmp --offload-arch=gfx906") ##lambda3
+	##set(OpenMP_FLAGS "-mp=gpu -gpu=cc86 -cuda -Minfo=mp") ## for nvc++
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
 else()
   message(WARNING "Configuring without OpenMP!")
 endif()
 
+include(FastCaloSim)
+include(XRootD)
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)
 
