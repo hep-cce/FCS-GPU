@@ -8,6 +8,18 @@
 #include <iostream>
 
 bool GeoLoadGpu::LoadGpu_omp() {
+
+  #pragma omp declare mapper(Chain0_Args args) map(to : args.extrapol_eta_ent, \
+		  args.extrapol_phi_ent, args.extrapol_r_ent, args.extrapol_z_ent, args.extrapol_eta_ext, \
+		  args.extrapol_phi_ext, args.extrapol_r_ext, args.extrapol_z_ext, args.extrapWeight, \
+		  args.charge, args.is_phi_symmetric, args.fh2d, args.fhs, args.cs, args.nhits, \
+		  args.ncells ) use_by_default
+
+  m_num_devices    = omp_get_num_devices();
+  m_initial_device = omp_get_initial_device();
+  m_default_device = omp_get_default_device();
+  m_offset = 0;
+     
   /**
   * Offloading the geometry on the default device
   * using omp_target_alloc and omp_target_memcpy 

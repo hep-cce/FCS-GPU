@@ -208,12 +208,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   auto start_event_loop = std::chrono::system_clock::now();
   std::chrono::duration<double> time_before_event_loop = start_event_loop - start;
 
-  #pragma omp declare mapper(Chain0_Args args) map(to : args.extrapol_eta_ent, \
-		  args.extrapol_phi_ent, args.extrapol_r_ent, args.extrapol_z_ent, args.extrapol_eta_ext, \
-		  args.extrapol_phi_ext, args.extrapol_r_ext, args.extrapol_z_ext, args.extrapWeight, \
-		  args.charge, args.is_phi_symmetric, args.fh2d, args.fhs, args.cs, args.nhits, \
-		  args.ncells ) use_by_default
-
   ///////////////////////////////////
   //// Event loop
   ///////////////////////////////////

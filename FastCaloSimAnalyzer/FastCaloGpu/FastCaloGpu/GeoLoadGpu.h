@@ -70,10 +70,10 @@ private:
   bool TestGeo();
   bool SanityCheck();
 
-  int m_num_devices    = omp_get_num_devices();
-  int m_initial_device = omp_get_initial_device();
-  int m_default_device = omp_get_default_device();
-  std::size_t m_offset = 0;
+  int m_num_devices    ;
+  int m_initial_device ;
+  int m_default_device ;
+  std::size_t m_offset ;
 
 protected:
   unsigned long        m_ncells{0};         // number of cells

@@ -223,9 +223,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     //  std::chrono::duration<double> diff = t1-start;
     //  std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
-    #pragma omp target enter data map (to : args)  
     CaloGpuGeneral::simulate_hits( Ehit, nhit, args );
-    #pragma omp target exit data map (release : args)  
 
     //std::map<unsigned int,float> cm;
     for ( unsigned int ii = 0; ii < args.ct; ++ii ) {

@@ -76,7 +76,9 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 #ifdef USE_KOKKOS
   CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
 #elif defined USE_OMPGPU
+  #pragma omp target enter data map (to : args)  
   CaloGpuGeneral_omp::simulate_hits( E, nhits, args );
+  #pragma omp target exit data map (release : args)  
 #else
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 #endif

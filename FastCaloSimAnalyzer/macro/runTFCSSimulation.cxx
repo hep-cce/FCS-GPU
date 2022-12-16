@@ -161,15 +161,6 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
                        const std::string& plotfilename = "Simulation.root", long seed = 42, int nEvents = -1,
                        int firstEvent = 0, int selectPCAbin = -1, int debug = 0, bool png = false ) {
   
-  printf ( "Host device ID is %d \n", omp_get_initial_device() );
-  printf ( "OpenMP num devices are %d \n", omp_get_num_devices() );
-  printf ( "OpenMP default device is %d \n", omp_get_default_device() );
-
-  if ( omp_get_num_devices() < 1 or omp_get_default_device() < 0) {
-    std::cout << " ERROR: No device found." << std::endl;
-    return false;
-  }
-
 /* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0 = std::chrono::system_clock::now();
 /* * * * * * * * * * * * * * * * * * * * * * * * * * */  
