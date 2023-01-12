@@ -9,7 +9,7 @@
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV __host__ __device__ CUDA_HOSTDEV
 #else
-#define CUDA_HOSTDEV
+#define CUDA_HOSTDEV inline
 #endif
 #endif
 
