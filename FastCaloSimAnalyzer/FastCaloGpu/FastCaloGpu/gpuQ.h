@@ -2,6 +2,10 @@
   Copyright (C) 2002-2023 CERN for the benefit of the ATLAS collaboration
 */
 
+#include <iostream>
+#include "hip/hip_runtime.h"
+
+
 #ifndef GPUQ_H
 #define GPUQ_H
 
