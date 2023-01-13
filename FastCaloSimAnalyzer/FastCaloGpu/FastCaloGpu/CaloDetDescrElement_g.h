@@ -40,7 +40,7 @@ HIP_HOSTDEV  CaloDetDescrElement() {
 
   /** @brief virtual destructor
    */
-HIP_HOSTDEV    virtual ~CaloDetDescrElement() {};
+HIP_HOSTDEV    ~CaloDetDescrElement() {};
 
   /** @brief cell eta
    */
