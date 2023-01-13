@@ -393,8 +393,9 @@ void TFCSShapeValidation::LoopEvents(int pcabin=-1)
 		
 	auto ss = std::chrono::system_clock::now();
        if (m_debug >= 1) {
+         auto vb = *(validation.basesim());
          std::cout << "Simulate : " << validation.basesim()->GetTitle() <<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<std::endl;
-         std::cout << "Simulate : " << "validation:"<<typeid(validation).name() <<", " <<typeid(*(validation.basesim())).name() <<" Title: " << validation.basesim()->GetTitle() 
+         std::cout << "Simulate : " << "validation:"<<typeid(validation).name() <<", " <<typeid(vb).name() <<" Title: " << validation.basesim()->GetTitle() 
 		<<" event="<<ievent<<" E="<<total_energy()<<" Ebin="<<pca()<<" validation: "
 		<< typeid(validation).name() <<" Pointer: " << &validation<<" Title: " << validation.GetTitle() <<std::endl;
 }
