@@ -5,7 +5,7 @@
 #ifndef GeoRegion_H
 #define GeoRegion_H
 
-
+#include <cmath>
 #include "CaloDetDescrElement_g.h"
 
 #ifndef CUDA_HOSTDEV
@@ -90,10 +90,10 @@ class GeoRegion {
     CUDA_HOSTDEV float minphi() {return m_minphi ; };
 
   CUDA_HOSTDEV int raw_eta_position_to_index( float eta_raw ) const {
-    return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
+    return std::floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
   };
   CUDA_HOSTDEV int raw_phi_position_to_index( float phi_raw ) const {
-    return floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
+    return std::floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );
   };
 
     CUDA_HOSTDEV bool index_range_adjust(int& ieta,int& iphi) ;

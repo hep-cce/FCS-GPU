@@ -6,6 +6,12 @@
 * [Kokkos](#Kokkos)
 * [Formatting](#Formatting)
 
+## Build Instructions for alpha/lambda @ CSI, BNL
+module use /work/software/modulefiles
+module load llvm-openmp-dev
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DRNDGEN_CPU=on -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+
 ## Build Instructions for BNL
 
 load build environment with appropriate modules

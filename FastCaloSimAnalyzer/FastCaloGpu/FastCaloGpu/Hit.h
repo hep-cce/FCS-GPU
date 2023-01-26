@@ -13,6 +13,8 @@
 #endif
 #endif
 
+#include <cmath>
+
 class Hit {
     public:
   CUDA_HOSTDEV Hit()
@@ -76,9 +78,9 @@ class Hit {
     CUDA_HOSTDEV inline float& z() {return m_z;}
     CUDA_HOSTDEV inline float r() {
     if ( m_useXYZ )
-      return sqrt( m_eta_x * m_eta_x + m_phi_y * m_phi_y );
+      return std::sqrt( m_eta_x * m_eta_x + m_phi_y * m_phi_y );
     else
-      return m_z / sinh( m_eta_x );
+      return m_z / std::sinh( m_eta_x );
     }
     CUDA_HOSTDEV inline float& center_r(){return m_center_r;}
     CUDA_HOSTDEV inline float& center_z(){return m_center_z;}

@@ -12,6 +12,7 @@
 
 #include <chrono>
 #include <mutex>
+#include <omp.h>
 
 static CaloGpuGeneral::KernelTime timing;
 

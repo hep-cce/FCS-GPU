@@ -11,6 +11,7 @@
 #include "FastCaloSimAnalyzer/TFCSValidationEnergyAndHits.h"
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
+#include <omp.h>
 
 using namespace std;
 
@@ -169,6 +170,11 @@ int runTFCSSimulation(int pdgid = 22,
          int debug = 0,
          bool png = false)
 {
+
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  printf("--------xxx------- dev ID %d, host ID %d \n", m_default_device, m_initial_device);
+
   auto t0 = std::chrono::system_clock::now();
 
   TFCSParametrizationBase* fullchain     = nullptr;

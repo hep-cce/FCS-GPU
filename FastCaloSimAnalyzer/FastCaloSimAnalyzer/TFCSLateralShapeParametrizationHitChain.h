@@ -33,7 +33,7 @@ public:
 
   void Print( Option_t* option = "" ) const override;
 
-#if defined( USE_GPU )
+#if defined USE_GPU || defined USE_OMPGPU 
   void gpu_hit_chain();
 #endif
 

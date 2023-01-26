@@ -77,7 +77,7 @@ GeoGpu* GeoLoadGpu::Geo_g ;
 unsigned long GeoLoadGpu::num_cells ;
 
 bool GeoLoadGpu::LoadGpu() {
-    if(!m_cells || m_ncells == 0) {
+	if(!m_cells || m_ncells == 0) {
 	std::cout<< "Geometry is empty " << std::endl ;
 	return false ;
     }

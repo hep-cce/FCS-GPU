@@ -9,7 +9,7 @@
 #include "ISF_FastCaloSimEvent/TFCS2DFunctionHistogram.h"
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
 #  include "FastCaloGpu/FastCaloGpu/LoadGpuFuncHist.h"
 #endif
 
@@ -49,7 +49,7 @@ public:
   TFCS2DFunctionHistogram&       histogram() { return m_hist; };
   const TFCS2DFunctionHistogram& histogram() const { return m_hist; };
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   void             set_d_HistFunc( FH2D* hf_ptr ) { m_d_HistFunc = hf_ptr; };
   const FH2D*      d_HistFunc() { return m_d_HistFunc; };
   LoadGpuFuncHist* LdFH() { return m_LdFH; };
@@ -63,7 +63,7 @@ protected:
   TFCS2DFunctionHistogram m_hist;
   float                   m_nhits;
 
-#ifdef USE_GPU
+#if defined USE_GPU || defined USE_OMPGPU
   FH2D*            m_d_HistFunc = nullptr;
   LoadGpuFuncHist* m_LdFH       = nullptr;
 

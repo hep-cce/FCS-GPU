@@ -5,7 +5,7 @@
 #ifndef LOADGPUFUNCHIST_H
 #define LOADGPUFUNCHIST_H
 
-
+#include <omp.h>
 #include "FH_structs.h"
 
 class LoadGpuFuncHist {
@@ -36,6 +36,9 @@ public :
 	void LD2D();
 
 private : 
+ 	 int m_default_device = omp_get_default_device();
+         int m_initial_device = omp_get_initial_device();
+         std::size_t m_offset = 0;
 
 	 struct FHs * m_hf ;      
 	 struct FHs *  m_d_hf ;  //device pointer

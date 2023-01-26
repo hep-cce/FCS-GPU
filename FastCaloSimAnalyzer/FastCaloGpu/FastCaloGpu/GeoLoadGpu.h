@@ -8,6 +8,7 @@
 //This header can be use both gcc and nvcc host part
 
 #include <map>
+#include <omp.h>
 
 #include "GeoGpu_structs.h"
 
@@ -55,6 +56,9 @@ protected :
     Identifier *  m_cellid_array ;  //cell id to Indentifier lookup table
     int m_max_sample ;     //Max number of samples
      Rg_Sample_Index *  m_sample_index_h ;   //index for flatout of  GeoLookup over sample 
-
+    int m_default_device = omp_get_default_device();
+    int m_initial_device = omp_get_initial_device();
+    int m_offset = 0;
+ 
 };
 #endif
