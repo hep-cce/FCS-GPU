@@ -58,6 +58,10 @@ if(USE_KOKKOS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
 endif()
 
+if(USE_ALPAKA)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_ALPAKA )
+endif()
+
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon
