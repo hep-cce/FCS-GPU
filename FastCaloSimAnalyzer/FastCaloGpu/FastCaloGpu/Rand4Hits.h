@@ -17,16 +17,34 @@
 #include <atomic>
 #endif
 
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
+#endif
+
 #include "GpuGeneral_structs.h"
 
 class Rand4Hits {
-public:
+ public:
+#ifdef USE_ALPAKA
+ Rand4Hits()
+   : m_queue(alpaka::getDevByIdx<Acc>(Idx{0}))
+   , m_bufAcc(alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(1u)}))
+   , m_bufAccEngine(alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(NUM_STATES)}))
+   , m_cellsEnergy{alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_cellE{alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_cT{alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1u)})}
+   , m_simBins{alpaka::allocBuf<long,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_hitParams{alpaka::allocBuf<HitParams,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})} 
+  {}
+#else
   Rand4Hits() {
     m_rand_ptr = 0;
     m_total_a_hits = 0;
   };
+#endif
+  
   ~Rand4Hits();
-
+  
   float *rand_ptr(int nhits) {
     if (over_alloc(nhits)) {
       rd_regen();
@@ -67,6 +85,11 @@ public:
   Cell_E *get_cell_e() {
     return m_cell_e;
   };
+#ifdef USE_ALPAKA
+  CellE& get_cell_E() { 
+    return m_cellE; 
+  };
+#endif
   Cell_E *get_cell_e_h() {
     return m_cell_e_h;
   };
@@ -74,6 +97,11 @@ public:
   CELL_CT_T *get_ct() {
     return m_ct;
   };
+#ifdef USE_ALPAKA
+  CellCtT& get_cT() { 
+    return m_cT; 
+  };
+#endif
   int *get_ct_h() {
     return m_ct_h;
   };
@@ -123,7 +151,7 @@ private:
   void destroyCPUGen();
 
   float *m_rand_ptr{ nullptr };
-  unsigned int m_total_a_hits;
+  unsigned int m_total_a_hits{0};
   unsigned int m_current_hits;
   void *m_gen{ nullptr };
   bool m_useCPU{ false };
@@ -153,6 +181,18 @@ private:
   Kokkos::View<long *> m_simbins_v;
   Kokkos::View<HitParams *> m_hitparams_v;
 #endif
+
+#ifdef USE_ALPAKA
+  QueueAcc m_queue;
+  BufAcc m_bufAcc;
+  BufAccEngine m_bufAccEngine;
+  CellsEnergy m_cellsEnergy;
+  CellE m_cellE;
+  CellCtT m_cT;
+  BufAccLong m_simBins;
+  BufAccHitParams m_hitParams;
+#endif
+
 };
 
 #endif
