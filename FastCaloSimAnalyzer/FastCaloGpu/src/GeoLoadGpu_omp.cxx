@@ -285,6 +285,5 @@ Rg_Sample_Index * SampleIndex_g ;
 
 }  
 
-//#include "Rand4Hits.cu"
-#include "CaloGpuGeneral_omp.cxx"
-#include "LoadGpuFuncHist_omp.cxx"
+//#include "CaloGpuGeneral_omp.cxx"
+//#include "LoadGpuFuncHist_omp.cxx"

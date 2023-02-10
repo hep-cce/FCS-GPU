@@ -33,7 +33,10 @@ endif()
 set(FastCaloGpu_Srcs
 	#GeoLoadGpu.cu
   GeoLoadGpu_omp.cxx
-  #CaloGpuGeneral_omp.cxx
+  Rand4Hits.cu
+  gpuQ.cu
+  LoadGpuFuncHist_omp.cxx
+  CaloGpuGeneral_omp.cxx
 )
 
 # # Global include is needed for dictionary generation to work

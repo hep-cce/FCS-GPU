@@ -7,10 +7,12 @@
 #include "Hit.h"
 #include "Rand4Hits.h"
 
-//#include "gpuQ.h"
+#include "gpuQ.h"
 #include "Args.h"
 #include "OMP_BigMem.h"
 
+#include <curand.h>
+#include <iostream>
 #include <chrono>
 #include <mutex>
 #include <omp.h>
@@ -27,190 +29,190 @@ static int BLOCK_SIZE{DEFAULT_BLOCK_SIZE};
 #define M_2PI 6.28318530717958647692
 
 
-//__device__  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
-//
-//   float * distance = 0 ;
-//   int * steps =0 ;
-//
-//int MAX_SAMPLING = geo->max_sample ;
-//Rg_Sample_Index * SampleIdx = geo->sample_index ;
-// GeoRegion * regions_g = geo->regions ;
-//
-//if(sampling<0) return -1;
-//  if(sampling>=MAX_SAMPLING) return -1;
-//
-//   int sample_size= SampleIdx[sampling].size ;
-//   int sample_index=SampleIdx[sampling].index ;
-//
-//   GeoRegion * gr = ( GeoRegion *) regions_g ; 
-//  if(sample_size==0) return -1;
-//  float dist;
-//  long long bestDDE=-1;
-//  if(!distance) distance=&dist;
-//  *distance=+10000000;
-//  int intsteps;
-//  int beststeps;
-//  if ( steps )
-//    beststeps = ( *steps );
-//  else
-//    beststeps = 0;
-//  
-//  if(sampling<21) {
-//    for(int skip_range_check=0;skip_range_check<=1;++skip_range_check) {
-//      for(unsigned int j= sample_index; j< sample_index+sample_size ; ++j) {
-//        if(!skip_range_check) {
-//          if(eta< gr[j].mineta()) continue;
-//          if(eta> gr[j].maxeta()) continue;
-//        }
-//        if ( steps )
-//          intsteps = ( *steps );
-//         else 
-//       intsteps=0;
-//        float newdist;
-//        long long  newDDE= gr[j].getDDE(eta,phi,&newdist,&intsteps);
-//        if(newdist<*distance) {
-//          bestDDE=newDDE;
-//          *distance=newdist;
-//          if(steps) beststeps=intsteps;
-//          if(newdist<-0.1) break; //stop, we are well within the hit cell
-//       }
-//      }
-//      if(bestDDE>=0) break;
-//  }
-//  } else {
-//                return -3;
-//  }
-//  if(steps) *steps=beststeps;
-//
-//  return bestDDE;
-//}
-//
-//
-//__device__  int find_index_f( float* array, int size, float value) {
-//// fist index (from 0)  have element value > value 
-//// array[i] > value ; array[i-1] <= value 
-//// std::upbund( )
-//int  low=0 ; 
-//int  high=size-1 ;
-//int  m_index= (high-low)/2 ;
-//while (m_index != high ) {
-//    if ( value < array[m_index] )
-//      high = m_index;
-//    else
-//      low = m_index + 1;
-//       m_index=(high+low+1)/2 ;
-//}
-//return m_index ;
-//
-//} 
-//
-//
-//
-//__device__  int find_index_uint32( uint32_t* array, int size, uint32_t value) {
-//// fist index i  have element value > value 
-//// array[i] > value ; array[i-1] <= value
-//int  low=0 ;
-//int  high=size-1 ;
-//int  m_index= (high-low)/2 ;
-//while (m_index != high ) {
-//    if ( value < array[m_index] )
-//      high = m_index;
-//    else
-//      low = m_index + 1;
-//       m_index=(high+low+1)/2  ;
-//}
-//return m_index ;
-//
-//}
-//
-//__device__  int find_index_long( long* array, int size, long value) {
-//// find the first index of element which has vaule > value 
-//int  low=0 ;
-//int  high=size-1 ;
-//int  m_index= (high-low)/2 ;
-//while (high != low ) {
-//    if ( value > array[m_index] )
-//      low = m_index + 1;
-//     else if( value == array[m_index] )  {
-//        return m_index + 1   ;
-//       // return min(m_index + 1, size-1)   ;
-//    } else
-//      high = m_index;
-//       m_index=(high-low)/2 +low ;
-//}
-//return m_index ;
-//
-//}
-//
-//
-//__device__ void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
-//
-//
-// int nbinsx=(*hf2d).nbinsx;
-// int nbinsy=(*hf2d).nbinsy;
-// float * HistoContents= (*hf2d).h_contents ;
-// float* HistoBorders= (*hf2d).h_bordersx ;
-// float* HistoBordersy= (*hf2d).h_bordersy ; 
-//
-// /*
-// int ibin = nbinsx*nbinsy-1 ;
-// for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
-//    if   (HistoContents[i]> rnd0 ) {
-//	 ibin = i ;
-//	 break ;
-//	}
-// } 
-//*/
-// int ibin=find_index_f(HistoContents, nbinsx*nbinsy, rnd0 ) ;
-//
-//
-//  int biny = ibin/nbinsx;
-//  int binx = ibin - nbinsx*biny;
-//
-//  float basecont=0;
-//  if(ibin>0) basecont=HistoContents[ibin-1];
-//
-//  float dcont=HistoContents[ibin]-basecont;
-//  if(dcont>0) {
-//    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) * (rnd0-basecont) / dcont;
-//  } else {
-//    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) / 2;
-//  }
-//  valuey = HistoBordersy[biny] + (HistoBordersy[biny+1]-HistoBordersy[biny]) * rnd1;
-//
-//
-//}
-//
-//
-//__device__  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders , int nbins, uint32_t s_MaxValue  ) {
-//
-//
-//  uint32_t int_rnd=s_MaxValue*rnd;
-///*
-//  int  ibin=nbins-1 ;
-//  for ( int i=0 ; i < nbins ; ++i) {
-//    if   (contents[i]> int_rnd ) {
-//         ibin = i ;
-//         break ;
-//        }
-//  }
-//*/
-//  int ibin=find_index_uint32(contents, nbins, int_rnd ) ;
-//
-//  int binx = ibin;
-//
-//  uint32_t basecont=0;
-//  if(ibin>0) basecont=contents[ibin-1];
-//
-//  uint32_t dcont=contents[ibin]-basecont;
-//  if(dcont>0) {
-//    return borders[binx] + ((borders[binx+1]-borders[binx]) * (int_rnd-basecont)) / dcont;
-//  } else {
-//    return borders[binx] + (borders[binx+1]-borders[binx]) / 2;
-//  }
-//
-//}
-//
+inline  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
+
+   float * distance = 0 ;
+   int * steps =0 ;
+
+int MAX_SAMPLING = geo->max_sample ;
+Rg_Sample_Index * SampleIdx = geo->sample_index ;
+ GeoRegion * regions_g = geo->regions ;
+
+if(sampling<0) return -1;
+  if(sampling>=MAX_SAMPLING) return -1;
+
+   int sample_size= SampleIdx[sampling].size ;
+   int sample_index=SampleIdx[sampling].index ;
+
+   GeoRegion * gr = ( GeoRegion *) regions_g ; 
+  if(sample_size==0) return -1;
+  float dist;
+  long long bestDDE=-1;
+  if(!distance) distance=&dist;
+  *distance=+10000000;
+  int intsteps;
+  int beststeps;
+  if ( steps )
+    beststeps = ( *steps );
+  else
+    beststeps = 0;
+  
+  if(sampling<21) {
+    for(int skip_range_check=0;skip_range_check<=1;++skip_range_check) {
+      for(unsigned int j= sample_index; j< sample_index+sample_size ; ++j) {
+        if(!skip_range_check) {
+          if(eta< gr[j].mineta()) continue;
+          if(eta> gr[j].maxeta()) continue;
+        }
+        if ( steps )
+          intsteps = ( *steps );
+         else 
+       intsteps=0;
+        float newdist;
+        long long  newDDE= gr[j].getDDE(eta,phi,&newdist,&intsteps);
+        if(newdist<*distance) {
+          bestDDE=newDDE;
+          *distance=newdist;
+          if(steps) beststeps=intsteps;
+          if(newdist<-0.1) break; //stop, we are well within the hit cell
+       }
+      }
+      if(bestDDE>=0) break;
+  }
+  } else {
+                return -3;
+  }
+  if(steps) *steps=beststeps;
+
+  return bestDDE;
+}
+
+
+inline  int find_index_f( float* array, int size, float value) {
+// fist index (from 0)  have element value > value 
+// array[i] > value ; array[i-1] <= value 
+// std::upbund( )
+int  low=0 ; 
+int  high=size-1 ;
+int  m_index= (high-low)/2 ;
+while (m_index != high ) {
+    if ( value < array[m_index] )
+      high = m_index;
+    else
+      low = m_index + 1;
+       m_index=(high+low+1)/2 ;
+}
+return m_index ;
+
+} 
+
+
+
+inline  int find_index_uint32( uint32_t* array, int size, uint32_t value) {
+// fist index i  have element value > value 
+// array[i] > value ; array[i-1] <= value
+int  low=0 ;
+int  high=size-1 ;
+int  m_index= (high-low)/2 ;
+while (m_index != high ) {
+    if ( value < array[m_index] )
+      high = m_index;
+    else
+      low = m_index + 1;
+       m_index=(high+low+1)/2  ;
+}
+return m_index ;
+
+}
+
+inline  int find_index_long( long* array, int size, long value) {
+// find the first index of element which has vaule > value 
+int  low=0 ;
+int  high=size-1 ;
+int  m_index= (high-low)/2 ;
+while (high != low ) {
+    if ( value > array[m_index] )
+      low = m_index + 1;
+     else if( value == array[m_index] )  {
+        return m_index + 1   ;
+       // return min(m_index + 1, size-1)   ;
+    } else
+      high = m_index;
+       m_index=(high-low)/2 +low ;
+}
+return m_index ;
+
+}
+
+
+inline void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
+
+
+ int nbinsx=(*hf2d).nbinsx;
+ int nbinsy=(*hf2d).nbinsy;
+ float * HistoContents= (*hf2d).h_contents ;
+ float* HistoBorders= (*hf2d).h_bordersx ;
+ float* HistoBordersy= (*hf2d).h_bordersy ; 
+
+ /*
+ int ibin = nbinsx*nbinsy-1 ;
+ for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
+    if   (HistoContents[i]> rnd0 ) {
+	 ibin = i ;
+	 break ;
+	}
+ } 
+*/
+ int ibin=find_index_f(HistoContents, nbinsx*nbinsy, rnd0 ) ;
+
+
+  int biny = ibin/nbinsx;
+  int binx = ibin - nbinsx*biny;
+
+  float basecont=0;
+  if(ibin>0) basecont=HistoContents[ibin-1];
+
+  float dcont=HistoContents[ibin]-basecont;
+  if(dcont>0) {
+    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) * (rnd0-basecont) / dcont;
+  } else {
+    valuex = HistoBorders[binx] + (HistoBorders[binx+1]-HistoBorders[binx]) / 2;
+  }
+  valuey = HistoBordersy[biny] + (HistoBordersy[biny+1]-HistoBordersy[biny]) * rnd1;
+
+
+}
+
+
+inline  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders , int nbins, uint32_t s_MaxValue  ) {
+
+
+  uint32_t int_rnd=s_MaxValue*rnd;
+/*
+  int  ibin=nbins-1 ;
+  for ( int i=0 ; i < nbins ; ++i) {
+    if   (contents[i]> int_rnd ) {
+         ibin = i ;
+         break ;
+        }
+  }
+*/
+  int ibin=find_index_uint32(contents, nbins, int_rnd ) ;
+
+  int binx = ibin;
+
+  uint32_t basecont=0;
+  if(ibin>0) basecont=contents[ibin-1];
+
+  uint32_t dcont=contents[ibin]-basecont;
+  if(dcont>0) {
+    return borders[binx] + ((borders[binx+1]-borders[binx]) * (int_rnd-basecont)) / dcont;
+  } else {
+    return borders[binx] + (borders[binx+1]-borders[binx]) / 2;
+  }
+
+}
+
 
 
 
@@ -220,92 +222,93 @@ void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin, unsigned
    auto t0 = std::chrono::system_clock::now();
       Rand4Hits * rd4h = new Rand4Hits ;
 	float * f  ;
-//	curandGenerator_t gen ;
+	curandGenerator_t gen ;
    auto t1 = std::chrono::system_clock::now();
         
-//        CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
-//        CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
-//   auto t2 = std::chrono::system_clock::now();
-//       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
-//   auto t3 = std::chrono::system_clock::now();
-//         rd4h->set_rand_ptr(f) ;
-//	 rd4h->set_gen(gen) ;
-//	 rd4h->set_t_a_hits(maxhits);
-//	 rd4h->set_c_hits(0) ;
-//	CURAND_CALL(curandGenerateUniform(gen, f, 3*maxhits));
-//   auto t4 = std::chrono::system_clock::now();
-//
-//	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
-//	//rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
-//	rd4h->allocate_simulation(maxbin,MAXHITCT, MAX_CELLS) ; 
-//	CU_BigMem * bm = new CU_BigMem(M_SEG_SIZE) ;
-//        CU_BigMem::bm_ptr = bm ;
-//   auto t5 = std::chrono::system_clock::now();
-//
-//  std::chrono::duration<double> diff1 = t1-t0 ;
-//  std::chrono::duration<double> diff2 = t2-t1 ;
-//  std::chrono::duration<double> diff3 = t3-t2 ;
-//  std::chrono::duration<double> diff4 = t4-t3 ;
-//  std::chrono::duration<double> diff5 = t5-t4 ;
-///*  std::cout<<"Time of R4hit: " << diff1.count() << 
-//     ","<< 
-//       diff2.count() <<  
-//     ","<< 
-//       diff3.count() <<  
-//     ","<< 
-//       diff4.count() <<  
-//     ","<< 
-//       diff5.count() <<  " s" << std::endl ;
-//*/
-//
+        CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
+        CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
+   auto t2 = std::chrono::system_clock::now();
+       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
+   auto t3 = std::chrono::system_clock::now();
+         rd4h->set_rand_ptr(f) ;
+	 rd4h->set_gen(gen) ;
+	 rd4h->set_t_a_hits(maxhits);
+	 rd4h->set_c_hits(0) ;
+	CURAND_CALL(curandGenerateUniform(gen, f, 3*maxhits));
+   auto t4 = std::chrono::system_clock::now();
+
+	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
+	//rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
+	rd4h->allocate_simulation(maxbin,MAXHITCT, MAX_CELLS) ; 
+	OMP_BigMem * bm = new OMP_BigMem(M_SEG_SIZE) ;
+        OMP_BigMem::bm_ptr = bm ;
+   auto t5 = std::chrono::system_clock::now();
+
+  std::chrono::duration<double> diff1 = t1-t0 ;
+  std::chrono::duration<double> diff2 = t2-t1 ;
+  std::chrono::duration<double> diff3 = t3-t2 ;
+  std::chrono::duration<double> diff4 = t4-t3 ;
+  std::chrono::duration<double> diff5 = t5-t4 ;
+/*  std::cout<<"Time of R4hit: " << diff1.count() << 
+     ","<< 
+       diff2.count() <<  
+     ","<< 
+       diff3.count() <<  
+     ","<< 
+       diff4.count() <<  
+     ","<< 
+       diff5.count() <<  " s" << std::endl ;
+*/
+
 	return  (void* ) rd4h ;
 
 }
-//__host__  void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
-//
-//  size_t free, total ;
-//  gpuQ(cudaMemGetInfo(&free, &total)) ;
-//  std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
-//            << "  bm table allocate size(MB), used:  " << CU_BigMem::bm_ptr->size() / 1000000 << ", "
-//            << CU_BigMem::bm_ptr->used() / 1000000 << std::endl;
-//  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
-//  if (CU_BigMem::bm_ptr)   delete CU_BigMem::bm_ptr  ;
-//  
-//  if (timing.count > 0) {
-//    std::cout << "kernel timing\n";
-//    printf("%12s %15s %15s\n","kernel","total /s","avg launch /s");
-//    printf("%12s %15.8f %15.8f\n","sim_clean",timing.t_sim_clean.count(),
-//           timing.t_sim_clean.count()/timing.count);
-//    printf("%12s %15.8f %15.8f\n","sim_A",timing.t_sim_A.count(),
-//           timing.t_sim_A.count()/timing.count);
-//    printf("%12s %15.8f %15.8f\n","sim_ct",timing.t_sim_ct.count(),
-//           timing.t_sim_ct.count()/timing.count);
-//    printf("%12s %15.8f %15.8f\n","sim_cp",timing.t_sim_cp.count(),
-//           timing.t_sim_cp.count()/timing.count);
-//    printf("%12s %15d\n","launch count",timing.count);
-//  } else {
-//    std::cout << "no kernel timing available" << std::endl;
-//  }
-//  
-//}
-//
-//
-//__host__ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbins, int bins) {
-// 
-//    if( !(Rand4Hits *)rd4h ) { 
-//	std::cout<<"Error load hit simulation params ! " ;
-//	exit(2);
-//	}
-//
-//    HitParams * hp_g = ((Rand4Hits *) rd4h )->get_hitparams() ;
-//    long * simbins_g =  ((Rand4Hits *) rd4h) ->get_simbins() ;
-//	
-//   gpuQ(cudaMemcpy(hp_g, hp, bins*sizeof(HitParams), cudaMemcpyHostToDevice));
-//   gpuQ(cudaMemcpy(simbins_g, simbins, bins*sizeof(long), cudaMemcpyHostToDevice));
-//
-//}
-//
-//
+
+void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
+
+  size_t free, total ;
+  gpuQ(cudaMemGetInfo(&free, &total)) ;
+  std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
+            << "  bm table allocate size(MB), used:  " << OMP_BigMem::bm_ptr->size() / 1000000 << ", "
+            << OMP_BigMem::bm_ptr->used() / 1000000 << std::endl;
+  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
+  if (OMP_BigMem::bm_ptr)   delete OMP_BigMem::bm_ptr  ;
+  
+  if (timing.count > 0) {
+    std::cout << "kernel timing\n";
+    printf("%12s %15s %15s\n","kernel","total /s","avg launch /s");
+    printf("%12s %15.8f %15.8f\n","sim_clean",timing.t_sim_clean.count(),
+           timing.t_sim_clean.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_A",timing.t_sim_A.count(),
+           timing.t_sim_A.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_ct",timing.t_sim_ct.count(),
+           timing.t_sim_ct.count()/timing.count);
+    printf("%12s %15.8f %15.8f\n","sim_cp",timing.t_sim_cp.count(),
+           timing.t_sim_cp.count()/timing.count);
+    printf("%12s %15d\n","launch count",timing.count);
+  } else {
+    std::cout << "no kernel timing available" << std::endl;
+  }
+  
+}
+
+
+void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbins, int bins) {
+ 
+    if( !(Rand4Hits *)rd4h ) { 
+	std::cout<<"Error load hit simulation params ! " ;
+	exit(2);
+	}
+
+    HitParams * hp_g = ((Rand4Hits *) rd4h )->get_hitparams() ;
+    long * simbins_g =  ((Rand4Hits *) rd4h) ->get_simbins() ;
+	
+   gpuQ(cudaMemcpy(hp_g, hp, bins*sizeof(HitParams), cudaMemcpyHostToDevice));
+   gpuQ(cudaMemcpy(simbins_g, simbins, bins*sizeof(long), cudaMemcpyHostToDevice));
+
+}
+
+
 //
 //__global__  void simulate_clean(Sim_Args args) {
 // unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
@@ -477,78 +480,78 @@ void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin, unsigned
 // }
 //}
 //
-//
-//__host__ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
-//
-//  std::call_once(calledGetEnv, [](){
-//        if(const char* env_p = std::getenv("FCS_BLOCK_SIZE")) {
-//          std::string bs(env_p);
-//          BLOCK_SIZE = std::stoi(bs);
-//        }
-//        if (BLOCK_SIZE != DEFAULT_BLOCK_SIZE) {
-//          std::cout << "kernel BLOCK_SIZE: " << BLOCK_SIZE << std::endl;
-//        }
-//  });
-//
-//  // get Randowm numbers ptr , generate if need
-//  long nhits =args.nhits ;
-//  Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
-//  float * r= rd4h->rand_ptr(nhits)  ;
-//  rd4h->add_a_hits(nhits) ;
-//  args.rand =r;
-//  
-//  args.cells_energy =  rd4h->get_cells_energy() ;
-//  args.hitcells_E = rd4h->get_cell_e() ;
-//  args.hitcells_E_h = rd4h->get_cell_e_h() ;
-//  args.ct = rd4h->get_ct() ;
-//  args.ct_h = rd4h->get_ct_h() ;
-//  
-//  args.simbins=rd4h->get_simbins();
-//  args.hitparams = rd4h->get_hitparams() ;
-//    
+
+void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
+
+  std::call_once(calledGetEnv, [](){
+        if(const char* env_p = std::getenv("FCS_BLOCK_SIZE")) {
+          std::string bs(env_p);
+          BLOCK_SIZE = std::stoi(bs);
+        }
+        if (BLOCK_SIZE != DEFAULT_BLOCK_SIZE) {
+          std::cout << "kernel BLOCK_SIZE: " << BLOCK_SIZE << std::endl;
+        }
+  });
+
+  // get Randowm numbers ptr , generate if need
+  long nhits =args.nhits ;
+  Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
+  float * r= rd4h->rand_ptr(nhits)  ;
+  rd4h->add_a_hits(nhits) ;
+  args.rand =r;
+  
+  args.cells_energy =  rd4h->get_cells_energy() ;
+  args.hitcells_E = rd4h->get_cell_e() ;
+  args.hitcells_E_h = rd4h->get_cell_e_h() ;
+  args.ct = rd4h->get_ct() ;
+  args.ct_h = rd4h->get_ct_h() ;
+  
+  args.simbins=rd4h->get_simbins();
+  args.hitparams = rd4h->get_hitparams() ;
+    
 //  cudaError_t err = cudaGetLastError();
-//  
-//  // clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
-//  // and workspace hitcells_energy[ncells*MAX_SIM]
-//  
-//  int blocksize=BLOCK_SIZE ;
-//  int threads_tot= args.ncells*args.nsims  ;
-//  int nblocks= (threads_tot + blocksize-1 )/blocksize ;
-//  auto t0 = std::chrono::system_clock::now();
+  
+  // clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
+  // and workspace hitcells_energy[ncells*MAX_SIM]
+  
+  int blocksize=BLOCK_SIZE ;
+  int threads_tot= args.ncells*args.nsims  ;
+  int nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  auto t0 = std::chrono::system_clock::now();
 //  simulate_clean <<< nblocks, blocksize >>>( args) ;
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
-//  
-//  // Now main hit simulation find cell and populate hitcells_energy[] :
-//  blocksize=BLOCK_SIZE ;
-//  threads_tot= args.nhits  ;
-//  nblocks= (threads_tot + blocksize-1 )/blocksize ;
-//  auto t1 = std::chrono::system_clock::now();
+  gpuQ( cudaGetLastError() );
+  gpuQ( cudaDeviceSynchronize() );
+  
+  // Now main hit simulation find cell and populate hitcells_energy[] :
+  blocksize=BLOCK_SIZE ;
+  threads_tot= args.nhits  ;
+  nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  auto t1 = std::chrono::system_clock::now();
 //  simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
-//  
-//  // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
-//  
-//  nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
-//  auto t2 = std::chrono::system_clock::now();
+  gpuQ( cudaGetLastError() );
+  gpuQ( cudaDeviceSynchronize() );
+  
+  // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
+  
+  nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
+  auto t2 = std::chrono::system_clock::now();
 //  simulate_hits_ct <<<nblocks, blocksize >>>(args ) ; 
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
-//  
-//  // cpy result back 
-//  
-//  auto t3 = std::chrono::system_clock::now();
+  gpuQ( cudaGetLastError() );
+  gpuQ( cudaDeviceSynchronize() );
+  
+  // cpy result back 
+  
+  auto t3 = std::chrono::system_clock::now();
 //  gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
-//  
+  
 //  gpuQ(
 //      cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
-//  auto t4 = std::chrono::system_clock::now();
-//  
-//  CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
-//  timing += kt;
-//  
-//  //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
-//  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT],
-//  //     args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
-//} 
+  auto t4 = std::chrono::system_clock::now();
+  
+  CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
+  timing += kt;
+  
+  //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
+  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT],
+  //     args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
+} 

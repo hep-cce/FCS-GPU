@@ -6,7 +6,7 @@
 #define CU_BIGMEM_H
 
 
-#include "gpuQ.h"
+//#include "gpuQ.h"
 #include <vector>
 
 class CU_BigMem  {
