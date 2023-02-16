@@ -80,9 +80,8 @@ void Rand4Hits::allocate_simulation(int /*maxbins*/, int maxhitct,
   DEV_BigMem *bm = new DEV_BigMem(M_SEG_SIZE);
   DEV_BigMem::bm_ptr = bm;
 
-  printf(" -- R4H ncells brge: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
+  printf(" -- R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
-
 }
 
 void Rand4Hits::allocateGenMem(size_t num) {

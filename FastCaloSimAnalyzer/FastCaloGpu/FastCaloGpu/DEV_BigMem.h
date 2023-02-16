@@ -8,6 +8,10 @@
 #include <vector>
 #include <iostream>
 
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
+#endif
+
 class DEV_BigMem {
 
 public:
@@ -49,6 +53,10 @@ private:
   size_t m_seg_size{ 0 };     // size of each allocation
   std::vector<size_t> m_used; // used memory in each allocated segment
   size_t m_pad{ 0 };          // total space lost to padding
+
+#ifdef USE_ALPAKA
+  std::vector<BufAccChar> m_bufs;
+#endif
 };
 
 #endif

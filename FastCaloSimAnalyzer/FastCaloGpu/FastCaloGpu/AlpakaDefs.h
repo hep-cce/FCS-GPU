@@ -60,6 +60,7 @@ using BufAccLong = alpaka::Buf<Acc, long, Dim, Idx>;
 using BufAccUnsigned = alpaka::Buf<Acc, unsigned, Dim, Idx>;
 using BufAccUint32 = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
 using BufAccHitParams = alpaka::Buf<Acc, HitParams, Dim, Idx>;
+using BufAccChar = alpaka::Buf<Acc, char, Dim, Idx>;
 
 // This engine was chosen only because it is used by one of
 // the Alpaka examples
