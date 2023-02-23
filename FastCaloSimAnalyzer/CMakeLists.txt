@@ -21,6 +21,7 @@ set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
 set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
 
 if ( USE_STDPAR )
+  SET(CUDA_USE_STATIC_CUDA_RUNTIME OFF)
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )
     if ( NOT RNDGEN_CPU )
       message(FATAL_ERROR "when STDPAR_TARGET=cpu, RNDGEN_CPU must be ON")
