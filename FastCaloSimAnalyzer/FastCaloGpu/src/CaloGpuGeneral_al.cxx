@@ -61,8 +61,8 @@ namespace CaloGpuGeneral_al {
 	CenterPositionCalculation_g_d(hp, hit, idx, args);
 	HistoLateralShapeParametrization_g_d(hp, hit, idx, args);
 	if (hp.cmw)
-	  HitCellMappingWiggle_g_d(hp, hit, idx, args);
-	HitCellMapping_g_d(hp, hit, idx, args);
+	  HitCellMappingWiggle_g_d(acc, hp, hit, idx, args);
+	HitCellMapping_g_d(acc, hp, hit, idx, args);
       }
     }
   };
