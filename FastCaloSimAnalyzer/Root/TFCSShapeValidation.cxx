@@ -211,8 +211,9 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 #endif
    std::chrono::duration<double> t_st= std::chrono::duration<double,std::ratio<1>>::zero();
    auto t2 = std::chrono::system_clock::now();
-  for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
-
+  //for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
+  for ( int ievent = m_firstevent; ievent < 250; ievent++ ) {
+  std::cout << "event " << ievent << std::endl;
 #if defined USE_GPU || defined USE_OMPGPU
 
   bool first = (ievent==m_firstevent ) ? true : false ;

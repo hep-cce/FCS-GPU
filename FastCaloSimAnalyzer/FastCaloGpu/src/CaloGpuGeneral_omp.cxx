@@ -147,6 +147,7 @@ return m_index ;
 
 inline void  rnd_to_fct2d(float& valuex,float& valuey,float rnd0,float rnd1, FH2D* hf2d) {
 
+ //printf("-r-r-r-r- RN at %f %f \n", rnd0, rnd1);
 
  int nbinsx=(*hf2d).nbinsx;
  int nbinsy=(*hf2d).nbinsy;
@@ -259,7 +260,6 @@ void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin, unsigned
      ","<< 
        diff5.count() <<  " s" << std::endl ;
 */
-
 	return  (void* ) rd4h ;
 
 }

@@ -12,7 +12,6 @@ int m_initial_device = omp_get_initial_device();
 
 float * Cells_Energy ;
 //gpuQ(cudaMalloc((void**)&Cells_Energy , MAX_SIM * n_cells* sizeof(float))) ;
-printf("aaaaaaaaaaaaaaa %d", MAX_SIM * n_cells);
 Cells_Energy = (float *) omp_target_alloc( MAX_SIM * n_cells* sizeof(float), m_default_device);
 m_cells_energy = Cells_Energy ;
 
