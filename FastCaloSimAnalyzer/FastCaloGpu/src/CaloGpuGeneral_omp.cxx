@@ -3,7 +3,7 @@
 */
 
 #include "CaloGpuGeneral.h"
-//#include "GeoRegion.cu"
+#include "GeoRegion.h"
 #include "Hit.h"
 #include "Rand4Hits.h"
 
@@ -309,43 +309,60 @@ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbin
 }
 
 
-//
-//__global__  void simulate_clean(Sim_Args args) {
-// unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
-//  if ( tid < args.ncells * args.nsims ) { args.cells_energy[tid] = 0.0; }
-// if(tid < args.nsims) args.ct[tid]= 0 ; 
-//}
-//
-//__host__ int highestPowerof2( unsigned int n ) {
-//    // Invalid input 
-//  if ( n < 1 ) return 0;
-//  
-//    int res = 1; 
-//  
-//    // Try all powers starting from 2^1 
-//  for ( unsigned int i = 0; i < 8 * sizeof( unsigned int ); i++ ) {
-//        unsigned int curr = 1 << i; 
-//  
-//        // If current power is more than n, break 
-//    if ( curr > n ) break;
-//  
-//        res = curr; 
-//    } 
-//  
-//    return res; 
-//}
-//
-//
-//
-//__device__  void CenterPositionCalculation_g_d(const HitParams hp, Hit& hit, const Sim_Args args) {
+inline void simulate_clean( Sim_Args& args ) {
+
+  //__global__  void simulate_clean(Sim_Args args) {
+  // unsigned long  tid = threadIdx.x + blockIdx.x*blockDim.x ;
+  //  if ( tid < args.ncells * args.nsims ) { args.cells_energy[tid] = 0.0; }
+  // if(tid < args.nsims) args.ct[tid]= 0 ; 
+  //}
+
+  auto cells_energy = args.cells_energy;
+  auto ct           = args.ct;
+  const auto nsims  = args.nsims;
+  const unsigned long ncellssims = args.ncells*nsims;
+
+  int tid;
+  #pragma omp target is_device_ptr ( cells_energy, ct ) //map(to:nsims) //nowait
+  #pragma omp teams distribute parallel for //num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
+  for(tid = 0; tid < ncellssims; tid++) {
+    //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
+    cells_energy[tid] = 0.;
+    if ( tid < nsims ) ct[tid] = 0;
+  }
+
+}
+
+inline int highestPowerof2( unsigned int n ) {
+    // Invalid input 
+  if ( n < 1 ) return 0;
+  
+    int res = 1; 
+  
+    // Try all powers starting from 2^1 
+  for ( unsigned int i = 0; i < 8 * sizeof( unsigned int ); i++ ) {
+        unsigned int curr = 1 << i; 
+  
+        // If current power is more than n, break 
+    if ( curr > n ) break;
+  
+        res = curr; 
+    } 
+  
+    return res; 
+}
+
+
+
+//inline  void CenterPositionCalculation_g_d(const HitParams hp, Hit& hit, const Sim_Args args) {
 //
 //  hit.setCenter_r( ( 1. - hp.extrapWeight ) * hp.extrapol_r_ent + hp.extrapWeight * hp.extrapol_r_ext );
 //  hit.setCenter_z( ( 1. - hp.extrapWeight ) * hp.extrapol_z_ent + hp.extrapWeight * hp.extrapol_z_ext );
 //  hit.setCenter_eta( ( 1. - hp.extrapWeight ) * hp.extrapol_eta_ent + hp.extrapWeight * hp.extrapol_eta_ext );
 //  hit.setCenter_phi( ( 1. - hp.extrapWeight ) * hp.extrapol_phi_ent + hp.extrapWeight * hp.extrapol_phi_ext );
 //}
-//
-//__device__ void HistoLateralShapeParametrization_g_d( const HitParams hp, Hit& hit, int t , Sim_Args args ) {
+
+//inline void HistoLateralShapeParametrization_g_d( const HitParams hp, Hit& hit, int t , Sim_Args args ) {
 //
 //  float  charge   = hp.charge;
 //
@@ -394,26 +411,29 @@ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbin
 //
 //
 //}
-//
-//__device__ void HitCellMapping_g_d( HitParams hp,Hit& hit,  Sim_Args args ) {
+
+//inline void HitCellMapping_g_d( HitParams hp,Hit& hit,  Sim_Args args, float* cells_energy ) {
 //
 // long long  cellele= getDDE(args.geo, hp.cs,hit.eta(),hit.phi());
 //
 ////if (hp.index ==0 ) printf("Tid: %d cellId: %ld  nhits: %ld \n" , threadIdx.x ,cellele, hp.nhits ) ; 
 //
 // if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
-//  if( cellele >= 0 )  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
+// //if( cellele >= 0 )  atomicAdd(&args.cells_energy[cellele+args.ncells*hp.index], hit.E()) ; 
+// #pragma omp atomic update
+// cells_energy[cellele + args.ncells*hp.index] += (float)(hit.E());
 //
 //}
-//
-//__device__ void HitCellMappingWiggle_g_d( HitParams hp,Hit& hit, long t,  Sim_Args args  ) {
+
+
+//inline void HitCellMappingWiggle_g_d( HitParams hp,Hit& hit, long t,  Sim_Args args, float* cells_energy  ) {
 //
 // FHs * f1d = hp.f1d ; 
 // int nhist=(*f1d).nhist;
 // float*  bin_low_edge = (*f1d ).low_edge ;
 // 
 // float eta =fabs( hit.eta()); 
-//  if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_g_d( hp, hit, args ); }
+//  if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_g_d( hp, hit, args, cells_energy ); }
 //
 // int bin= nhist ;
 //  for (int i =0; i< nhist+1 ; ++i ) {
@@ -444,44 +464,183 @@ void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbin
 ////  HitCellMapping_g_d(hp, hit,  args) ;
 //
 //}
-//
-//
-//
-//__global__  void simulate_hits_de( const Sim_Args args ) {
-//
-//    long t = threadIdx.x + blockIdx.x*blockDim.x ;
-//    if ( t  <  args.nhits ) {
-//     Hit hit ;
-//     int bin = find_index_long(args.simbins, args.nbins, t ) ;
-////  if(bin == 0 ) printf("tid=%ld args.nbins=%d \n", t, args.nbins) ; 
-//     HitParams hp =args.hitparams[bin] ;
-//     hit.E()= hp.E ;
-//     CenterPositionCalculation_g_d( hp, hit, args) ;
-//     HistoLateralShapeParametrization_g_d(hp, hit, t, args) ;
-//     if( hp.cmw)HitCellMappingWiggle_g_d ( hp, hit, t,args  ) ;
-//     HitCellMapping_g_d(hp, hit, args) ;
-//   }
-//}
-//
-//__global__  void simulate_hits_ct( const Sim_Args args) {
-//
-// unsigned long tid = threadIdx.x + blockIdx.x*blockDim.x ;
-// int sim = tid/args.ncells ; 
-// unsigned long cellid=tid % args.ncells ;
-// if( tid < args.ncells*args.nsims) {
-//        if(args.cells_energy[tid] >0 )  {
-//		unsigned int ct = atomicAdd(&args.ct[sim],1) ;
-//		Cell_E ce;
-//		ce.cellid=cellid ;
-//		ce.energy=args.cells_energy[tid] ;
-//		args.hitcells_E[ct + sim*MAXHITCT] = ce ;
-////if(sim==0) printf("sim: %d  ct=%d cellid=%ld e=%f\n", sim, ct, cellid,  ce.energy); 
-//	}
-// }
-//}
-//
+
+
+
+inline  void simulate_hits_de( const Sim_Args args ) {
+
+    const unsigned long ncells   = args.ncells;
+    
+    auto cells_energy = args.cells_energy;
+    auto ct           = args.ct;
+    auto rand         = args.rand;
+    auto geo          = args.geo;
+    auto nhits        = args.nhits;
+
+    int m_default_device = omp_get_default_device();
+    int m_initial_device = omp_get_initial_device();
+
+    /************* A **********/
+
+    long t;
+    #pragma omp target is_device_ptr( cells_energy, rand, geo ) map( to : args )
+    #pragma omp teams distribute parallel for //num_teams(60) //num_threads(64) //num_teams default 33
+    for ( t = 0; t < nhits; t++ ) {
+
+     Hit hit ;
+     int bin = find_index_long(args.simbins, args.nbins, t ) ;
+     HitParams hp =args.hitparams[bin] ;
+     //printf("bin %d hp.index %d \n",bin, hp.index);
+     hit.E()= hp.E ;
+     if(bin<3 and t<3) printf("OMP1 bin %d hp.index %d \n",bin, hp.index);
+     
+     //CenterPositionCalculation_g_d( hp, hit, args) ;
+     hit.setCenter_r( ( 1. - hp.extrapWeight ) * hp.extrapol_r_ent + hp.extrapWeight * hp.extrapol_r_ext );
+     hit.setCenter_z( ( 1. - hp.extrapWeight ) * hp.extrapol_z_ent + hp.extrapWeight * hp.extrapol_z_ext );
+     hit.setCenter_eta( ( 1. - hp.extrapWeight ) * hp.extrapol_eta_ent + hp.extrapWeight * hp.extrapol_eta_ext );
+     hit.setCenter_phi( ( 1. - hp.extrapWeight ) * hp.extrapol_phi_ent + hp.extrapWeight * hp.extrapol_phi_ext );
+    
+
+
+     //HistoLateralShapeParametrization_g_d(hp, hit, t, args) ;
+     float  charge   = hp.charge;
+     float center_eta = hit.center_eta();
+     float center_phi = hit.center_phi();
+     float center_r   = hit.center_r();
+     float center_z   = hit.center_z();
+     float alpha, r, rnd1, rnd2;
+     rnd1 = args.rand[t];
+     rnd2 = args.rand[t+args.nhits];
+     if(hp.is_phi_symmetric) {
+       if(rnd2>=0.5) { //Fill negative phi half of shape
+         rnd2-=0.5;
+         rnd2*=2;
+         rnd_to_fct2d(alpha,r,rnd1,rnd2,hp.f2d);
+         alpha=-alpha;
+       } else { //Fill positive phi half of shape
+         rnd2*=2;
+         rnd_to_fct2d(alpha,r,rnd1,rnd2,hp.f2d);
+       }
+     } else {
+       rnd_to_fct2d(alpha,r,rnd1,rnd2, hp.f2d);
+     }
+     float delta_eta_mm = r * cos(alpha);
+     float delta_phi_mm = r * sin(alpha);
+     // Particles with negative eta are expected to have the same shape as those with positive eta after transformation:
+     // delta_eta --> -delta_eta
+     if(center_eta<0.)delta_eta_mm = -delta_eta_mm;
+     // Particle with negative charge are expected to have the same shape as positively charged particles after
+     // transformation: delta_phi --> -delta_phi
+     if(charge < 0.)  delta_phi_mm = -delta_phi_mm;
+     float dist000    = sqrt(center_r * center_r + center_z * center_z);
+     float eta_jakobi = abs(2.0 * exp(-center_eta) / (1.0 + exp(-2 * center_eta)));
+     float delta_eta = delta_eta_mm / eta_jakobi / dist000;
+     float delta_phi = delta_phi_mm / center_r;
+     hit.setEtaPhiZE(center_eta + delta_eta,center_phi + delta_phi,center_z, hit.E());
+
+     
+     if(bin<3 and t<3) printf("OMP2 tid=%ld args.nbins=%d energy=%f hp.index %d \n", t, args.nbins,hit.E(), hp.index) ; 
+
+     //if( hp.cmw)HitCellMappingWiggle_g_d ( hp, hit, t, args, cells_energy ) ;
+     if( hp.cmw) {
+       FHs * f1d = hp.f1d ; 
+       int nhist=(*f1d).nhist;
+       float*  bin_low_edge = (*f1d ).low_edge ;
+       
+       float eta =fabs( hit.eta()); 
+        //if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_g_d( hp, hit, args, cells_energy ); }
+        if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) {
+   	 long long  cellele= getDDE(args.geo, hp.cs,hit.eta(),hit.phi());
+         if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
+         #pragma omp atomic update
+         cells_energy[cellele + args.ncells*hp.index] += (float)(hit.E());
+	}
+     
+       int bin= nhist ;
+        for (int i =0; i< nhist+1 ; ++i ) {
+       	if(bin_low_edge[i] > eta ) {
+      	  bin = i ;
+      	  break ;
+      	}
+        }
+      
+      //  bin=find_index_f(bin_low_edge, nhist+1, eta ) ;
+      
+        bin -= 1; 
+      
+        uint32_t * contents = (*f1d).h_contents[bin] ;
+        float* borders = (*f1d).h_borders[bin] ;
+        int h_size=(*f1d).h_szs[bin] ;
+        uint32_t s_MaxValue =(*f1d).s_MaxValue ;
+        
+      
+           float rnd= args.rand[t+2*args.nhits];
+      
+          float wiggle=rnd_to_fct1d(rnd,contents, borders, h_size, s_MaxValue);
+      
+          float hit_phi_shifted=hit.phi()+wiggle;
+          hit.phi()=Phi_mpi_pi(hit_phi_shifted);
+     }  
+
+     //HitCellMapping_g_d(hp, hit, args, cells_energy) ;
+     long long  cellele= getDDE(args.geo, hp.cs,hit.eta(),hit.phi());
+     if( cellele < 0) printf("cellele not found %ld \n", cellele ) ; 
+     #pragma omp atomic update
+     cells_energy[cellele + ncells*hp.index] += hit.E();
+     if(bin<3 and t<3) printf("OMP3 energy %f cellele=%ld ncell=%d hp.index=%d \n", hit.E(), cellele, ncells, hp.index);
+
+    }
+}
+
+inline  void simulate_hits_ct( const Sim_Args args) {
+
+  // unsigned long tid = threadIdx.x + blockIdx.x*blockDim.x ;
+  // int sim = tid/args.ncells ; 
+  // unsigned long cellid=tid % args.ncells ;
+  // if( tid < args.ncells*args.nsims) {
+  //        if(args.cells_energy[tid] >0 )  {
+  //		unsigned int ct = atomicAdd(&args.ct[sim],1) ;
+  //		Cell_E ce;
+  //		ce.cellid=cellid ;
+  //		ce.energy=args.cells_energy[tid] ;
+  //		args.hitcells_E[ct + sim*MAXHITCT] = ce ;
+  ////if(sim==0) printf("sim: %d  ct=%d cellid=%ld e=%f\n", sim, ct, cellid,  ce.energy); 
+  //	}
+  // }
+
+  const unsigned long ncells = args.ncells;
+  const unsigned long nsims  = args.nsims;
+   
+  auto cells_energy = args.cells_energy;
+  auto argsct       = args.ct;
+  auto hitcells_E   = args.hitcells_E;
+  
+  #pragma omp target is_device_ptr ( cells_energy, argsct, hitcells_E ) //nowait
+  #pragma omp teams distribute parallel for //num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) //thread_limit(128) //num_teams default 1467, threads default 128
+  for ( int tid = 0; tid < ncells*nsims; tid++ ) {
+    unsigned long cellid=tid % ncells ;	  
+    int sim = tid/ncells ; 
+    if ( cells_energy[tid] > 0. ) {
+       unsigned int ct=0;
+       #pragma omp atomic capture
+       ct = argsct[sim]++; 
+            
+       Cell_E                ce;
+       ce.cellid           = cellid;
+       ce.energy           = cells_energy[tid];
+       hitcells_E[ct + sim*MAXHITCT] = ce;
+       if(sim==0) printf ( "OMP4 sim: %d ct %d cellid %d energy %f \n", sim, ct, cellid, ce.energy);
+    }
+  }
+
+}
+
 
 void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
+
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  std::size_t m_offset = 0;
 
   std::call_once(calledGetEnv, [](){
         if(const char* env_p = std::getenv("FCS_BLOCK_SIZE")) {
@@ -519,8 +678,9 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   int nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t0 = std::chrono::system_clock::now();
 //  simulate_clean <<< nblocks, blocksize >>>( args) ;
-  gpuQ( cudaGetLastError() );
-  gpuQ( cudaDeviceSynchronize() );
+  simulate_clean ( args );
+//  gpuQ( cudaGetLastError() );
+//  gpuQ( cudaDeviceSynchronize() );
   
   // Now main hit simulation find cell and populate hitcells_energy[] :
   blocksize=BLOCK_SIZE ;
@@ -528,24 +688,35 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   nblocks= (threads_tot + blocksize-1 )/blocksize ;
   auto t1 = std::chrono::system_clock::now();
 //  simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
-  gpuQ( cudaGetLastError() );
-  gpuQ( cudaDeviceSynchronize() );
+  simulate_hits_de (args ) ;
+//  gpuQ( cudaGetLastError() );
+//  gpuQ( cudaDeviceSynchronize() );
   
   // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
   
   nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
   auto t2 = std::chrono::system_clock::now();
 //  simulate_hits_ct <<<nblocks, blocksize >>>(args ) ; 
-  gpuQ( cudaGetLastError() );
-  gpuQ( cudaDeviceSynchronize() );
+  simulate_hits_ct (args ) ; 
+//  gpuQ( cudaGetLastError() );
+//  gpuQ( cudaDeviceSynchronize() );
   
   // cpy result back 
   
   auto t3 = std::chrono::system_clock::now();
 //  gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
-  
+  if ( omp_target_memcpy( args.ct_h, args.ct, args.nsims*sizeof(int),
+         m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+    std::cout << "ERROR: copy hitcells_ct. " << std::endl;
+  } 
+
 //  gpuQ(
 //      cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
+  if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ),
+                                        m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+    std::cout << "ERROR: copy hitcells_ct. " << std::endl;
+  } 
+
   auto t4 = std::chrono::system_clock::now();
   
   CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);

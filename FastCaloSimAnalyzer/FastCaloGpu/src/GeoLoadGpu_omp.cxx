@@ -123,7 +123,7 @@ bool GeoLoadGpu::LoadGpu() {
     std::cout << " ERROR: Unable to copy to device." << std::endl;
     return false;
   }
-  std::cout << "cudaMemcpy " << ii << " cells"
+  std::cout << "omp_target_memcpy " << ii << " cells"
             << " Total:" << ii * sizeof( CaloDetDescrElement ) << " Bytes" << std::endl;
 
     free(cells_Host) ;
@@ -285,5 +285,3 @@ Rg_Sample_Index * SampleIndex_g ;
 
 }  
 
-//#include "CaloGpuGeneral_omp.cxx"
-//#include "LoadGpuFuncHist_omp.cxx"

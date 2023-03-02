@@ -31,12 +31,13 @@ endif()
 #set(CMAKE_CUDA_FLAGS "-arch=sm_37 ")
 # Sources
 set(FastCaloGpu_Srcs
-	#GeoLoadGpu.cu
-  GeoLoadGpu_omp.cxx
-  Rand4Hits.cu
+	#GeoRegion.cxx
+  #GeoLoadGpu_omp.cxx
+  #Rand4Hits.cu
   gpuQ.cu
-  LoadGpuFuncHist_omp.cxx
-  CaloGpuGeneral_omp.cxx
+  #LoadGpuFuncHist_omp.cxx
+  #CaloGpuGeneral_omp.cxx
+  OpenMPWrapper.cxx
 )
 
 # # Global include is needed for dictionary generation to work

@@ -12,9 +12,12 @@
 #ifdef __CUDACC__
 #define CUDA_HOSTDEV __host__ __device__
 #else
-#define CUDA_HOSTDEV
+#define CUDA_HOSTDEV inline
 #endif
 #endif
+
+#    define __HOSTDEV__ inline
+__HOSTDEV__ double Phi_mpi_pi( double );
 
 class GeoRegion {
     public:
