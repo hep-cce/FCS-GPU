@@ -50,6 +50,7 @@ using BufHostLongLong = alpaka::Buf<Host, long long, Dim, Idx>;
 using BufHostLong = alpaka::Buf<Host, long, Dim, Idx>;
 using BufHostUnsigned = alpaka::Buf<Host, unsigned, Dim, Idx>;
 using BufHostUint32 = alpaka::Buf<Host, uint32_t, Dim, Idx>;
+using BufHostHitParams = alpaka::Buf<Host, HitParams, Dim, Idx>;
 
 using BufAccCaloDDE = alpaka::Buf<Acc, CaloDetDescrElement, Dim, Idx>;
 using BufAccSampleIndex = alpaka::Buf<Acc, Rg_Sample_Index, Dim, Idx>;

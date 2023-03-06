@@ -5,7 +5,6 @@
 #include "Rand4Hits.h"
 #include "AlpakaDefs.h"
 
-#include "gpuQ.h"
 #include "Args.h"
 #include "DEV_BigMem.h"
 #include <chrono>
@@ -199,17 +198,22 @@ namespace CaloGpuGeneral_al {
 
     // copy back to host
     auto t3 = std::chrono::system_clock::now();
+    Rand4Hits * rd4h = (Rand4Hits *)args.rd4h;
 
-    auto h_ctView = alpaka::createView(alpaka::getDevByIdx<Host>(0u),args.ct_h,args.nsims * sizeof(int));
-    auto d_ctView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),args.ct,args.nsims * sizeof(int));
-
-    auto h_hitcellsView = alpaka::createView(alpaka::getDevByIdx<Host>(0u),args.hitcells_E_h,MAXHITCT * args.nsims * sizeof(Cell_E));
-    auto d_hitcellsView= alpaka::createView(alpaka::getDevByIdx<Acc>(0u),args.hitcells_E,MAXHITCT * args.nsims * sizeof(Cell_E));
-
-    alpaka::memcpy(queue,h_ctView,d_ctView);
-    alpaka::memcpy(queue,h_hitcellsView,d_hitcellsView);
+    auto bufDevCt = rd4h->get_cT();
+    CellCtTHost bufHostCt = alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(args.nsims)});
+    CELL_CT_T* bufHostCtRaw = alpaka::getPtrNative(bufHostCt);
+    alpaka::memcpy(queue,bufHostCt,bufDevCt,Vec{Idx(args.nsims)});
     alpaka::wait(queue);
-    
+    memcpy(args.ct_h,bufHostCtRaw,args.nsims*sizeof(CELL_CT_T));
+
+    auto bufDevE = rd4h->get_cell_E();
+    CellEHost bufHostE = alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(args.nsims*MAXHITCT)});
+    Cell_E* bufHostERaw = alpaka::getPtrNative(bufHostE);
+    alpaka::memcpy(queue,bufHostE,bufDevE,Vec{Idx(args.nsims*MAXHITCT)});
+    alpaka::wait(queue);
+    memcpy(args.hitcells_E_h,bufHostERaw,args.nsims*MAXHITCT*sizeof(Cell_E));
+
     auto t4 = std::chrono::system_clock::now();
     
 #ifdef DUMP_HITCELLS
@@ -237,25 +241,25 @@ namespace CaloGpuGeneral_al {
   __HOST__ void load_hitsim_params(void *rd4h, HitParams *hp, long *simbins,
 				   int bins)
   {
-
     if (!(Rand4Hits *)rd4h) {
       std::cerr << "Error load hit simulation params ! ";
       exit(2);
     }
 
-    HitParams *hp_g = ((Rand4Hits *)rd4h)->get_hitparams();
-    long *simbins_g = ((Rand4Hits *)rd4h)->get_simbins();
-
     QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
 
-    auto h_hitparams = alpaka::createView(alpaka::getDevByIdx<Host>(0u),hp,bins * sizeof(HitParams));
-    auto d_hitparams = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),hp_g,bins * sizeof(HitParams));
+    auto devHitParams = ((Rand4Hits *)rd4h)->get_hitParams();
+    BufHostHitParams hostHitParams = alpaka::allocBuf<HitParams,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(bins)});
+    HitParams* hostHitParamsRaw = alpaka::getPtrNative(hostHitParams);
+    memcpy(hostHitParamsRaw,hp,bins * sizeof(HitParams));
+    alpaka::memcpy(queue,devHitParams,hostHitParams,Vec{Idx(bins)});
+    alpaka::wait(queue);
 
-    auto h_simbins = alpaka::createView(alpaka::getDevByIdx<Host>(0u),simbins,bins * sizeof(long));
-    auto d_simbins = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),simbins_g,bins * sizeof(long));
-
-    alpaka::memcpy(queue,d_hitparams,h_hitparams);
-    alpaka::memcpy(queue,d_simbins,h_simbins);
+    auto devSimBins = ((Rand4Hits *)rd4h)->get_simBins();
+    BufHostLong hostSimBins = alpaka::allocBuf<long,Idx>(alpaka::getDevByIdx<Host>(0u),Vec{Idx(bins)});
+    long* hostSimBinsRaw = alpaka::getPtrNative(hostSimBins);
+    memcpy(hostSimBinsRaw,simbins,bins * sizeof(long));
+    alpaka::memcpy(queue,devSimBins,hostSimBins,Vec{Idx(bins)});
     alpaka::wait(queue);
   }
 

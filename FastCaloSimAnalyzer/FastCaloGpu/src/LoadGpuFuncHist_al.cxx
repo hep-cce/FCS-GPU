@@ -16,7 +16,6 @@ LoadGpuFuncHist::LoadGpuFuncHist()
 
 LoadGpuFuncHist::~LoadGpuFuncHist() {
   free(m_hf);
-  cudaFree(m_hf_h);
 
   free(m_hf2d);
   free(m_hf2d_h);

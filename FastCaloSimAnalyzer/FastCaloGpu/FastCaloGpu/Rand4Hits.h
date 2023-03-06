@@ -118,10 +118,21 @@ class Rand4Hits {
   HitParams *get_hitparams() {
     return m_hitparams;
   };
+#ifdef USE_ALPAKA
+  BufAccHitParams& get_hitParams() {
+    return m_hitParams;
+  }
+#endif
+  
   // HitParams* get_hitparams_h() { return m_hitparams_h; };
   long *get_simbins() {
     return m_simbins;
   };
+#ifdef USE_ALPAKA
+  BufAccLong& get_simBins() {
+    return m_simBins;
+  }
+#endif
 
 #ifdef USE_KOKKOS
   Kokkos::View<HitParams *> *get_hitparams_v() {
