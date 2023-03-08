@@ -18,6 +18,7 @@ set(STDPAR_TARGET "gpu" CACHE STRING "target for std::par. should be gpu,multico
 set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
 set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
 set(RNDGEN_CPU OFF CACHE BOOL "use CPU for random number generation")
+set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
 
 if ( USE_STDPAR )
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )
@@ -38,6 +39,8 @@ if ( USE_STDPAR )
   message (STATUS "Will target ${STDPAR_TARGET} for std::par with ${STDPAR_DIRECTIVE}")
 elseif( USE_KOKKOS )
   find_package(Kokkos) 
+elseif(USE_ALPAKA)
+  find_package(alpaka REQUIRED)
 endif()
 
 include(FastCaloSim)

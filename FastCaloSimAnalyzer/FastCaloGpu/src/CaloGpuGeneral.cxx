@@ -6,6 +6,7 @@
 #include "CaloGpuGeneral_cu.h"
 #include "CaloGpuGeneral_sp.h"
 #include "CaloGpuGeneral_kk.h"
+#include "CaloGpuGeneral_al.h"
 
 #include "Rand4Hits.h"
 #include <chrono>
@@ -60,6 +61,8 @@ void *CaloGpuGeneral::Rand4Hits_init(long long maxhits, int maxbin,
   std::cout << "serial CPU";
 #endif
   std::cout << "\n";
+#elif defined(USE_ALPAKA)
+  std::cout << "using alpaka\n";
 #else
   std::cout << "using CUDA\n";
 #endif
@@ -72,11 +75,11 @@ void CaloGpuGeneral::Rand4Hits_finish(void *rd4h) {
   CaloGpuGeneral_stdpar::Rand4Hits_finish(rd4h);
 #elif defined(USE_KOKKOS)
   CaloGpuGeneral_kk::Rand4Hits_finish(rd4h);
+#elif defined(USE_ALPAKA)
+  CaloGpuGeneral_al::Rand4Hits_finish(rd4h);
 #else
   CaloGpuGeneral_cu::Rand4Hits_finish(rd4h);
 #endif
-
-  //   if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 }
 
 void CaloGpuGeneral::simulate_hits_gr(Sim_Args &args) {
@@ -104,6 +107,8 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &args) {
   CaloGpuGeneral_stdpar::simulate_hits_gr(args);
 #elif defined USE_KOKKOS
   CaloGpuGeneral_kk::simulate_hits_gr(args);
+#elif defined USE_ALPAKA
+  CaloGpuGeneral_al::simulate_hits_gr(args);
 #else
   CaloGpuGeneral_cu::simulate_hits_gr(args);
 #endif
@@ -117,12 +122,12 @@ void CaloGpuGeneral::load_hitsim_params(void *rd4h, HitParams *hp,
     exit(2);
   }
 
-// rd4h->set_hitparams_h( hp );
-
 #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::load_hitsim_params(rd4h, hp, simbins, bins);
 #elif defined(USE_KOKKOS)
   CaloGpuGeneral_kk::load_hitsim_params(rd4h, hp, simbins, bins);
+#elif defined(USE_ALPAKA)
+  CaloGpuGeneral_al::load_hitsim_params(rd4h, hp, simbins, bins);
 #else
   CaloGpuGeneral_cu::load_hitsim_params(rd4h, hp, simbins, bins);
 #endif

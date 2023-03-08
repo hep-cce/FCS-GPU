@@ -10,6 +10,10 @@
 
 #include "HostDevDef.h"
 
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
+#endif
+
 namespace CaloGpuGeneral_fnc {
 __DEVICE__ long long getDDE(GeoGpu *geo, int sampling, float eta, float phi) {
   float *distance = 0;
@@ -281,10 +285,13 @@ __DEVICE__ void HistoLateralShapeParametrization_g_d(const HitParams hp,
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
+#ifdef USE_ALPAKA
+__DEVICE__ void HitCellMapping_g_d(Acc const& acc, HitParams hp, Hit &hit, unsigned long /*t*/,
+                                   Sim_Args args) {
+#else
 __DEVICE__ void HitCellMapping_g_d(HitParams hp, Hit &hit, unsigned long /*t*/,
                                    Sim_Args args) {
-
+#endif
   long long cellele = getDDE(args.geo, hp.cs, hit.eta(), hit.phi());
 
   if (cellele < 0) {
@@ -308,6 +315,8 @@ __DEVICE__ void HitCellMapping_g_d(HitParams hp, Hit &hit, unsigned long /*t*/,
 #elif defined(USE_KOKKOS)
   Kokkos::View<float *> cellE_v(args.cells_energy, MAX_SIM * args.ncells);
   Kokkos::atomic_fetch_add(&cellE_v(cellele + args.ncells * hp.index), hit.E());
+#elif defined(USE_ALPAKA)
+  alpaka::atomicAdd(acc,&args.cells_energy[cellele + args.ncells * hp.index], hit.E());
 #else
   atomicAdd(&args.cells_energy[cellele + args.ncells * hp.index], hit.E());
 #endif
@@ -318,16 +327,24 @@ __DEVICE__ void HitCellMapping_g_d(HitParams hp, Hit &hit, unsigned long /*t*/,
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
+#ifdef USE_ALPAKA
+__DEVICE__ void HitCellMappingWiggle_g_d(Acc const& acc, HitParams hp, Hit &hit,
+                                         unsigned long t, Sim_Args args) {
+#else
 __DEVICE__ void HitCellMappingWiggle_g_d(HitParams hp, Hit &hit,
                                          unsigned long t, Sim_Args args) {
-
+#endif
   FHs *f1d = hp.f1d;
   int nhist = (*f1d).nhist;
   float *bin_low_edge = (*f1d).low_edge;
 
   float eta = fabs(hit.eta());
   if (eta < bin_low_edge[0] || eta > bin_low_edge[nhist]) {
+#ifdef USE_ALPAKA
+    HitCellMapping_g_d(acc, hp, hit, t, args);
+#else
     HitCellMapping_g_d(hp, hit, t, args);
+#endif
   }
 
   int bin = nhist;

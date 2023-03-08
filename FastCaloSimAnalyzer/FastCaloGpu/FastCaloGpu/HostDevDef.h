@@ -22,6 +22,12 @@
 #define __HOST__ __host__
 #define __HOSTDEV__ __host__ __device__
 #define __INLINE__ inline
+#elif defined (USE_ALPAKA) && defined (ALPAKA_LOCAL)
+#include <alpaka/alpaka.hpp>
+#define __DEVICE__  ALPAKA_FN_ACC
+#define __HOST__    ALPAKA_FN_HOST
+#define __HOSTDEV__ ALPAKA_FN_HOST_ACC
+#define __INLINE__  inline
 #elif defined(__GNUC__)
 #define __DEVICE__
 #define __HOST__
