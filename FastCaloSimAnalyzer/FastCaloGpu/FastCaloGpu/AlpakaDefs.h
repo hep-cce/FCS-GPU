@@ -51,6 +51,8 @@ using BufHostLong = alpaka::Buf<Host, long, Dim, Idx>;
 using BufHostUnsigned = alpaka::Buf<Host, unsigned, Dim, Idx>;
 using BufHostUint32 = alpaka::Buf<Host, uint32_t, Dim, Idx>;
 using BufHostHitParams = alpaka::Buf<Host, HitParams, Dim, Idx>;
+using BufHostFloatPtr = alpaka::Buf<Host, float*, Dim, Idx>;
+using BufHostUint32Ptr = alpaka::Buf<Host, uint32_t*, Dim, Idx>;
 
 using BufAccCaloDDE = alpaka::Buf<Acc, CaloDetDescrElement, Dim, Idx>;
 using BufAccSampleIndex = alpaka::Buf<Acc, Rg_Sample_Index, Dim, Idx>;
@@ -62,6 +64,8 @@ using BufAccUnsigned = alpaka::Buf<Acc, unsigned, Dim, Idx>;
 using BufAccUint32 = alpaka::Buf<Acc, uint32_t, Dim, Idx>;
 using BufAccHitParams = alpaka::Buf<Acc, HitParams, Dim, Idx>;
 using BufAccChar = alpaka::Buf<Acc, char, Dim, Idx>;
+using BufAccFloatPtr = alpaka::Buf<Acc, float*, Dim, Idx>;
+using BufAcctUint32Ptr = alpaka::Buf<Acc, uint32_t*, Dim, Idx>;
 
 // This engine was chosen only because it is used by one of
 // the Alpaka examples

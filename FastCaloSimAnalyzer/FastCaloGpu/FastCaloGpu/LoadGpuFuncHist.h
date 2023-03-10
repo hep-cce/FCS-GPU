@@ -69,6 +69,12 @@ private:
   FHs_v *m_hf_v_d{ 0 };      // on device
   Kokkos::View<FHs> m_hf_dv; // on device
 #endif
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl;
+#endif
+
 };
 
 #endif

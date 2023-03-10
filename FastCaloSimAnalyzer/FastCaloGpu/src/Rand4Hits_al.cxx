@@ -1,5 +1,4 @@
 #include "Rand4Hits.h"
-#include "DEV_BigMem.h"
 #include <iostream>
 
 #include "GpuParams.h"
@@ -77,9 +76,6 @@ void Rand4Hits::allocate_simulation(int /*maxbins*/, int maxhitct,
   m_ct = alpaka::getPtrNative(m_cT);
   m_ct_h = (int *)malloc(MAX_SIM * sizeof(int));
 
-  DEV_BigMem *bm = new DEV_BigMem(M_SEG_SIZE);
-  DEV_BigMem::bm_ptr = bm;
-
   printf(" -- R4H ncells: %lu  cells_energy: %p   hitcells_E: %p  hitcells_ct: %p\n",
          n_cells, (void*)m_cells_energy, (void*)m_cell_e, (void*)m_ct);
 }
@@ -92,12 +88,6 @@ void Rand4Hits::allocateGenMem(size_t num) {
 
 Rand4Hits::~Rand4Hits() {
   delete m_rnd_cpu;
-  if (DEV_BigMem::bm_ptr) {
-    std::cout << "BigMem allocated: " << DEV_BigMem::bm_ptr->size()
-              << "  used: " << DEV_BigMem::bm_ptr->used()
-              << "  lost: " << DEV_BigMem::bm_ptr->lost() << std::endl;
-    delete DEV_BigMem::bm_ptr;
-  }
 }
 
 void Rand4Hits::rd_regen() {

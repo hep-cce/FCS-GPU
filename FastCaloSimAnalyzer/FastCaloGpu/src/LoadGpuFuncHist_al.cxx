@@ -6,12 +6,46 @@
 #include "AlpakaDefs.h"
 #include <alpaka/alpaka.hpp>
 #include <iostream>
-#include "DEV_BigMem.h"
+#include <vector>
 
-DEV_BigMem *DEV_BigMem::bm_ptr;
+class LoadGpuFuncHist::Impl {
+public:
+  Impl()
+    : bufBordersX_acc{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufBordersY_acc{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufContents_acc{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufFH2D_acc{alpaka::allocBuf<FH2D, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufLowEdge_acc{alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufSzs_acc{alpaka::allocBuf<unsigned, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufContentsPtr_acc{alpaka::allocBuf<uint32_t*, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufBordersPtr_acc{alpaka::allocBuf<float*, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+    , bufFHs_acc{alpaka::allocBuf<FHs, Idx>(alpaka::getDevByIdx<Acc>(0u), Idx{1})}
+  {}
+
+  // 2D
+  BufAcc bufBordersX_acc;
+  BufAcc bufBordersY_acc;
+  BufAcc bufContents_acc;
+
+  BufAccFH2D bufFH2D_acc;
+
+  // 1D
+  BufAcc bufLowEdge_acc;
+  BufAccUnsigned bufSzs_acc;
+
+  std::vector<BufAccUint32> bufContents1D_acc;
+  std::vector<BufAcc> bufBorders1D_acc;
+  BufAcctUint32Ptr bufContentsPtr_acc;
+  BufAccFloatPtr bufBordersPtr_acc;
+
+  BufAccFHs bufFHs_acc;
+};
+
+
 
 LoadGpuFuncHist::LoadGpuFuncHist() 
 {
+  pImpl = new Impl();
 }
 
 LoadGpuFuncHist::~LoadGpuFuncHist() {
@@ -19,10 +53,11 @@ LoadGpuFuncHist::~LoadGpuFuncHist() {
 
   free(m_hf2d);
   free(m_hf2d_h);
+
+  delete pImpl;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
 void LoadGpuFuncHist::LD2D() {
   if (!m_hf2d) {
     std::cout << "Error Load 2DFunctionHisto " << std::endl;
@@ -34,30 +69,36 @@ void LoadGpuFuncHist::LD2D() {
   m_hf2d_h->nbinsx = (*m_hf2d).nbinsx;
   m_hf2d_h->nbinsy = (*m_hf2d).nbinsy;
 
-  DEV_BigMem *p = DEV_BigMem::bm_ptr;
+  pImpl->bufBordersX_acc = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(m_hf2d_h->nbinsx + 1));
+  pImpl->bufBordersY_acc = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(m_hf2d_h->nbinsy + 1));
+  pImpl->bufContents_acc = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(m_hf2d_h->nbinsy * m_hf2d_h->nbinsx));
 
-  m_hf2d_h->h_bordersx = p->dev_bm_alloc<float>((m_hf2d_h->nbinsx + 1));
-  m_hf2d_h->h_bordersy = p->dev_bm_alloc<float>((m_hf2d_h->nbinsy + 1));
-  m_hf2d_h->h_contents = p->dev_bm_alloc<float>(m_hf2d_h->nbinsy * m_hf2d_h->nbinsx);
+  m_hf2d_h->h_bordersx = alpaka::getPtrNative(pImpl->bufBordersX_acc);
+  m_hf2d_h->h_bordersy = alpaka::getPtrNative(pImpl->bufBordersY_acc);
+  m_hf2d_h->h_contents = alpaka::getPtrNative(pImpl->bufContents_acc);
 
-  auto h_bordersXView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf2d).h_bordersx, static_cast<Idx>(( m_hf2d_h->nbinsx + 1 )*sizeof(float)));
-  auto d_bordersXView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),m_hf2d_h->h_bordersx, static_cast<Idx>(( m_hf2d_h->nbinsx + 1 )*sizeof(float)));
+  BufHost bufBordersX_host = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(m_hf2d_h->nbinsx + 1));
+  float* bufBordersX_host_ptr = alpaka::getPtrNative(bufBordersX_host);
+  std::memcpy(bufBordersX_host_ptr,(*m_hf2d).h_bordersx,( m_hf2d_h->nbinsx + 1 )*sizeof(float));
 
-  auto h_bordersYView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf2d).h_bordersy, static_cast<Idx>(( m_hf2d_h->nbinsy + 1 )*sizeof(float)));
-  auto d_bordersYView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),m_hf2d_h->h_bordersy, static_cast<Idx>(( m_hf2d_h->nbinsy + 1 )*sizeof(float)));
+  BufHost bufBordersY_host = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(m_hf2d_h->nbinsy + 1));
+  float* bufBordersY_host_ptr = alpaka::getPtrNative(bufBordersY_host);
+  std::memcpy(bufBordersY_host_ptr,(*m_hf2d).h_bordersy,( m_hf2d_h->nbinsy + 1 )*sizeof(float));
 
-  auto h_contentsView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf2d).h_contents, static_cast<Idx>((m_hf2d_h->nbinsx * m_hf2d_h->nbinsy) * sizeof(float)));
-  auto d_contentsView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),m_hf2d_h->h_contents, static_cast<Idx>((m_hf2d_h->nbinsy * m_hf2d_h->nbinsx) * sizeof(float)));
+  BufHost bufContents_host = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(m_hf2d_h->nbinsy * m_hf2d_h->nbinsx));
+  float* bufContents_host_ptr = alpaka::getPtrNative(bufContents_host);
+  std::memcpy(bufContents_host_ptr,(*m_hf2d).h_contents,(m_hf2d_h->nbinsx * m_hf2d_h->nbinsy) * sizeof(float));
 
-  m_hf2d_d = p->dev_bm_alloc<FH2D>(1);
-  auto h_hf2dView = alpaka::createView(alpaka::getDevByIdx<Host>(0u),m_hf2d_h,static_cast<Idx>(sizeof(FH2D)));
-  auto d_hf2dView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u),m_hf2d_d,static_cast<Idx>(sizeof(FH2D)));
+  m_hf2d_d = alpaka::getPtrNative(pImpl->bufFH2D_acc);
+  BufHostFH2D bufFH2D_host = alpaka::allocBuf<FH2D, Idx>(alpaka::getDevByIdx<Host>(0u), Idx{1});
+  FH2D* bufFH2D_host_ptr = alpaka::getPtrNative(bufFH2D_host);
+  *bufFH2D_host_ptr = *m_hf2d_h;
 
   QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
-  alpaka::memcpy(queue,d_bordersXView,h_bordersXView);
-  alpaka::memcpy(queue,d_bordersYView,h_bordersYView);
-  alpaka::memcpy(queue,d_contentsView,h_contentsView);
-  alpaka::memcpy(queue,d_hf2dView,h_hf2dView);
+  alpaka::memcpy(queue,pImpl->bufBordersX_acc,bufBordersX_host);
+  alpaka::memcpy(queue,pImpl->bufBordersY_acc,bufBordersY_host);
+  alpaka::memcpy(queue,pImpl->bufContents_acc,bufContents_host);
+  alpaka::memcpy(queue,pImpl->bufFH2D_acc,bufFH2D_host);
   alpaka::wait(queue);
 }
 
@@ -77,60 +118,67 @@ void LoadGpuFuncHist::LD() {
   hf.nhist = (*m_hf).nhist;
   unsigned int *h_szs = (*m_hf).h_szs; // already allocateded on host ;
 
-  DEV_BigMem *p = DEV_BigMem::bm_ptr;
-
-  hf.low_edge = p->dev_bm_alloc<float>((hf.nhist + 1));
-  hf.h_szs = p->dev_bm_alloc<unsigned int>(hf.nhist);
-
-  auto h_lowEdgeView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf).low_edge, static_cast<Idx>(( hf.nhist + 1 )*sizeof(float)));
-  auto d_lowEdgeView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), hf.low_edge, static_cast<Idx>(( hf.nhist + 1 )*sizeof(float)));
-
-  auto h_szsView = alpaka::createView(alpaka::getDevByIdx<Host>(0u),(*m_hf).h_szs, static_cast<Idx>(hf.nhist * sizeof(unsigned int)));
-  auto d_szsView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), hf.h_szs, static_cast<Idx>(hf.nhist * sizeof(unsigned int)));
-
   QueueAcc queue(alpaka::getDevByIdx<Acc>(Idx{0}));
-  alpaka::memcpy(queue,d_lowEdgeView,h_lowEdgeView);
-  alpaka::memcpy(queue,d_szsView,h_szsView);
 
-  hf.h_contents = p->dev_bm_alloc<uint32_t *>(hf.nhist);
-  hf.h_borders = p->dev_bm_alloc<float *>(hf.nhist);
+  pImpl->bufLowEdge_acc = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>( hf.nhist + 1 ));
+  pImpl->bufSzs_acc = alpaka::allocBuf<unsigned, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>( hf.nhist ));
 
-  uint32_t **contents_ptr = (uint32_t **)malloc(hf.nhist * sizeof(uint32_t *));
-  float **borders_ptr = (float **)malloc(hf.nhist * sizeof(float *));
+  hf.low_edge= alpaka::getPtrNative(pImpl->bufLowEdge_acc);
+  hf.h_szs = alpaka::getPtrNative(pImpl->bufSzs_acc);
 
-  for (unsigned int i = 0; i < hf.nhist; ++i) {
-    contents_ptr[i] = p->dev_bm_alloc<uint32_t>(h_szs[i]);
-    borders_ptr[i] = p->dev_bm_alloc<float>((h_szs[i] + 1));
+  BufHost bufLowEdge_host = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>( hf.nhist + 1 ));
+  float* bufLowEdge_host_ptr = alpaka::getPtrNative(bufLowEdge_host);
+  std::memcpy(bufLowEdge_host_ptr,( *m_hf ).low_edge, ( hf.nhist + 1 ) * sizeof( float ));
 
-    auto h_contentsView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf).h_contents[i], static_cast<Idx>(h_szs[i] * sizeof(uint32_t)));
-    auto d_contentsView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), contents_ptr[i], static_cast<Idx>(h_szs[i] * sizeof(uint32_t)));
+  BufHostUnsigned bufSzs_host = alpaka::allocBuf<unsigned, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>( hf.nhist ));
+  unsigned* bufSzs_host_ptr = alpaka::getPtrNative(bufSzs_host);
+  std::memcpy(bufSzs_host_ptr, ( *m_hf ).h_szs, hf.nhist * sizeof( unsigned int ));
 
-    auto h_bordersView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), (*m_hf).h_borders[i], static_cast<Idx>((h_szs[i] + 1) * sizeof(float)));
-    auto d_bordersView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), borders_ptr[i], static_cast<Idx>((h_szs[i] + 1) * sizeof(float)));
-
-    alpaka::memcpy(queue,d_contentsView,h_contentsView);
-    alpaka::memcpy(queue,d_bordersView,h_bordersView);
-  }
-
-  auto h_contentView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), contents_ptr, static_cast<Idx>(hf.nhist * sizeof(uint32_t*)));
-  auto d_contentView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), hf.h_contents, static_cast<Idx>(hf.nhist * sizeof(uint32_t*)));
-
-  auto h_borderView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), borders_ptr, static_cast<Idx>(hf.nhist * sizeof(float*)));
-  auto d_borderView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), hf.h_borders, static_cast<Idx>(hf.nhist * sizeof(float*)));
-
-  alpaka::memcpy(queue,d_contentView,h_contentView);
-  alpaka::memcpy(queue,d_borderView,h_borderView);
-
-  m_hf_d = p->dev_bm_alloc<FHs>(1);
-
-  auto h_hfView = alpaka::createView(alpaka::getDevByIdx<Host>(0u), &hf, static_cast<Idx>(sizeof(FHs)));
-  auto d_hfView = alpaka::createView(alpaka::getDevByIdx<Acc>(0u), m_hf_d, static_cast<Idx>(sizeof(FHs)));
-  alpaka::memcpy(queue,d_hfView,h_hfView);
-
+  alpaka::memcpy(queue,pImpl->bufLowEdge_acc,bufLowEdge_host);
+  alpaka::memcpy(queue,pImpl->bufSzs_acc,bufSzs_host);
   alpaka::wait(queue);
 
-  free(contents_ptr);
-  free(borders_ptr);
+  pImpl->bufContentsPtr_acc = alpaka::allocBuf<uint32_t*, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(hf.nhist));
+  hf.h_contents = alpaka::getPtrNative(pImpl->bufContentsPtr_acc);
+  BufHostUint32Ptr bufContentsPtr_host = alpaka::allocBuf<uint32_t*, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(hf.nhist));
+  uint32_t **contents_ptr = alpaka::getPtrNative(bufContentsPtr_host);
+
+  pImpl->bufBordersPtr_acc = alpaka::allocBuf<float*, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(hf.nhist));
+  hf.h_borders = alpaka::getPtrNative(pImpl->bufBordersPtr_acc);
+  BufHostFloatPtr bufBordersPtr_host = alpaka::allocBuf<float*, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(hf.nhist));
+  float **borders_ptr = alpaka::getPtrNative(bufBordersPtr_host);
+
+  for (unsigned int i = 0; i < hf.nhist; ++i) {
+
+    BufAccUint32 bufContents_acc = alpaka::allocBuf<uint32_t, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(h_szs[i]));
+    contents_ptr[i] = alpaka::getPtrNative(bufContents_acc);
+    pImpl->bufContents1D_acc.push_back(bufContents_acc);
+    BufHostUint32 bufContents_host = alpaka::allocBuf<uint32_t, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(h_szs[i]));
+    uint32_t* bufContents_host_ptr = alpaka::getPtrNative(bufContents_host);
+    std::memcpy(bufContents_host_ptr,(*m_hf).h_contents[i],h_szs[i] * sizeof(uint32_t));
+    alpaka::memcpy(queue,bufContents_acc,bufContents_host);
+
+    BufAcc bufBorders_acc = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), static_cast<Idx>(h_szs[i] + 1));
+    borders_ptr[i] = alpaka::getPtrNative(bufBorders_acc);
+    pImpl->bufBorders1D_acc.push_back(bufBorders_acc);
+    BufHost bufBorders_host = alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Host>(0u), static_cast<Idx>(h_szs[i] + 1));
+    float* bufBorders_host_ptr = alpaka::getPtrNative(bufBorders_host);
+    std::memcpy(bufBorders_host_ptr,(*m_hf).h_borders[i],(h_szs[i] + 1) * sizeof(float));
+    alpaka::memcpy(queue,bufBorders_acc,bufBorders_host);
+
+    alpaka::wait(queue);
+  }
+
+  alpaka::memcpy(queue,pImpl->bufContentsPtr_acc,bufContentsPtr_host);
+  alpaka::memcpy(queue,pImpl->bufBordersPtr_acc,bufBordersPtr_host);
+  alpaka::wait(queue);
+
+  m_hf_d = alpaka::getPtrNative(pImpl->bufFHs_acc);
+  BufHostFHs bufFHs_host = alpaka::allocBuf<FHs, Idx>(alpaka::getDevByIdx<Host>(0u), Idx{1});
+  FHs* bufFHs_host_ptr = alpaka::getPtrNative(bufFHs_host);
+  std::memcpy(bufFHs_host_ptr,&hf,sizeof(FHs));
+  alpaka::memcpy(queue,pImpl->bufFHs_acc,bufFHs_host);
+  alpaka::wait(queue);
 
   m_hf_h = &hf;
 }
