@@ -6,7 +6,6 @@
 #include "AlpakaDefs.h"
 
 #include "Args.h"
-#include "DEV_BigMem.h"
 #include <chrono>
 #include <climits>
 #include <mutex>
