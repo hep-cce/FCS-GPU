@@ -12,6 +12,7 @@
 #include "ISF_FastCaloSimEvent/TFCSTruthState.h"
 #include "TFCSAnalyzerBase.h"
 #include "TFCSSimulationRun.h"
+#include "KernelTime.h"
 
 #ifdef USE_GPU
 #include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
@@ -20,9 +21,13 @@
 #include <SyclRng/SimHitRng.h>
 #endif
 #include <chrono>
+#include <vector>
 
-class TFCSShapeValidation : public TFCSAnalyzerBase {
- public:
+
+class TFCSShapeValidation : public TFCSAnalyzerBase {  
+
+public:
+  
   TFCSShapeValidation(long seed = 42);
   TFCSShapeValidation(TChain* chain, int layer, long seed = 42);
   ~TFCSShapeValidation();
@@ -59,6 +64,12 @@ class TFCSShapeValidation : public TFCSAnalyzerBase {
   static std::chrono::duration<double> time_o1;
   static std::chrono::duration<double> time_o2;
 
+  static std::chrono::duration<double> time_reset;
+  static std::chrono::duration<double> time_sim;
+
+  static KernelTime ktime;
+
+  
 #ifdef USE_GPU
   void GeoLg();
   void region_data_cpy(CaloGeometryLookup* glkup, GeoRegion* gr);
@@ -88,6 +99,7 @@ class TFCSShapeValidation : public TFCSAnalyzerBase {
 #endif
 
   ClassDef(TFCSShapeValidation, 1);
+
 };
 
 #if defined(__MAKECINT__)

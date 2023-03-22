@@ -28,7 +28,7 @@ typedef struct Chain0_Args {
   float E;
 
   int pdgId;
-  double charge;
+  float charge;
   int cs;
   bool is_phi_symmetric;
   float* rand;

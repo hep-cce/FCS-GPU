@@ -296,7 +296,7 @@ long long Geo::GetCell(unsigned int sampling, float eta, float phi) {
         if (new_dist < distance) {
           best_cell = new_cell;
           distance = new_dist;
-          if (new_dist < -0.1) {  // We are well within the cell, take it.
+          if (new_dist < -0.1f) {  // We are well within the cell, take it.
             break;
           }
         }

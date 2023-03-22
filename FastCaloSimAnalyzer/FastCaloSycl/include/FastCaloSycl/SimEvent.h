@@ -12,8 +12,8 @@
 #define HIPSYCL_EXT_FP_ATOMICS
 #include <CL/sycl.hpp>
 
-#define PI 3.14159265358979323846
-#define TWOPI 2 * 3.14159265358979323846
+#define PI 3.14159265358979323846f
+#define TWOPI 2 * 3.14159265358979323846f
 
 namespace syclcommon = fastcalosycl::syclcommon;
 
@@ -165,13 +165,13 @@ class SimShapeKernel {
 
  private:
   void CalcHitCenterPosition(SimHit& hit) const {
-    hit.set_center_r((1.0 - extrap_weight_) * extrap_r_ent_ +
+    hit.set_center_r((1.0f - extrap_weight_) * extrap_r_ent_ +
                      (extrap_weight_ * extrap_r_exit_));
-    hit.set_center_z((1.0 - extrap_weight_) * extrap_z_ent_ +
+    hit.set_center_z((1.0f - extrap_weight_) * extrap_z_ent_ +
                      (extrap_weight_ * extrap_z_exit_));
-    hit.set_center_eta((1.0 - extrap_weight_) * extrap_eta_ent_ +
+    hit.set_center_eta((1.0f - extrap_weight_) * extrap_eta_ent_ +
                        (extrap_weight_ * extrap_eta_exit_));
-    hit.set_center_phi((1.0 - extrap_weight_) * extrap_phi_ent_ +
+    hit.set_center_phi((1.0f - extrap_weight_) * extrap_phi_ent_ +
                        (extrap_weight_ * extrap_phi_exit_));
   }
 
@@ -188,7 +188,7 @@ class SimShapeKernel {
     float alpha = 0.0;
     float r = 0.0;
     if (is_phi_symmetric_) {
-      if (rnd2 >= 0.5) {
+      if (rnd2 >= 0.5f) {
         // Fill negative-phi half
         rnd2 -= 0.5;
         rnd2 *= 2.0;
@@ -207,18 +207,18 @@ class SimShapeKernel {
 
     // Particles with negative eta are expected to have the same shape as
     // those with positive eta after the transformation: deta -> -deta
-    if (center_eta < 0.0) {
+    if (center_eta < 0.0f) {
       deta_mm = -deta_mm;
     }
     // Particles with negative eta are expected to have the same shape as
     // those with positive eta after the transformation: dphi -> -dphi
-    if (charge < 0.0) {
+    if (charge < 0.0f) {
       dphi_mm = -dphi_mm;
     }
 
     float dist0 = cl::sycl::sqrt(center_r * center_r + center_z * center_z);
-    float jacobian_eta = cl::sycl::fabs(2.0 * cl::sycl::fabs(-center_eta) /
-                                       (1.0 + cl::sycl::exp(-2 * center_eta)));
+    float jacobian_eta = cl::sycl::fabs(2.0f * cl::sycl::fabs(-center_eta) /
+                                       (1.0f + cl::sycl::exp(-2 * center_eta)));
     float deta = deta_mm / jacobian_eta / dist0;
     float dphi = dphi_mm / center_r;
     hit.set_be_hit(center_eta + deta, center_phi + dphi, center_z, hit.E());
@@ -359,7 +359,7 @@ class SimShapeKernel {
             best_dde = new_dde;
             (*distance) = new_dist;
             best_steps = int_steps;
-            if (new_dist < -0.1) {
+            if (new_dist < -0.1f) {
               break;
             }
           }
@@ -436,7 +436,7 @@ class SimShapeKernel {
   const float extrap_eta_exit_;
   const float extrap_phi_ent_;
   const float extrap_phi_exit_;
-  const double charge_;
+  const float charge_;
   const float* random_nums_;
   const bool is_phi_symmetric_;
   const fastcalosycl::syclcommon::Histo1DFunction* h1df_;

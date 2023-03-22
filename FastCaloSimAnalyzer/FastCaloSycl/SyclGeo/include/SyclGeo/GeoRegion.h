@@ -8,8 +8,8 @@
 
 #include "CaloDetDescrElement.h"
 
-#define PI 3.14159265358979323846
-#define TWOPI 2 * 3.14159265358979323846
+#define PI 3.14159265358979323846f
+#define TWOPI 2 * 3.14159265358979323846f
 
 // GeoRegion class
 // Cells with given eta and phi make up regions within the calorimeter.

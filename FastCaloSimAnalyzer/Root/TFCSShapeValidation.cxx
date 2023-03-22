@@ -37,9 +37,14 @@ std::chrono::duration<double> TFCSShapeValidation::time_o1;
 std::chrono::duration<double> TFCSShapeValidation::time_o2;
 std::chrono::duration<double> TFCSShapeValidation::time_h;
 
+std::chrono::duration<double> TFCSShapeValidation::time_reset;
+std::chrono::duration<double> TFCSShapeValidation::time_sim;
+
 std::chrono::time_point<std::chrono::system_clock> tstart_shr_init;
 std::chrono::time_point<std::chrono::system_clock> tstart_shr_gen;
 std::chrono::time_point<std::chrono::system_clock> tend_shr_gen;
+
+KernelTime TFCSShapeValidation::ktime;
 
 TFCSShapeValidation::TFCSShapeValidation(long seed) {
   m_debug = 0;
@@ -503,6 +508,14 @@ void TFCSShapeValidation::LoopEvents(int pcabin = -1) {
   //   delete (m_dev_geo);
   //   m_dev_geo = nullptr;
   // }
+
+  std::cout << "time reset: " << time_reset.count() << std::endl;
+  std::cout << "time sim: " << time_sim.count() << std::endl;
+
+  std::cout << ktime.print() << std::endl;
+
+//  ktime.printAll();
+  
 #endif
   auto t3 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff1 = t3 - t2;

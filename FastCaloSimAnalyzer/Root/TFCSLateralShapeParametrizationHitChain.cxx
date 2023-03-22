@@ -337,17 +337,27 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate(
       ichain++;
     }
 
+    auto ts1 = std::chrono::system_clock::now();
     cl::sycl::range<1> range_ncell(simprops.num_cells);
     auto event_reset = simprops.queue->submit([&](cl::sycl::handler& cgh) {
       SimResetKernel kernel(&simprops);
       cgh.parallel_for(range_ncell, kernel);
     });
-    cl::sycl::range<1> range_nhit{nhit};
     event_reset.wait();
+    auto ts2 = std::chrono::system_clock::now();
+
+    TFCSShapeValidation::time_reset += (ts2 - ts1);
+    
+    cl::sycl::range<1> range_nhit{nhit};
     simprops.queue->submit([&](cl::sycl::handler& cgh) {
       SimShapeKernel kernel(&simprops, Ehit);
       cgh.parallel_for(range_nhit, kernel);
     }).wait();
+    auto ts3 = std::chrono::system_clock::now();
+
+    TFCSShapeValidation::time_sim += (ts3 - ts2);
+
+    TFCSShapeValidation::ktime.add(ts2-ts1, ts3-ts2);
 
     // for (int ii = 0; ii < args.ct; ++ii) {
     //   const CaloDetDescrElement* cellele =

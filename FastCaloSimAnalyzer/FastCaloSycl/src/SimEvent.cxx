@@ -4,8 +4,8 @@
 #include <SyclCommon/DeviceCommon.h>
 #include <SyclGeo/Geo.h>
 
-#define PI 3.14159265358979323846
-#define TWOPI 2 * 3.14159265358979323846
+#define PI 3.14159265358979323846f
+#define TWOPI 2 * 3.14159265358979323846f
 
 /*
 double Phi_mpi_pi(double x) {
