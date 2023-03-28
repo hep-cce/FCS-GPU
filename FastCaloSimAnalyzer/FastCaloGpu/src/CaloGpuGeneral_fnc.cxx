@@ -55,7 +55,7 @@ namespace CaloGpuGeneral_fnc {
             bestDDE   = newDDE;
             *distance = newdist;
             if ( steps ) beststeps = intsteps;
-            if ( newdist < -0.1 ) break; // stop, we are well within the hit cell
+            if ( newdist < -0.1f ) break; // stop, we are well within the hit cell
           }
         }
         if ( bestDDE >= 0 ) break;
@@ -176,10 +176,10 @@ namespace CaloGpuGeneral_fnc {
 
   __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
 
-    hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
-    hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
-    hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
-    hit.setCenter_phi( ( 1. - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
+    hit.setCenter_r( ( 1.f - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
+    hit.setCenter_z( ( 1.f - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
+    hit.setCenter_eta( ( 1.f - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
+    hit.setCenter_phi( ( 1.f - args.extrapWeight ) * args.extrapol_phi_ent + args.extrapWeight * args.extrapol_phi_ext );
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -218,13 +218,13 @@ namespace CaloGpuGeneral_fnc {
 
     // Particles with negative eta are expected to have the same shape as those with positive eta after transformation:
     // delta_eta --> -delta_eta
-    if ( center_eta < 0. ) delta_eta_mm = -delta_eta_mm;
+    if ( center_eta < 0.f ) delta_eta_mm = -delta_eta_mm;
     // Particle with negative charge are expected to have the same shape as positively charged particles after
     // transformation: delta_phi --> -delta_phi
-    if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
+    if ( charge < 0.f ) delta_phi_mm = -delta_phi_mm;
 
     float dist000    = sqrt( center_r * center_r + center_z * center_z );
-    float eta_jakobi = abs( 2.0 * exp( -center_eta ) / ( 1.0 + exp( -2 * center_eta ) ) );
+    float eta_jakobi = abs( 2.0f * exp( -center_eta ) / ( 1.0f + exp( -2 * center_eta ) ) );
 
     float delta_eta = delta_eta_mm / eta_jakobi / dist000;
     float delta_phi = delta_phi_mm / center_r;
@@ -238,7 +238,7 @@ namespace CaloGpuGeneral_fnc {
 
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
 
-    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
+//    if ( cellele < 0 ) printf( "cellele not found %lld \n", cellele );
 
       //  args.hitcells_b[cellele]= true ;
       //  args.hitcells[t]=cellele ;

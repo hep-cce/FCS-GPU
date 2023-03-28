@@ -77,7 +77,7 @@ namespace CaloGpuGeneral_kk {
     rnd2 = rand_v( t + args.nhits );
 
     if ( args.is_phi_symmetric ) {
-      if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
+      if ( rnd2 >= 0.5f ) { // Fill negative phi half of shape
         rnd2 -= 0.5;
         rnd2 *= 2;
         rnd_to_fct2d( alpha, r, rnd1, rnd2, fh2d_v );
@@ -90,18 +90,18 @@ namespace CaloGpuGeneral_kk {
       rnd_to_fct2d( alpha, r, rnd1, rnd2, fh2d_v );
     }
 
-    float delta_eta_mm = r * cos( alpha );
-    float delta_phi_mm = r * sin( alpha );
+    float delta_eta_mm = r * cosf( alpha );
+    float delta_phi_mm = r * sinf( alpha );
 
     // Particles with negative eta are expected to have the same shape as those with positive eta after transformation:
     // delta_eta --> -delta_eta
-    if ( center_eta < 0. ) delta_eta_mm = -delta_eta_mm;
+    if ( center_eta < 0.f ) delta_eta_mm = -delta_eta_mm;
     // Particle with negative charge are expected to have the same shape as positively charged particles after
     // transformation: delta_phi --> -delta_phi
-    if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
+    if ( charge < 0.f ) delta_phi_mm = -delta_phi_mm;
 
-    float dist000    = sqrt( center_r * center_r + center_z * center_z );
-    float eta_jakobi = abs( 2.0 * exp( -center_eta ) / ( 1.0 + exp( -2 * center_eta ) ) );
+    float dist000    = sqrtf( center_r * center_r + center_z * center_z );
+    float eta_jakobi = fabs( 2.0f * expf( -center_eta ) / ( 1.0f + expf( -2 * center_eta ) ) );
 
     float delta_eta = delta_eta_mm / eta_jakobi / dist000;
     float delta_phi = delta_phi_mm / center_r;

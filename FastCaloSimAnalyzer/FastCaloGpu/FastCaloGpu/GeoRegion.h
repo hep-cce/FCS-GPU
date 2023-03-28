@@ -8,7 +8,7 @@
 #include "CaloDetDescrElement_g.h"
 #include "HostDevDef.h"
 
-__HOSTDEV__ double Phi_mpi_pi( double );
+__HOSTDEV__ float Phi_mpi_pi( float );
 
 class GeoRegion {
 public:
@@ -40,7 +40,7 @@ public:
     m_cells_g                   = 0;
   };
 
-  __HOSTDEV__ ~GeoRegion() { free( m_cells ); };
+  __HOSTDEV__ ~GeoRegion() { /* free( m_cells ); */ };
 
   __HOSTDEV__ void set_all_cells( CaloDetDescrElement* c ) { m_all_cells = c; };
   __HOSTDEV__ void set_xy_grid_adjustment_factor( float f ) { m_xy_grid_adjustment_factor = f; };

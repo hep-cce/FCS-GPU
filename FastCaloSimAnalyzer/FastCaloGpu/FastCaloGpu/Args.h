@@ -69,20 +69,20 @@ typedef struct Chain0_Args {
 
   bool debug;
 
-  double extrapol_eta_ent;
-  double extrapol_phi_ent;
-  double extrapol_r_ent;
-  double extrapol_z_ent;
-  double extrapol_eta_ext;
-  double extrapol_phi_ext;
-  double extrapol_r_ext;
-  double extrapol_z_ext;
+  float extrapol_eta_ent;
+  float extrapol_phi_ent;
+  float extrapol_r_ent;
+  float extrapol_z_ent;
+  float extrapol_eta_ext;
+  float extrapol_phi_ext;
+  float extrapol_r_ext;
+  float extrapol_z_ext;
 
   float extrapWeight;
   float E;
 
   int    pdgId;
-  double charge;
+  float  charge;
   int    cs;
   bool   is_phi_symmetric;
   float* rand;

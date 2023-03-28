@@ -5,10 +5,10 @@
 #include "GeoRegion.h"
 #include <iostream>
 
-#define PI 3.14159265358979323846
-#define TWOPI 2 * 3.14159265358979323846
+#define PI 3.14159265358979323846f
+#define TWOPI 2 * 3.14159265358979323846f
 
-__HOSTDEV__ double Phi_mpi_pi( double x ) {
+__HOSTDEV__ float Phi_mpi_pi( float x ) {
   while ( x >= PI ) x -= TWOPI;
   while ( x < -PI ) x += TWOPI;
   return x;
@@ -39,9 +39,9 @@ __HOSTDEV__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, fl
 #endif
   dist_eta0           = ( eta - m_all_cells[DDE].eta() ) / m_deta_double;
   dist_phi0           = ( Phi_mpi_pi( phi - m_all_cells[DDE].phi() ) ) / m_dphi_double;
-  float abs_dist_eta0 = abs( dist_eta0 );
-  float abs_dist_phi0 = abs( dist_phi0 );
-  return max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
+  float abs_dist_eta0 = fabs( dist_eta0 );
+  float abs_dist_phi0 = fabs( dist_phi0 );
+  return fmax( abs_dist_eta0, abs_dist_phi0 ) - 0.5f;
 }
 
 __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, int* steps ) {
@@ -78,8 +78,8 @@ __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, 
     if ( *distance < 0 ) return newDDE;
 
     // correct ieta and iphi by the observed difference to the hit cell
-    ieta += round( dist_eta0 );
-    iphi += round( dist_phi0 );
+    ieta += roundf( dist_eta0 );
+    iphi += roundf( dist_phi0 );
     index_range_adjust( ieta, iphi );
     long long oldDDE = newDDE;
     newDDE           = m_cells_g[ieta * m_cell_grid_phi + iphi];
@@ -87,10 +87,10 @@ __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, 
     ++nsearch;
     if ( oldDDE == newDDE ) break;
   }
-  float minieta = ieta + floor( m_mineta_correction / cell_grid_eta() );
-  float maxieta = ieta + ceil( m_maxeta_correction / cell_grid_eta() );
-  float miniphi = iphi + floor( m_minphi_correction / cell_grid_phi() );
-  float maxiphi = iphi + ceil( m_maxphi_correction / cell_grid_phi() );
+  float minieta = ieta + floorf( m_mineta_correction / cell_grid_eta() );
+  float maxieta = ieta + ceilf( m_maxeta_correction / cell_grid_eta() );
+  float miniphi = iphi + floorf( m_minphi_correction / cell_grid_phi() );
+  float maxiphi = iphi + ceilf( m_maxphi_correction / cell_grid_phi() );
   if ( minieta < 0 ) minieta = 0;
   if ( maxieta >= m_cell_grid_eta ) maxieta = m_cell_grid_eta - 1;
   for ( int iieta = minieta; iieta <= maxieta; ++iieta ) {
@@ -110,7 +110,7 @@ __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, 
           bestdist = *distance;
         }
       } else {
-        printf( "GeoRegin::getDDE, windows search ieta=%d iphi=%d is empty\n", ieta, iphi );
+//        printf( "GeoRegin::getDDE, windows search ieta=%d iphi=%d is empty\n", ieta, iphi );
       }
     }
   }
