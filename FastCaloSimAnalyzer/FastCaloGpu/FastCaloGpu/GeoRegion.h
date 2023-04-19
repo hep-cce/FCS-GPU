@@ -6,32 +6,7 @@
 #define GeoRegion_H
 
 #include "CaloDetDescrElement_g.h"
-
-// #ifndef CUDA_HOSTDEV
-// #  ifdef __CUDACC__
-// #    define CUDA_HOSTDEV __host__ __device__
-// #  else
-// #    ifdef USE_KOKKOS
-// #      include <Kokkos_Core.hpp>
-// #      include <Kokkos_Random.hpp>
-// #      define CUDA_HOSTDEV KOKKOS_INLINE_FUNCTION
-// #    else
-// #      define CUDA_HOSTDEV
-// #    endif
-// #  endif
-// #endif
-
-#ifdef USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#  include <Kokkos_Random.hpp>
-#  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
-#else
-#  ifdef __CUDACC__
-#    define __HOSTDEV__ __host__ __device__
-#  else
-#    define __HOSTDEV__
-#  endif
-#endif
+#include "HostDevDef.h"
 
 __HOSTDEV__ double Phi_mpi_pi( double );
 

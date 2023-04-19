@@ -48,7 +48,11 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
 }
 
 void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
-  if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+#ifdef USE_KOKKOS
+  CaloGpuGeneral_kk::Rand4Hits_finish( rd4h );
+#else
+  CaloGpuGeneral_cu::Rand4Hits_finish( rd4h );
+#endif  
 }
 
 void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
