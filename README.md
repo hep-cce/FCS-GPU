@@ -170,6 +170,26 @@ cmake ../src/FastCaloSimAnalyzer \
 
 ### alpaka
 
+The alpaka version of FastCaloSim has been tested with two backends: CUDA and HIP. For the former backend alpaka should be configured with `-Dalpaka_ACC_GPU_CUDA_ENABLE=ON`, while for the latter one should use `-Dalpaka_ACC_GPU_HIP_ENABLE=ON`. For more information about `CMake` arguments used by alpaka see [this documentation](https://alpaka.readthedocs.io/en/latest/advanced/cmake.html).
+
+For building the alpaka version of FastCaloSim checkout from branch `dev/stdpar`, for group simulation use branch `group_sim_combined`.
+
+For CUDA backend build the project with:
+
+```
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH=$FCS_DATAPATH \
+  -DCMAKE_CXX_STANDARD=17 -DCMAKE_CUDA_ARCHITECTURES=N -DUSE_ALPAKA=on -Dalpaka_ROOT=<path_to_alpaka_installation> \
+  -Dalpaka_ACC_GPU_CUDA_ENABLE=ON -Dalpaka_ACC_GPU_CUDA_ONLY_MODE=ON
+```
+
+For HIP backend build the project with:
+
+```
+export CXX=hipcc 
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH=$FCS_DATAPATH \
+  -DCMAKE_CXX_STANDARD=17 -DUSE_ALPAKA=on -Dalpaka_ROOT=<path_to_alpaka_installation> \
+  -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON
+```
 ### OpenMP
 
 ## Build Instructions for Cori
