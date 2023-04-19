@@ -134,6 +134,49 @@ environment loaded, and that `$CXX` points to `nvcc_wrapper` from Kokkos.
 Then add `-DUSE_KOKKOS=on` to the FastCaloSim cmake configuration
 
 
+### Build FastCaloSim with OpenMP Target Offload
+To enable OpenMP Target Offloading with Clang-15.0.0 and above, appropriate 
+hardware info such as --offload-arch=sm_xy for NVIDIA and --offload-arch=gfx90x 
+should be edited in CMAKE_CXX_FLAGS in FastCaloGpu/src/CMakeLists.txt. 
+
+To build on alpha1, lambda1/2/3/4 machines at CSI BNL
+```
+git checkout openmp
+module use /work/software/modulefiles
+module load llvm-openmp-dev
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+make -j16
+```
+
+To build on zeus at LBL
+```
+git checkout openmp
+module load nvhpc/22.9 clang/15-dev-omp root/6.26.06-gcc112-c17
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/opt/nvidia/hpc_sdk/Linux_x86_64/22.9/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/22.9/cuda/
+make -j16
+```
+
+To build on BNL-IC
+```
+git checkout openmp
+module load cmake gcc/8.2.0 llvm/13.0.1 cuda/10.1 root/v6.20.04-gcc-8.2.0
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+make -j8
+```
+
+### Build FastCaloSim Group Simulations with OpenMP Target Offload
+To build on alpha1, lambda1/2/3/4 machines at CSI BNL
+```
+git checkout group_openmp
+module use /work/software/modulefiles 
+module load llvm-openmp-dev 
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+make -j16
+```
+
+
 ## Validation
 ### Random Numbers
 
