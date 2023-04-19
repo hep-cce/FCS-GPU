@@ -211,9 +211,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 #endif
    std::chrono::duration<double> t_st= std::chrono::duration<double,std::ratio<1>>::zero();
    auto t2 = std::chrono::system_clock::now();
-  //for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
-  for ( int ievent = m_firstevent; ievent < 250; ievent++ ) {
-  std::cout << "event " << ievent << std::endl;
+  for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 #if defined USE_GPU || defined USE_OMPGPU
 
   bool first = (ievent==m_firstevent ) ? true : false ;
@@ -447,8 +445,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 	if(index >= MAX_SIM || tot_hits > (MAXHITS-100000) || es.is_last ) { 
 
 	//   here need to do GPU simulation !!!!.
-	
-
         auto tg_s = std::chrono::system_clock::now();
 	CaloGpuGeneral::load_hitsim_params(m_rd4h, &(hitparams[0]),&(simbins[0]),  n_simbins ) ;  
         auto tg_s_A = std::chrono::system_clock::now();

@@ -17,10 +17,10 @@ if(OPENMP_FOUND)
 	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-assume-no-nested-parallelism")
 	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -maxrregcount=64")
 	set(OpenMP_OPT_RMRKS "-Rpass=openmp-opt -Rpass-analysis=openmp-opt -Rpass-missed=openmp-opt " )
-	##set(OpenMP_DBG_FLAGS "-fopenmp-target-debug=0x5" )
-	set(OpenMP_FLAGS "-fopenmp --offload-arch=sm_86 -lomp") ##lambda2
-	#set(OpenMP_FLAGS "-fopenmp --offload-arch=gfx906") ##lambda3
-	##set(OpenMP_FLAGS "-mp=gpu -gpu=cc86 -cuda -Minfo=mp") ## for nvc++
+	#set(OpenMP_DBG_FLAGS "-fopenmp-target-debug=0x5" )
+	set(OpenMP_FLAGS "-fopenmp --offload-arch=sm_86 -lomp") ## nvidia
+	#set(OpenMP_FLAGS "-fopenmp --offload-arch=gfx906") ## amd
+	#set(OpenMP_FLAGS "-mp=gpu -gpu=cc86 -cuda -Minfo=mp") ## for nvc++
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
 else()
