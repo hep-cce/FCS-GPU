@@ -17,6 +17,14 @@ if(USE_ALPAKA)
   endif()
 endif()
 
+if(USE_STDPAR)
+  if ( ${STDPAR_TARGET} STREQUAL "gpu" )
+    find_package(NVHPC REQUIRED COMPONENTS MATH)
+    set(FIND_CUDA ON)
+  endif()
+endif()
+
+
 if(FIND_CUDA)
   find_package(CUDA REQUIRED)
   enable_language( CUDA )
@@ -67,16 +75,34 @@ else()
   target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} ${CUDA_nvToolsExt_LIBRARY})
 endif()
 
+
+if(USE_KOKKOS)
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  Kokkos::kokkos)
+  target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_KOKKOS )
+  if (CMAKE_BUILD_TYPE MATCHES Debug)
+    target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -g -G -O0 > )
+  endif()
+endif()
+
 if(USE_STDPAR)
+  message(INFO "  USE_STDPAR with directive ${STDPAR_DIRECTIVE} for ${CMAKE_CXX_COMPILER_ID}")
+  
   target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 
-  #target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+  #
+  ### should remove the "GNU" stuff when can build whole project with nvc++
+  #
+  target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+    ${STDPAR_DIRECTIVE}> )
   target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>:
     ${STDPAR_DIRECTIVE}> )
   if( ${STDPAR_TARGET} STREQUAL "gpu" )
-    #target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>: -cuda -g>)
+    target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,GNU>: -cuda -g>)
     target_compile_options(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANG_AND_ID:CXX,NVHPC>: -cuda -g>)
+
+    target_include_directories(${FastCaloGpu_LIB} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:${NVHPC_ROOT_DIR}/math_libs/${NVHPC_CUDA_VERSION}/include>)    
+    
   endif()
     
   target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})

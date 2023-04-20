@@ -60,6 +60,8 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
   std::cout << "serial CPU";
   #endif
   std::cout << "\n";
+#elif defined (USE_KOKKOS)
+  std::cout << "using Kokkos\n";
 #elif defined (USE_ALPAKA)
   std::cout << "using alpaka\n";
 #else
@@ -73,6 +75,8 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
 void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
   #ifdef USE_STDPAR
   CaloGpuGeneral_stdpar::Rand4Hits_finish( rd4h );
+  #elif defined (USE_KOKKOS)
+  CaloGpuGeneral_kk::Rand4Hits_finish( rd4h );
   #elif defined (USE_ALPAKA)
   CaloGpuGeneral_al::Rand4Hits_finish( rd4h );
   #else

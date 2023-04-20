@@ -21,7 +21,13 @@ public:
       , m_z( z )
       , m_E( E )
       , m_useXYZ( true ) {};
-
+  
+  __HOSTDEV__ __INLINE__ void setEtaPhiZ( float eta, float phi, float z) {
+    m_eta_x  = eta;
+    m_phi_y  = phi;
+    m_z      = z;
+    m_useXYZ = false;
+  }
   __HOSTDEV__ __INLINE__ void setEtaPhiZE( float eta, float phi, float z, float E ) {
     m_eta_x  = eta;
     m_phi_y  = phi;
@@ -51,7 +57,7 @@ public:
   __HOSTDEV__ __INLINE__ float& y() { return m_phi_y; };
   __HOSTDEV__ __INLINE__ float& E() { return m_E; };
   __HOSTDEV__ __INLINE__ float& z() { return m_z; }
-  __HOSTDEV__ __INLINE__ float  r() {
+  __HOSTDEV__ __INLINE__ float  r() const {
     if ( m_useXYZ )
       return sqrt( m_eta_x * m_eta_x + m_phi_y * m_phi_y );
     else

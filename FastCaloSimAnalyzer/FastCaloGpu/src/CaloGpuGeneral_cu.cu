@@ -25,9 +25,6 @@
 #define M_PI 3.14159265358979323846
 #define M_2PI 6.28318530717958647692
 
-static CaloGpuGeneral::KernelTime timing;
-static bool first{true};
-
 using namespace CaloGpuGeneral_fnc;
 
 static CaloGpuGeneral::KernelTime timing;
@@ -165,19 +162,5 @@ namespace CaloGpuGeneral_cu {
     }
     
   }
-
-  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-  __host__ void Rand4Hits_finish( void* rd4h ) {
-    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
-
-    if (timing.count > 0) {
-      std::cout << "kernel timing\n";
-      std::cout << timing;
-    } else {
-      std::cout << "no kernel timing available" << std::endl;
-    }
-  }
-
 
 } // namespace CaloGpuGeneral_cu
