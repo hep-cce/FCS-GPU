@@ -43,6 +43,17 @@ interactions one at a time, the other groups a number of particles together
 before offloading the work to the GPU to increase the GPU's workload. The latter
 is referred to as the "group simulation".
 
+After the project has been built, source the `setup.sh` script in the build
+directory. To see all available options of the executable do
+```
+> runTFCSSimulation -h
+```
+
+A normal run will resemble
+```
+> runTFCSSimulation --earlyReturn --energy 65536
+```
+
 ## Build Instructions for Different Backends
 
 First setup `cmake` and `ROOT`. If `ROOT` is installed in `$ROOT_PATH`, ensure
@@ -124,7 +135,7 @@ Build the project with
 cmake ../src/FastCaloSimAnalyzer \
 -DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
 -DCMAKE_CXX_COMPILER=$PWD/../src/scripts/nvc++_p \
--DENABLE_GPU=on -DUSE_STDPAR=ON -DSTDPAR_TARGET=gpu
+-DENABLE_GPU=on -DUSE_STDPAR=ON -DSTDPAR_TARGET=gpu -DCMAKE_CUDA_ARCHITECTURES=80
 ```
 
 Use cmake flag `-DUSE_STDPAR=On`.
@@ -162,10 +173,9 @@ Checkout from branch `hip`. For group simulation use branch `group_sim_hip`.
 Build the project with
 
 ```
-export CXX=`hipcc`
 cmake ../src/FastCaloSimAnalyzer \
 -DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
--DENABLE_GPU=on
+-DENABLE_GPU=on -DCMAKE_CXX_COMPILER=hipcc
 ```
 
 ### alpaka
@@ -191,6 +201,20 @@ cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PAT
   -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON
 ```
 ### OpenMP
+
+To enable OpenMP Target Offloading with Clang-15.0.0 and above, appropriate 
+hardware info such as --offload-arch=sm_xy for NVIDIA and --offload-arch=gfx90x 
+should be edited in CMAKE_CXX_FLAGS in FastCaloGpu/src/CMakeLists.txt. 
+
+Checkout from branch `openmp`. For group simulation use branch `group_openmp`.
+
+```
+cmake ../src/FastCaloSimAnalyzer \
+-DENABLE_XROOTD=off -DCMAKE_CXX_STANDARD=14 \
+-DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DINPUT_PATH=$FCS_INPUTS \
+-DCMAKE_CXX_COMPILER=clang++  -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=nvcc
+```
+
 
 ## Build Instructions for Cori
 
@@ -286,50 +310,6 @@ To build with Kokkos instead of plain nvcc, make sure you have the Kokkos
 environment loaded, and that `$CXX` points to `nvcc_wrapper` from Kokkos.
 
 Then add `-DUSE_KOKKOS=on` to the FastCaloSim cmake configuration
-
-
-### Build FastCaloSim with OpenMP Target Offload
-To enable OpenMP Target Offloading with Clang-15.0.0 and above, appropriate 
-hardware info such as --offload-arch=sm_xy for NVIDIA and --offload-arch=gfx90x 
-should be edited in CMAKE_CXX_FLAGS in FastCaloGpu/src/CMakeLists.txt. 
-
-To build on alpha1, lambda1/2/3/4 machines at CSI BNL
-```
-git checkout openmp
-module use /work/software/modulefiles
-module load llvm-openmp-dev
-source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-make -j16
-```
-
-To build on zeus at LBL
-```
-git checkout openmp
-module load nvhpc/22.9 clang/15-dev-omp root/6.26.06-gcc112-c17
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/opt/nvidia/hpc_sdk/Linux_x86_64/22.9/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/opt/nvidia/hpc_sdk/Linux_x86_64/22.9/cuda/
-make -j16
-```
-
-To build on BNL-IC
-```
-git checkout openmp
-module load cmake gcc/8.2.0 llvm/13.0.1 cuda/10.1 root/v6.20.04-gcc-8.2.0
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
-make -j8
-```
-
-### Build FastCaloSim Group Simulations with OpenMP Target Offload
-To build on alpha1, lambda1/2/3/4 machines at CSI BNL
-```
-git checkout group_openmp
-module use /work/software/modulefiles 
-module load llvm-openmp-dev 
-source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
-make -j16
-```
-
 
 ## Validation
 ### Random Numbers
