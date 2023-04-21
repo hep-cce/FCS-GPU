@@ -84,9 +84,7 @@ if(USE_KOKKOS)
   endif()
 endif()
 
-if(USE_STDPAR)
-  message(INFO "  USE_STDPAR with directive ${STDPAR_DIRECTIVE} for ${CMAKE_CXX_COMPILER_ID}")
-  
+if(USE_STDPAR)  
   target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 

@@ -295,12 +295,24 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   });
   
   if (FCS_dump_hitcount) {
+    struct celldat {      
+      float eta {0.};
+      float phi {0.};
+      float ene {0.};
+      celldat(){};
+      celldat(float et, float ph, float en): eta(et), phi(ph), ene(en) {};
+    };
     printf(" HitCellCount: %3lu / %3lu   nhit: %4d%3s\n", simulstate.cells().size()-ss0,
            simulstate.cells().size(), nhit, (onGPU ? "  *" : "") );
+    std::map<Identifier, celldat> cm;
     for (auto &e: simulstate.cells()) {
-      std::cout << "   " << e.first->m_eta << "  " << e.first->m_phi << "  "
-                << e.second << std::endl;
+      cm[e.first->identify()] = celldat(e.first->m_eta, e.first->m_phi, e.second);
     }
+    for (auto &em : cm) {
+      std::cout << "  " << em.second.eta << "  " << em.second.phi
+                << "  " << em.second.ene << std::endl;
+    }
+    
   }
   
   return FCSSuccess;

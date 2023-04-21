@@ -12,7 +12,6 @@
 #include <Kokkos_Random.hpp>
 
 static CaloGpuGeneral::KernelTime timing;
-static bool first{true};
 
 using namespace CaloGpuGeneral_fnc;
 
@@ -264,12 +263,18 @@ namespace CaloGpuGeneral_kk {
     args.ct = cth();
     auto t4 = std::chrono::system_clock::now();
 
-    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
-    if (first) {
-      first = false;
-    } else {
-      timing += kt;
+#ifdef DUMP_HITCELLS
+    std::cout << "hitcells: " << args.ct << "  nhits: " << nhits << "  E: " << E << "\n";
+    std::map<unsigned int,float> cm;
+    for (int i=0; i<args.ct; ++i) {
+      cm[args.hitcells_E_h[i].cellid] = args.hitcells_E_h[i].energy;
     }
+    for (auto &em: cm) {
+      std::cout << "  cell: " << em.first << "  " << em.second << std::endl;
+    }
+#endif
+    
+    timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
 
   }
 
@@ -277,12 +282,7 @@ namespace CaloGpuGeneral_kk {
   void Rand4Hits_finish( void* rd4h ) {
     if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 
-    if (timing.count > 0) {
-      std::cout << "kernel timing\n";
-      std::cout << timing;
-    } else {
-      std::cout << "no kernel timing available" << std::endl;
-    }
+    std::cout << timing;
   }
 
 

@@ -12,7 +12,6 @@
 using namespace CaloGpuGeneral_fnc;
 
 static CaloGpuGeneral::KernelTime timing;
-static bool first{true};
 
 namespace CaloGpuGeneral_al {
 
@@ -20,14 +19,9 @@ namespace CaloGpuGeneral_al {
   void Rand4Hits_finish( void* rd4h ) {
 
     if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
-    
-    if (timing.count > 0) {
-      std::cout << "kernel timing\n";
-      std::cout << timing;
-    } else {
-      std::cout << "no kernel timing available" << std::endl;
-    }
 
+    std::cout << timing;
+    
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -188,11 +182,7 @@ namespace CaloGpuGeneral_al {
     }
 #endif
     
-    CaloGpuGeneral::KernelTime kt( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
-    if (first) {
-      first = false;
-    } else{ 
-      timing += kt;
-    }
+    timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
+
   }
 } // namespace CaloGpuGeneral_al
