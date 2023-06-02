@@ -722,7 +722,7 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
   CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
   timing += kt;
 
-#ifdef DUMP_HITCELLS
+//#ifdef DUMP_HITCELLS
   std::cout << "nsim: " << args.nsims << "\n";
   for (int isim = 0; isim < args.nsims; ++isim) {
     std::cout << "  nhit: " << args.ct_h[isim] << "\n";
@@ -738,7 +738,7 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
                 << em.second << std::endl;
     }
   }
-#endif
+//#endif
 
   //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
   //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT],
