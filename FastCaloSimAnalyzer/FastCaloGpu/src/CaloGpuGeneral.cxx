@@ -76,8 +76,17 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 #ifdef USE_KOKKOS
   CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
 #elif defined USE_OMPGPU
+  const int m_default_device = omp_get_default_device();
+  const int m_initial_device = omp_get_initial_device();
+  const char *env_var = "OMP_TARGET_OFFLOAD";
+  std::string offload_var = std::getenv (env_var);
+  int select_device = m_default_device;
+  if ( offload_var == "mandatory" )
+      select_device = m_default_device;
+  else if ( offload_var == "disabled" )
+      select_device = m_initial_device;
   #pragma omp target enter data map (to : args)  
-  CaloGpuGeneral_omp::simulate_hits( E, nhits, args );
+  CaloGpuGeneral_omp::simulate_hits( E, nhits, args, select_device );
   #pragma omp target exit data map (release : args)  
 #else
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );

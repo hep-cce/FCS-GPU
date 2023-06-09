@@ -9,7 +9,7 @@
 
 namespace CaloGpuGeneral_omp {
 
-  void simulate_hits( float, int, Chain0_Args& );
+  void simulate_hits( float, int, Chain0_Args&, int );
 
 } // namespace CaloGpuGeneral_omp
 #endif

@@ -24,6 +24,9 @@ public:
   Rand4Hits() {
     m_rand_ptr     = 0;
     m_total_a_hits = 0;
+#ifdef USE_OMPGPU
+    select_omp_device();
+#endif
   };
   ~Rand4Hits();
 
@@ -70,6 +73,13 @@ public:
     return m_current_hits + nhits > m_total_a_hits;
   }; // return true if hits over spill, need regenerat rand..
 
+  void select_omp_device ( ) {
+  if ( offload_var == "mandatory" ) 
+	m_select_device = m_default_device;
+  else if ( offload_var == "disabled" )
+      m_select_device = m_initial_device;
+  };
+
 private:
   float* genCPU( size_t num );
   void   createCPUGen( unsigned long long seed );
@@ -100,11 +110,16 @@ private:
   Kokkos::View<float*>  m_rand_ptr_v;
 #endif
 
- //#ifdef USE_OMPGPU
+#ifdef USE_OMPGPU
   int m_default_device = omp_get_default_device();
   int m_initial_device = omp_get_initial_device();
   std::size_t m_offset = 0;
- //#endif
+  const char *env_var = "OMP_TARGET_OFFLOAD";
+  std::string offload_var = std::getenv (env_var);
+  int m_select_device = m_default_device;
+#endif
+
+
 
 };
 

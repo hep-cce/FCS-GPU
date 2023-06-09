@@ -70,11 +70,6 @@ private:
   bool TestGeo();
   bool SanityCheck();
 
-  int m_num_devices    ;
-  int m_initial_device ;
-  int m_default_device ;
-  std::size_t m_offset ;
-
 protected:
   unsigned long        m_ncells{0};         // number of cells
   unsigned int         m_nregions{0};       // number of regions

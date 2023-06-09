@@ -40,7 +40,6 @@ namespace CaloGpuGeneral_omp {
     auto rand         = args.rand;
     auto geo          = args.geo;
 
-    int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
 
     /************* A **********/
@@ -208,9 +207,8 @@ namespace CaloGpuGeneral_omp {
 
   }
 
-  void simulate_hits( float E, int nhits, Chain0_Args& args ) {
+  void simulate_hits( float E, int nhits, Chain0_Args& args, int select_device ) {
 
-    int m_default_device = omp_get_default_device();
     int m_initial_device = omp_get_initial_device();
     std::size_t m_offset = 0;
 
@@ -220,13 +218,13 @@ namespace CaloGpuGeneral_omp {
     
     int *ct = (int *) malloc( sizeof( int ) );
     if ( omp_target_memcpy( ct, args.hitcells_ct, sizeof( int ),
-                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+                                    m_offset, m_offset, m_initial_device, select_device ) ) { 
       std::cout << "ERROR: copy hitcells_ct. " << std::endl;
     } 
     //gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
 
     if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, ct[0] * sizeof( Cell_E ),
-                                    m_offset, m_offset, m_initial_device, m_default_device ) ) { 
+                                    m_offset, m_offset, m_initial_device, select_device ) ) { 
       std::cout << "ERROR: copy hitcells_E_h. " << std::endl;
     } 
     //gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
