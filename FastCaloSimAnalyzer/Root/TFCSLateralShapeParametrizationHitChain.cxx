@@ -251,6 +251,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
    TFCSShapeValidation::time_g1 += args.time1;
    TFCSShapeValidation::time_g2 += args.time2;
+   TFCSShapeValidation::time_reset    += args.time_reset  ;
+   TFCSShapeValidation::time_simA     += args.time_simA   ;
+   TFCSShapeValidation::time_reduce   += args.time_reduce ;
+   TFCSShapeValidation::time_copy     += args.time_copy   ;
 
   } else {
 #endif

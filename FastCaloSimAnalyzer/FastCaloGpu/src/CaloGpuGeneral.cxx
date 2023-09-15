@@ -93,6 +93,6 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 #endif
 
   auto end = std::chrono::system_clock::now();
-  args.time1 += mid - start;
-  args.time2 += end - mid1;
+  args.time1 = mid - start;
+  args.time2 = end - mid1;
 }

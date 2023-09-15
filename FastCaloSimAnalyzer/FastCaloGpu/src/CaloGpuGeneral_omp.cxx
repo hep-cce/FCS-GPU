@@ -49,7 +49,7 @@ namespace CaloGpuGeneral_omp {
     #pragma omp target is_device_ptr( cells_energy, rand, geo ) //map( to : args )
     //#pragma omp target is_device_ptr( cells_energy, rand, geo ) nowait //depend( in : args )
     {
-      #pragma omp teams distribute parallel for num_teams(60) //num_threads(64) //num_teams default 33
+      #pragma omp teams distribute parallel for //num_teams(60) //num_threads(64) //num_teams default 33
       for ( t = 0; t < nhits; t++ ) {
         Hit hit;
         hit.E() = E;
@@ -170,7 +170,7 @@ namespace CaloGpuGeneral_omp {
     auto hitcells_E   = args.hitcells_E;
     
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct, hitcells_E ) //nowait
-    #pragma omp teams distribute parallel for num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) //thread_limit(128) //num_teams default 1467, threads default 128
+    #pragma omp teams distribute parallel for //num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) //thread_limit(128) //num_teams default 1467, threads default 128
     for ( int tid = 0; tid < ncells; tid++ ) {
       if ( cells_energy[tid] > 0. ) {
 	 unsigned int ct;
@@ -197,7 +197,7 @@ namespace CaloGpuGeneral_omp {
 
     int tid; 
     #pragma omp target is_device_ptr ( cells_energy, hitcells_ct ) //nowait
-    #pragma omp teams distribute parallel for num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
+    #pragma omp teams distribute parallel for //num_teams(GRID_SIZE) num_threads(BLOCK_SIZE) // num_teams default 1467, threads default 128
     for(tid = 0; tid < ncells; tid++) {
       //printf(" num teams = %d, num threads = %d", omp_get_num_teams(), omp_get_num_threads() );
       cells_energy[tid] = 0.;
@@ -212,9 +212,13 @@ namespace CaloGpuGeneral_omp {
     int m_initial_device = omp_get_initial_device();
     std::size_t m_offset = 0;
 
+    auto t1 = std::chrono::system_clock::now();
     simulate_clean ( args );
+    auto t2 = std::chrono::system_clock::now();
     simulate_A ( E, nhits, args );
+    auto t3 = std::chrono::system_clock::now();
     simulate_ct ( args );
+    auto t4 = std::chrono::system_clock::now();
     
     int *ct = (int *) malloc( sizeof( int ) );
     if ( omp_target_memcpy( ct, args.hitcells_ct, sizeof( int ),
@@ -233,6 +237,11 @@ namespace CaloGpuGeneral_omp {
     args.ct = ct[0];
     //   args.hitcells_ct_h=hitcells_ct ;
 
+    auto t5 = std::chrono::system_clock::now();
+    args.time_reset    = t2 - t1;
+    args.time_simA     = t3 - t2;
+    args.time_reduce   = t4 - t3;
+    args.time_copy     = t5 - t4;
 
   }
 

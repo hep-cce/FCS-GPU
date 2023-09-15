@@ -55,6 +55,10 @@ public:
   static std::chrono::duration<double> time_nhits;
   static std::chrono::duration<double> time_mchain;
   static std::chrono::duration<double> time_hitsim;
+  static std::chrono::duration<double> time_reset;
+  static std::chrono::duration<double> time_simA;
+  static std::chrono::duration<double> time_reduce;
+  static std::chrono::duration<double> time_copy;
 
 #if defined USE_GPU || defined USE_OMPGPU
   void GeoLg();

@@ -66,7 +66,7 @@ typedef struct Chain0_Args {
   // int * hitcells_ct_h ; // host array of corresponding hit cell counts
   unsigned int ct; // cells got hit for the event
 
-  std::chrono::duration<double> time1, time2;
+  std::chrono::duration<double> time1, time2, time_reset, time_simA, time_reduce, time_copy;
 } Chain0_Args;
 
 #endif

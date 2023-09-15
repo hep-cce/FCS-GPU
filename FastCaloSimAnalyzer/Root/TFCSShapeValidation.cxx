@@ -49,6 +49,10 @@ std::chrono::duration<double> TFCSShapeValidation::time_h;
 std::chrono::duration<double> TFCSShapeValidation::time_nhits;
 std::chrono::duration<double> TFCSShapeValidation::time_mchain;
 std::chrono::duration<double> TFCSShapeValidation::time_hitsim;
+std::chrono::duration<double> TFCSShapeValidation::time_reset;
+std::chrono::duration<double> TFCSShapeValidation::time_simA;
+std::chrono::duration<double> TFCSShapeValidation::time_reduce;
+std::chrono::duration<double> TFCSShapeValidation::time_copy;
 
 TFCSShapeValidation::TFCSShapeValidation( long seed ) {
   m_debug      = 0;
@@ -118,8 +122,8 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 
   time_o1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o2 = std::chrono::duration<double, std::ratio<1>>::zero();
-//  time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
-//  time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
 //  time_h  = std::chrono::duration<double, std::ratio<1>>::zero();
 //  time_nhits = std::chrono::duration<double, std::ratio<1>>::zero();
 //  time_mchain = std::chrono::duration<double, std::ratio<1>>::zero();
@@ -130,6 +134,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 //  std::chrono::duration<double> t_c2[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
 //  std::chrono::duration<double> t_bc   = std::chrono::duration<double, std::ratio<1>>::zero();
 //  std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_reset  = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_simA   = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_reduce = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_copy   = std::chrono::duration<double, std::ratio<1>>::zero();
 
 #if defined USE_GPU || defined USE_OMPGPU
   GeoLg();
@@ -495,6 +503,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::cout << "          Total CaloGPU simulate_hits " << time_o2.count() << " s" << std::endl;
   std::cout << "            Total CaloGPU args set    " << time_g1.count() << " s" << std::endl;
   std::cout << "            Total CaloGPU simulatehit " << time_g2.count() << " s" << std::endl;
+  std::cout << "              Total CaloGPU time_reset    " << time_reset.count() << " s" << std::endl;
+  std::cout << "              Total CaloGPU time_simulate " << time_simA.count() << " s" << std::endl;
+  std::cout << "              Total CaloGPU time_reduce   " << time_reduce.count() << " s" << std::endl;
+  std::cout << "              Total CaloGPU time_copy     " << time_copy.count() << " s" << std::endl;
   std::cout << "* * * * * * * * * * * * * * * * * * * * * * * * * * * *" << std::endl;
   /*
     TCanvas* c;
