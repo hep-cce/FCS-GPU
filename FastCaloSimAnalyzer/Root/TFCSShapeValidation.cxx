@@ -514,7 +514,7 @@ void TFCSShapeValidation::LoopEvents(int pcabin = -1) {
 
   std::cout << ktime.print() << std::endl;
 
-  ktime.printAll();
+//  ktime.printAll();
   
 #endif
   auto t3 = std::chrono::system_clock::now();
