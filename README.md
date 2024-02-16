@@ -22,8 +22,8 @@ then
 ```
 mkdir build 
 cd build
-## cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+## cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14"
 make -j 8
 ```
 
@@ -32,7 +32,7 @@ or on alpha/lambda machines
 module use /work/software/modulefiles
 module load llvm-openmp-dev
 source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh 
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DINPUT_PATH="../../FastCaloSimInputs" -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
 ```
 
 load the runtime environment:
@@ -45,7 +45,7 @@ run the simulation
 ```
 cd $your_work_directy
 salloc --nodes=1 --ntasks=2 --constraint=tesla --gres=gpu:4 --time=00:30:00
-srun -A cce -p long -N1 -n1 runTFCSSimulation
+srun -A cce -p long -N1 -n1 runTFCSSimulation --dataDir=/hpcgpfs01/work/csi/cce/FastCaloSimInputs
 ```
 
 ## Build Instructions for Cori
@@ -91,7 +91,7 @@ export CXX=`which g++`
 
 mkdir build
 cd build
-cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs" -DCMAKE_CXX_STANDARD=14
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DCMAKE_CXX_STANDARD=14
 make -j 30 VERBOSE=1 >& make.log
 ```
 
@@ -104,7 +104,7 @@ source $BUILD_DIR/x86_64-linux15-gcc8-opt/setup.sh
 
 module load esslurm
 salloc -N 1 -t 30 -c 80 --gres=gpu:8 --exclusive -C gpu -A m1759
-srun -N1 -n1 runTFCSSimulation
+srun -N1 -n1 runTFCSSimulation --dataDir=/global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
 ```
 
 ## Kokkos
