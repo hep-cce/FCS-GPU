@@ -100,6 +100,5 @@ Any configuration flag can be set to CMake using `-D<flag>=<value>`.
 
 - `ATHENA_PATH` - set Athena path, `../` by default
 - `DEBUG_LOGGING` - enable verbose debug logging, `OFF` by default
-- `ENABLE_XROOTD` - enable XRootD support, `ON` by default
-- `INPUT_PATH` - override all inputs path, empty and disabled by default
+- `ENABLE_XROOTD` - enable XRootD support, `OFF` by default
 - `ROOT_VERSION` - override required ROOT version, `6.14.08` by default

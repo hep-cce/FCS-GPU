@@ -15,9 +15,6 @@ endif()
 # Verbose debug logging
 set(DEBUG_LOGGING OFF CACHE BOOL "Enable verbose debug logging")
 
-# Input path override
-set(INPUT_PATH "" CACHE STRING "Override all inputs path")
-
 # Setup ROOT
 set(ROOT_VERSION 6.14.08 CACHE STRING "ROOT version required")
 message(STATUS "Building with ROOT version ${ROOT_VERSION}")
@@ -44,10 +41,6 @@ set(FCS_CommonDefinitions -D__FastCaloSimStandAlone__)
 if(DEBUG_LOGGING)
   message(STATUS "Verbose debug logging enabled")
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DFCS_DEBUG)
-endif()
-if(NOT INPUT_PATH STREQUAL "")
-  message(STATUS "Overriding all inputs path to '${INPUT_PATH}'")
-  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DFCS_INPUT_PATH=\"${INPUT_PATH}\")
 endif()
 
 if(ENABLE_GPU) 

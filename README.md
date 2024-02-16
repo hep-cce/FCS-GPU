@@ -60,11 +60,17 @@ First setup `cmake` and `ROOT`. If `ROOT` is installed in `$ROOT_PATH`, ensure
 that your `$LD_LIBRARY_PATH` includes
 `$ROOT_PATH/lib` and `$CMAKE_PREFIX_PATH` includes `$ROOT_PATH`.
 
+### Input data
+
+The simulation requires input data and parametrization files. The base directory of
+these files can be specified either via the runtime parameter `--dataDir=DIR` or by
+setting the environment variable `FCS_DATAPATH`.
+
 ### Original CPU code
 
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DENABLE_GPU=off
 ```
 
@@ -75,7 +81,7 @@ Build the project for an NVIDIA A100:
 
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DENABLE_GPU=on -DCMAKE_CUDA_ARCHITECTURES=80
 ```
 
@@ -90,7 +96,7 @@ Checkout from branch `main`. For group simulation use branch `group_sim_combined
 Build the project with
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DCMAKE_CXX_COMPILER=nvcc_wrapper \
 -DENABLE_GPU=on -DUSE_KOKKOS=ON
 ```
@@ -120,7 +126,7 @@ FastCaloSim, be it icpx or clang.
 Checkout from branch `sycl`. Build the project with
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DENABLE_SYCL=ON -DSYCL_TARGET_GPU=ON
 ```
 
@@ -133,7 +139,7 @@ Checkout from branch `main`.  For group simulation use branch `group_sim_combine
 Build the project with
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DCMAKE_CXX_COMPILER=$PWD/../src/scripts/nvc++_p \
 -DENABLE_GPU=on -DUSE_STDPAR=ON -DSTDPAR_TARGET=gpu -DCMAKE_CUDA_ARCHITECTURES=80
 ```
@@ -174,7 +180,7 @@ Build the project with
 
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DINPUT_PATH=$FCS_DATAPATH  -DCMAKE_CXX_EXTENSIONS=Off \
+-DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
 -DENABLE_GPU=on -DCMAKE_CXX_COMPILER=hipcc
 ```
 
@@ -187,7 +193,7 @@ For building the alpaka version of FastCaloSim checkout from branch `dev/stdpar`
 For CUDA backend build the project with:
 
 ```
-cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH=$FCS_DATAPATH \
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on \
   -DCMAKE_CXX_STANDARD=17 -DCMAKE_CUDA_ARCHITECTURES=N -DUSE_ALPAKA=on -Dalpaka_ROOT=<path_to_alpaka_installation> \
   -Dalpaka_ACC_GPU_CUDA_ENABLE=ON -Dalpaka_ACC_GPU_CUDA_ONLY_MODE=ON
 ```
@@ -196,7 +202,7 @@ For HIP backend build the project with:
 
 ```
 export CXX=hipcc 
-cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH=$FCS_DATAPATH \
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on \
   -DCMAKE_CXX_STANDARD=17 -DUSE_ALPAKA=on -Dalpaka_ROOT=<path_to_alpaka_installation> \
   -Dalpaka_ACC_GPU_HIP_ENABLE=ON -Dalpaka_ACC_GPU_HIP_ONLY_MODE=ON
 ```
@@ -211,7 +217,7 @@ Checkout from branch `openmp`. For group simulation use branch `group_openmp`.
 ```
 cmake ../src/FastCaloSimAnalyzer \
 -DENABLE_XROOTD=off -DCMAKE_CXX_STANDARD=14 \
--DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on -DINPUT_PATH=$FCS_INPUTS \
+-DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on \
 -DCMAKE_CXX_COMPILER=clang++  -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=nvcc
 ```
 
@@ -259,7 +265,7 @@ export CXX=`which g++`
 
 mkdir build
 cd build
-cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs" -DCMAKE_CXX_STANDARD=14
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DCMAKE_CXX_STANDARD=14
 make -j 30 VERBOSE=1 >& make.log
 ```
 
@@ -272,7 +278,7 @@ source $BUILD_DIR/x86_64-linux15-gcc8-opt/setup.sh
 
 module load esslurm
 salloc -N 1 -t 30 -c 80 --gres=gpu:8 --exclusive -C gpu -A m1759
-srun -N1 -n1 runTFCSSimulation
+srun -N1 -n1 runTFCSSimulation --dataDir=/global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
 ```
 
 ## Kokkos
