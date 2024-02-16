@@ -7,7 +7,7 @@ module load cmake gcc/8.2.0 cuda/10.1 root/6.18.02-gcc-8.2.0
 
 mkdir build 
 cd build
-cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/hpcgpfs01/work/csi/cce/FastCaloSimInputs"
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on
 make -j 8
 
 . x86_64-slc7-gcc8-opt/setup.sh
@@ -15,4 +15,4 @@ make -j 8
 #to your work directory
 
 cd $your_work_directy
-srun -A cce -p long -N1 -n1 runTFCSSimulation
+srun -A cce -p long -N1 -n1 runTFCSSimulation --dataDir=/hpcgpfs01/work/csi/cce/FastCaloSimInputs
