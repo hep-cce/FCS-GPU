@@ -74,10 +74,12 @@ public:
   }; // return true if hits over spill, need regenerat rand..
 
   void select_omp_device ( ) {
+#ifdef USE_OMPGPU
   if ( offload_var == "mandatory" ) 
 	m_select_device = m_default_device;
   else if ( offload_var == "disabled" )
       m_select_device = m_initial_device;
+#endif
   };
 
 private:
