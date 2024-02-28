@@ -1,7 +1,7 @@
 # Copyright (C) 2002-2019 CERN for the benefit of the ATLAS collaboration
 
 # Enable XRootD support
-set(ENABLE_XROOTD ON CACHE BOOL "Enable XRootD support")
+set(ENABLE_XROOTD OFF CACHE BOOL "Enable XRootD support")
 
 
 if (ENABLE_XROOTD)

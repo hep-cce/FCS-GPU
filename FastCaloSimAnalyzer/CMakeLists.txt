@@ -7,11 +7,42 @@ set(CMAKE_MODULE_PATH
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon/cmake
 )
 
+cmake_policy(SET CMP0074 NEW)
+
 # Set project
 project(FastCaloSimAnalyzer VERSION 1.0.0)
 
 set(ENABLE_GPU OFF CACHE BOOL "Enable GPU")
 set(ENABLE_GPU OFF CACHE BOOL "Enable OMPTARGET GPU")
+set(USE_STDPAR OFF CACHE BOOL "Use std::par")
+set(STDPAR_TARGET "gpu" CACHE STRING "target for std::par. should be gpu,multicore or cpu")
+set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
+set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
+set(RNDGEN_CPU OFF CACHE BOOL "use CPU for random number generation")
+set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
+
+if ( USE_STDPAR )
+  if ( ${STDPAR_TARGET} STREQUAL "cpu" )
+    if ( NOT RNDGEN_CPU )
+      message(FATAL_ERROR "when STDPAR_TARGET=cpu, RNDGEN_CPU must be ON")
+    endif()
+    set(STDPAR_DIRECTIVE "-nostdpar")
+  elseif( ${STDPAR_TARGET} STREQUAL "gpu" )
+    set(STDPAR_DIRECTIVE "-stdpar=gpu")
+  elseif( ${STDPAR_TARGET} STREQUAL "multicore" )
+    if ( NOT RNDGEN_CPU )
+      message(FATAL_ERROR "when STDPAR_TARGET=multicore, RNDGEN_CPU must be ON")
+    endif()
+    set(STDPAR_DIRECTIVE "-stdpar=multicore")
+  else()
+    message(FATAL_ERROR "unknown stdpar target ${STDPAR_TARGET}")
+  endif()
+  message (STATUS "Will target ${STDPAR_TARGET} for std::par with ${STDPAR_DIRECTIVE}")
+elseif( USE_KOKKOS )
+  find_package(Kokkos) 
+elseif(USE_ALPAKA)
+  find_package(alpaka REQUIRED)
+endif()
 
 # Add OpenMP
 find_package(OpenMP)
@@ -19,23 +50,16 @@ if(OPENMP_FOUND)
 	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-cuda-mode")
 	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -foffload-lto")
 	set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-assume-no-thread-state")
-	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -fopenmp-assume-no-nested-parallelism")
-	#set(OpenMP_OPT_FLAGS "${OpenMP_OPT_FLAGS} -maxrregcount=64")
 	set(OpenMP_OPT_RMRKS "-Rpass=openmp-opt -Rpass-analysis=openmp-opt -Rpass-missed=openmp-opt " )
-	##set(OpenMP_DBG_FLAGS "-fopenmp-target-debug=0x5" )
 	set(OpenMP_FLAGS "-fopenmp --offload-arch=sm_86 -lomp") ##lambda2
-	#set(OpenMP_FLAGS "-fopenmp --offload-arch=gfx906") ##lambda3
-	##set(OpenMP_FLAGS "-mp=gpu -gpu=cc86 -cuda -Minfo=mp") ## for nvc++
 	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_FLAGS} ${OpenMP_OPT_FLAGS} ${OpenMP_OPT_RMRKS}")
 else()
   message(WARNING "Configuring without OpenMP!")
 endif()
 
-
 include(FastCaloSim)
 include(XRootD)
-
 
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)

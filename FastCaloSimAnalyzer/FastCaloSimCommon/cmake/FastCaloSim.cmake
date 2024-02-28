@@ -56,7 +56,15 @@ if(ENABLE_GPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
 elseif(ENABLE_OMPGPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_OMPGPU )
-endif() 
+endif()
+
+if(USE_KOKKOS)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
+endif()
+
+if(USE_ALPAKA)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_ALPAKA )
+endif()
 
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes

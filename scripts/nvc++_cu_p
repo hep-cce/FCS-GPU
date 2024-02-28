@@ -1,0 +1,38 @@
+#!/bin/bash
+A=$*
+
+#
+## Make sure NVCPP_CUDA is not set during cmake configuration!
+#
+
+LOCALRC=""
+which gcc | grep -q 10.1.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
+fi
+which gcc | grep -q 10.2.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
+fi
+which gcc | grep -q 9.3.0
+if [[ $? -eq 0 ]]; then
+   LOCALRC="-rc=${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
+fi
+
+
+if [[ ! -z ${NVCPP_CUDA+set} ]]; then
+    CXX=$( which nvc++ )
+    X=$( echo $A | sed s/-forward-unknown-to-host-compiler// )
+    X=$( echo $X | perl -ne '@X=split(" ",$_); @Y=map(/--generate-code=.*/ ? () : $_, @X); print "@Y"' )
+
+    CXXARGS="$LOCALRC -cuda $X"
+else
+    CXX=$( which nvcc )
+    CXXARGS="$A"
+fi
+
+if [[ ! -z ${NVCPP_VERBOSE+set} ]]; then
+    echo "++> $CXX $CXXARGS"
+fi
+
+$CXX $CXXARGS

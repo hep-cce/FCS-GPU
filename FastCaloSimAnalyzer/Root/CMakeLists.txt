@@ -42,6 +42,10 @@ add_library(${FastCaloSimAnalyzer_LIB} SHARED ${FastCaloSimAnalyzer_Srcs} ${Fast
 target_compile_definitions(${FastCaloSimAnalyzer_LIB} PRIVATE ${FCS_CommonDefinitions})
 target_link_libraries(${FastCaloSimAnalyzer_LIB} ${AthenaStandalone_LIB} ROOT::Core ROOT::Graf ROOT::Tree ROOT::TMVA)
 
+if (CMAKE_BUILD_TYPE MATCHES Debug)
+  target_link_libraries(${FastCaloSimAnalyzer_LIB} ROOT::HistPainter)
+endif()
+
 if(ENABLE_XROOTD)
   target_include_directories(${FastCaloSimAnalyzer_LIB} PRIVATE ${XROOTD_INCLUDE_DIR})
   target_link_libraries(${FastCaloSimAnalyzer_LIB} ${XROOTD_LIBRARIES})

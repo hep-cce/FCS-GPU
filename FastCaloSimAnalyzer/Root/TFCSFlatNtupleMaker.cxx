@@ -257,7 +257,11 @@ void TFCSFlatNtupleMaker::StudyHitMerging() {
   std::string      particle    = m_label;
 
   std::string dir = "plots_hit_" + particle + "_" + merge;
-  system( ( "mkdir -p " + dir ).c_str() );
+  auto r = system( ( "mkdir -p " + dir ).c_str() );
+  if ( r != 0 ) {
+    std::cerr << "Error: Could not create directory \"" << dir << "\""<< std::endl;
+    return;
+  }
 
   std::string file = "hit_" + particle + merge + ".root";
   auto        fout = std::unique_ptr<TFile>( TFile::Open( file.c_str(), "recreate" ) );

@@ -5,127 +5,205 @@
 #ifndef RAND4HITS_H
 #define RAND4HITS_H
 
-#include <stdio.h>
-#include <curand.h>
+#include <vector>
+#include <random>
 
-#include "GpuParams.h"
-#include "gpuQ.h"
+#ifdef USE_KOKKOS
+#include <Kokkos_Core.hpp>
+#include <Kokkos_Random.hpp>
+#endif
+
+#ifdef USE_STDPAR
+#include <atomic>
+#endif
+
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
+#endif
+
 #include "GpuGeneral_structs.h"
 
-#define CURAND_CALL( x )                                                                                               \
-  if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
-    printf("Error at %s:%d\n",__FILE__,__LINE__);\
-    exit( EXIT_FAILURE );                                                                                              \
-  }
-
 class Rand4Hits {
-  public:
+ public:
+#ifdef USE_ALPAKA
+ Rand4Hits()
+   : m_queue(alpaka::getDevByIdx<Acc>(Idx{0}))
+   , m_bufAcc(alpaka::allocBuf<float, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(1u)}))
+   , m_bufAccEngine(alpaka::allocBuf<RandomEngine<Acc>, Idx>(alpaka::getDevByIdx<Acc>(0u), Vec{Idx(NUM_STATES)}))
+   , m_cellsEnergy{alpaka::allocBuf<CELL_ENE_T, Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_cellE{alpaka::allocBuf<Cell_E,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_cT{alpaka::allocBuf<CELL_CT_T,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1u)})}
+   , m_simBins{alpaka::allocBuf<long,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})}
+   , m_hitParams{alpaka::allocBuf<HitParams,Idx>(alpaka::getDevByIdx<Acc>(0u),Vec{Idx(1)})} 
+  {}
+#else
   Rand4Hits() {
-    m_rand_ptr     = 0;
-		m_total_a_hits=0 ;
-	  }; 
-  ~Rand4Hits() {
-    gpuQ( cudaFree( m_rand_ptr ) );
-		 CURAND_CALL(curandDestroyGenerator(m_gen));
-		cudaFree(m_cells_energy) ;
-		cudaFree(m_cell_e) ;
-		cudaFree(m_ct) ;
-		cudaFree(m_hitparams) ;
-		cudaFree(m_simbins) ;
-		};
-		
-     //float *  HitsRandGen(unsigned int nhits, unsigned long long seed ) ;
+    m_rand_ptr = 0;
+    m_total_a_hits = 0;
+  };
+#endif
+  
+  ~Rand4Hits();
+  
+  float *rand_ptr(int nhits) {
+    if (over_alloc(nhits)) {
+      rd_regen();
+      return m_rand_ptr;
+    } else {
+      float *f_ptr = &(m_rand_ptr[3 * m_current_hits]);
+      return f_ptr;
+    }
+  };
+  float *rand_ptr_base() { return m_rand_ptr; }
+  void set_rand_ptr(float *ptr) {
+    m_rand_ptr = ptr;
+  };
+  void set_t_a_hits(int nhits) {
+    m_total_a_hits = nhits;
+  };
+  void set_c_hits(int nhits) {
+    m_current_hits = nhits;
+  };
+  unsigned int get_c_hits() {
+    return m_current_hits;
+  };
+  unsigned int get_t_a_hits() {
+    return m_total_a_hits;
+  };
 
-     float * rand_ptr(int nhits){
-	 if( over_alloc(nhits)) {
-		 rd_regen() ; 
-		return m_rand_ptr ;
-	} else {
-	  float * f_ptr=&(m_rand_ptr[ 3 * m_current_hits]) ;
-	  return f_ptr ; 
-	}
-	};
-     float * rand_ptr_base() {return m_rand_ptr ; }
-     void set_rand_ptr( float* ptr) { m_rand_ptr=ptr ; };
-     void set_t_a_hits( int nhits) { m_total_a_hits=nhits ; };
-     void set_c_hits( int nhits) { m_current_hits=nhits ; };
-     unsigned int  get_c_hits( ) { return  m_current_hits ; };
-     unsigned int  get_t_a_hits( ) { return  m_total_a_hits ; };
-     void set_gen( curandGenerator_t  gen) { m_gen=gen ; };
-     curandGenerator_t gen() {return m_gen ; } ; 
-  void allocate_hist( long long maxhits, unsigned short maxbins, unsigned short maxhitct, int n_hist, int n_match,
-                      bool hitspy );
+  void create_gen(unsigned long long seed, size_t numhits, bool useCPU = false);
 
-     void allocate_simulation(  int  maxbins, int maxhitcts,  unsigned long n_cells);
+  void allocate_simulation(int maxbins, int maxhitct, unsigned long n_cells);
 
-     float * get_cells_energy(){return m_cells_energy ; } ;
-     Cell_E * get_cell_e(){return m_cell_e ; } ;
-     Cell_E * get_cell_e_h(){return m_cell_e_h ; } ;
-     int * get_ct() {return m_ct ; } ;
-     int * get_ct_h() {return m_ct_h ; } ;
+#ifdef USE_STDPAR
+  void deallocate();
+#endif
 
-     HitParams * get_hitparams() {return m_hitparams ; };
-     long * get_simbins() {return m_simbins ; } ;
+  CELL_ENE_T *get_cells_energy() {
+    return m_cells_energy;
+  };
+  Cell_E *get_cell_e() {
+    return m_cell_e;
+  };
+#ifdef USE_ALPAKA
+  CellE& get_cell_E() { 
+    return m_cellE; 
+  };
+#endif
+  Cell_E *get_cell_e_h() {
+    return m_cell_e_h;
+  };
 
-     float ** get_F_ptrs(){return m_F_ptrs ; } ;
-     double ** get_D_ptrs(){return m_D_ptrs ; } ;
-     short ** get_S_ptrs(){return m_S_ptrs ;} ;
-     int ** get_I_ptrs(){return m_I_ptrs ;} ;
-     bool  ** get_B_ptrs(){return m_B_ptrs ; } ; 
-     unsigned long  ** get_Ul_ptrs(){return m_Ul_ptrs ;} ; 
-     unsigned long long  ** get_Ull_ptrs(){return m_Ull_ptrs ;} ; 
-     unsigned int  ** get_Ui_ptrs(){return m_Ui_ptrs ; } ;
-     unsigned long * get_hitcells() { return  m_hitcells ;} ;
-     int * get_hitcells_ct() { return  m_hitcells_ct ;} ;
-     double ** get_array_h_ptrs() { return m_array_h_ptrs ; } ;
-     double ** get_sumw2_array_h_ptrs() { return m_sumw2_array_h_ptrs ; } ;
-     double * get_hist_stat_h() {return m_hist_stat_h ; }; 
+  CELL_CT_T *get_ct() {
+    return m_ct;
+  };
+#ifdef USE_ALPAKA
+  CellCtT& get_cT() { 
+    return m_cT; 
+  };
+#endif
+  int *get_ct_h() {
+    return m_ct_h;
+  };
 
-     void    rd_regen() {CURAND_CALL(curandGenerateUniform(m_gen, m_rand_ptr, 3*m_total_a_hits) ); }  ;
-  void add_a_hits( int nhits ) {
-    if ( over_alloc( nhits ) )
+  unsigned long *get_hitcells() {
+    return m_hitcells;
+  };
+  int *get_hitcells_ct() {
+    return m_hitcells_ct;
+  };
+
+  // void       set_hitparams_h( HitParams* hp ) { m_hitparams_h = hp; }
+
+  HitParams *get_hitparams() {
+    return m_hitparams;
+  };
+#ifdef USE_ALPAKA
+  BufAccHitParams& get_hitParams() {
+    return m_hitParams;
+  }
+#endif
+  
+  // HitParams* get_hitparams_h() { return m_hitparams_h; };
+  long *get_simbins() {
+    return m_simbins;
+  };
+#ifdef USE_ALPAKA
+  BufAccLong& get_simBins() {
+    return m_simBins;
+  }
+#endif
+
+#ifdef USE_KOKKOS
+  Kokkos::View<HitParams *> *get_hitparams_v() {
+    return &m_hitparams_v;
+  };
+  Kokkos::View<long *> *get_simbins_v() {
+    return &m_simbins_v;
+  };
+#endif
+
+  void rd_regen();
+
+  void add_a_hits(int nhits) {
+    if (over_alloc(nhits))
       m_current_hits = nhits;
     else
       m_current_hits += nhits;
   };
-  bool over_alloc( int nhits ) {
+  bool over_alloc(int nhits) {
     return m_current_hits + nhits > m_total_a_hits;
   }; // return true if hits over spill, need regenerat rand..
 
-  private:
-      float * m_rand_ptr  ;
-      unsigned int  m_total_a_hits ;
-      unsigned int  m_current_hits ;
-      curandGenerator_t m_gen;
-      
-//patch in some GPU pointers for cudaMalloc
-      float * m_cells_energy ;
-      Cell_E * m_cell_e ;
-      int * m_ct ;
+private:
+  float *genCPU(size_t num);
+  void createCPUGen(unsigned long long seed);
+  void allocateGenMem(size_t num);
+  void destroyCPUGen();
 
-      HitParams * m_hitparams ;
-      long * m_simbins ;
+  float *m_rand_ptr{ nullptr };
+  unsigned int m_total_a_hits{0};
+  unsigned int m_current_hits;
+  void *m_gen{ nullptr };
+  bool m_useCPU{ false };
 
-      float ** m_F_ptrs ;
-      short ** m_S_ptrs ;
-      int ** m_I_ptrs ;
-      bool ** m_B_ptrs ;
-      unsigned long ** m_Ul_ptrs ; 
-      unsigned int ** m_Ui_ptrs ; 
-      unsigned long long ** m_Ull_ptrs ; 
-      double ** m_D_ptrs;
+  // patch in some GPU pointers for cudaMalloc
+  CELL_ENE_T *m_cells_energy{ 0 };
+  Cell_E *m_cell_e{ 0 };
+  CELL_CT_T *m_ct{ 0 };
 
-//host side ;
-      unsigned long * m_hitcells;
-      int * m_hitcells_ct ;
-      Cell_E * m_cell_e_h ;
-      int * m_ct_h ;
+  HitParams *m_hitparams; // on device
+  // HitParams* m_hitparams_h;                      // on host
+  long *m_simbins;
 
-      double * m_hist_stat_h ;
-      double** m_array_h_ptrs ;
-      double** m_sumw2_array_h_ptrs ;
+  // host side ;
+  unsigned long *m_hitcells{ nullptr };
+  int *m_hitcells_ct{ nullptr };
+  Cell_E *m_cell_e_h{ nullptr };
+  int *m_ct_h;
+
+  std::vector<float> *m_rnd_cpu{ nullptr };
+
+#ifdef USE_KOKKOS
+  Kokkos::View<CELL_ENE_T *> m_cells_energy_v;
+  Kokkos::View<Cell_E *> m_cell_e_v;
+  Kokkos::View<int *> m_ct_v;
+  Kokkos::View<float *> m_rand_ptr_v;
+  Kokkos::View<long *> m_simbins_v;
+  Kokkos::View<HitParams *> m_hitparams_v;
+#endif
+
+#ifdef USE_ALPAKA
+  QueueAcc m_queue;
+  BufAcc m_bufAcc;
+  BufAccEngine m_bufAccEngine;
+  CellsEnergy m_cellsEnergy;
+  CellE m_cellE;
+  CellCtT m_cT;
+  BufAccLong m_simBins;
+  BufAccHitParams m_hitParams;
+#endif
 
 };
 
 #endif
-
