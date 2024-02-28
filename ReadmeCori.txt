@@ -35,7 +35,7 @@ export CXX=`which g++`
 
 mkdir build
 cd build
-cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DINPUT_PATH="/global/project/projectdirs/atlas/leggett/data/FastCaloSimInputs" -DCMAKE_CXX_STANDARD=17
+cmake ../src/FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DCMAKE_CXX_STANDARD=17
 make -j 30 VERBOSE=1 >& make.log
 
 
@@ -49,4 +49,4 @@ source $BUILD_DIR/x86_64-linux15-gcc8-opt/setup.sh
 
 module load esslurm
 salloc -N 1 -t 30 -c 80 --gres=gpu:8 --exclusive -C gpu -A m1759
-srun -N1 -n1 runTFCSSimulation
+srun -N1 -n1 runTFCSSimulation --dataDir=/global/project/projectdirs/atlas/leggett/data/FastCaloSimInputs

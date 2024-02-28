@@ -59,7 +59,7 @@ static const char* USAGE =
     R"(Run toy simulation to validate the shape parametrization
 
 Usage:
-  runTFCSShapeValidation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--debug <debug>]
+  runTFCSShapeValidation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--dataDir <dir>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--debug <debug>]
   runTFCSShapeValidation (-h | --help)
 
 Options:
@@ -69,6 +69,7 @@ Options:
   --energy <energy>            Input sample energy in MeV. Should match energy point on the grid. [default: 65536].
   --etaMin <etaMin>            Minimum eta of the input sample. Should match eta point on the grid. [default: 0.2].
   -o <file>, --output <file>   Output plot file name [default: ShapeValidation.root].
+  --dataDir <dir>              Directory for input data [default: /].
   -l <layer>, --layer <layer>  Layer to analyze [default: 2].
   --nEvents <nEvents>          Number of events to run over with. All events will be used if nEvents<=0 [default: -1].
   --firstEvent <firstEvent>    Run will start from this event [default: 0].
@@ -554,6 +555,7 @@ int runTFCSShapeValidation(int pdgid = 22,
 			   double etamin = 0.2,
                            int analyze_layer = 2,
                            const std::string &plotfilename = "ShapeValidation.root",
+                           std::string dataDir = "/",
                            long seed = 42,
 			   int nEvents = -1,
 			   int firstEvent = 0,
@@ -562,6 +564,19 @@ int runTFCSShapeValidation(int pdgid = 22,
 
   auto start = std::chrono::system_clock::now();
 
+  if (dataDir == "/") {
+    char * dd = std::getenv( "FCS_DATAPATH" );
+    if (dd == NULL) {
+      std::cout << "ERROR: no dataDir option specified, and env var FCS_DATAPATH is unset"
+                << std::endl;
+      return 1;
+    } else {
+      dataDir = std::string(dd);
+    }
+  }
+
+  auto sample = std::make_unique<TFCSSampleDiscovery>(dataDir);
+  
   FCS::LateralShapeParametrizationArray mapping = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
   FCS::init_hit_to_cell_mapping( mapping );
 
@@ -583,7 +598,7 @@ int runTFCSShapeValidation(int pdgid = 22,
 
   TFCSParametrizationBase* fullchain = nullptr;
 
-  std::string paramName     = TFCSSampleDiscovery::getParametrizationName();
+  std::string paramName     = sample->getParametrizationName();
   auto        fullchainfile = std::unique_ptr<TFile>( TFile::Open( paramName.c_str() ) );
   if ( !fullchainfile ) {
     std::cerr << "Error: Could not open file '" << paramName << "'" << std::endl;
@@ -620,7 +635,6 @@ int runTFCSShapeValidation(int pdgid = 22,
   std::string etamin_label = eta_label.substr( 0, eta_label.find( "_" ) );
   std::string etamax_label = eta_label.substr( 4, eta_label.find( "_" ) );
 
-  auto            sample     = std::make_unique<TFCSSampleDiscovery>();
   int             dsid       = sample->findDSID( pdgid, int_E, etamin * 100, 0 ).dsid;
   FCS::SampleInfo sampleInfo = sample->findSample( dsid );
 
@@ -1077,20 +1091,19 @@ int runTFCSShapeValidation(int pdgid = 22,
   return 0;
 }
 
-int main(int argc, char **argv)
-{
-  std::map<std::string, docopt::value> args
-    = docopt::docopt(USAGE, {argv + 1, argv + argc}, true);
+int main( int argc, char** argv ) {
+  std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
 
   int         pdgId      = args["--pdgId"].asLong();
   int         energy     = args["--energy"].asLong();
   double      etamin     = std::stof( args["--etaMin"].asString() );
   long        seed       = args["--seed"].asLong();
   std::string output     = args["--output"].asString();
+  std::string dataDir    = args["--dataDir"].asString();
   int         layer      = args["--layer"].asLong();
   int         nEvents    = args["--nEvents"].asLong();
   int         firstEvent = args["--firstEvent"].asLong();
   int         debug      = args["--debug"].asLong();
 
-  return runTFCSShapeValidation( pdgId, energy, etamin, layer, output, seed, nEvents, firstEvent, debug );
+  return runTFCSShapeValidation( pdgId, energy, etamin, layer, output, dataDir, seed, nEvents, firstEvent, debug );
 }
