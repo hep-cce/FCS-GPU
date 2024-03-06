@@ -26,7 +26,7 @@ endif()
 
 
 if(FIND_CUDA)
-  find_package(CUDA REQUIRED)
+  find_package(CUDAToolkit REQUIRED)
   enable_language( CUDA )
   set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
 endif()
