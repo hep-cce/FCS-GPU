@@ -31,7 +31,7 @@
 #include <chrono>
 #include <typeinfo>
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #  include "FastCaloGpu/FastCaloGpu/CaloGpuGeneral.h"
 #endif
@@ -55,7 +55,7 @@ TFCSShapeValidation::TFCSShapeValidation( long seed ) {
   m_randEngine = new CLHEP::TRandomEngine();
   m_randEngine->setSeed( seed );
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   m_gl   = 0;
   m_rd4h = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
 #endif
@@ -72,7 +72,7 @@ TFCSShapeValidation::TFCSShapeValidation( TChain* chain, int layer, long seed ) 
 
   m_randEngine = new CLHEP::TRandomEngine();
   m_randEngine->setSeed( seed );
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   auto t0                            = std::chrono::system_clock::now();
   m_gl                               = 0;
   m_rd4h                             = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
@@ -111,7 +111,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::chrono::duration<double> t_bc   = std::chrono::duration<double, std::ratio<1>>::zero();
   std::chrono::duration<double> t_io   = std::chrono::duration<double, std::ratio<1>>::zero();
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 
   GeoLg();
 
@@ -182,7 +182,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     if ( nentries < 100 ) m_nprint = 1;
   }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   TFCSSimulationState::EventStatus es    = {-1, 0, 0, 0, 0, 0, 0, false, nullptr, nullptr, 0, false, false};
   long int                         index = 0, tot_hits = 0;
   long int                         bin_index = 0;
@@ -203,7 +203,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   auto                          t2   = std::chrono::system_clock::now();
   for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 
     bool first  = ( ievent == m_firstevent ) ? true : false;
     es.is_first = first;
@@ -370,7 +370,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
 
       auto t5 = std::chrono::system_clock::now();
       t_bc += t5 - t4;
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
       iv = 0;
 #endif
       int ii = 0;
@@ -387,7 +387,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
                     << " validation: " << typeid( validation ).name() << " Pointer: " << &validation
                     << " Title: " << validation.GetTitle() << std::endl;
         }
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
         int vi = iv;
         int si = validation.simul().size();
 #endif
@@ -396,7 +396,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         TFCSSimulationState& chain_simul = validation.simul().back();
         auto                 te2         = std::chrono::system_clock::now();
         t_st += te2 - te1;
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
         es.ip        = p;
         es.ievent    = ievent;
         es.iv        = iv;
@@ -421,7 +421,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
           std::cout << "End simulate : " << validation.basesim()->GetTitle() << " event=" << ievent << std::endl
                     << std::endl;
         }
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
         iv++;
         if ( ( *chain_simul.get_es() ).gpu == true ) {
           g_sims_v[index]  = vi;
@@ -501,7 +501,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
     } // end loop over particles
   }   // end loop over events
   // auto t_04 = std::chrono::system_clock::now();
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   if ( m_rd4h ) CaloGpuGeneral::Rand4Hits_finish( m_rd4h );
 #endif
 
@@ -509,7 +509,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::chrono::duration<double> diff1 = t3 - t2;
   diff                                = t_01 - start;
   std::cout << "Time of  LoadGeo cpu IO:" << diff.count() << " s" << std::endl;
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   diff = t1 - t_01;
   std::cout << "Time of  GeoLg() :" << diff.count() << " s" << std::endl;
   diff = t_02 - t1;
@@ -526,7 +526,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::cout << "Time of  eventloop  host Chain0:" << time_h.count() << " s" << std::endl;
   std::cout << "Time of  eventloop  before chain simul:" << t_bc.count() << " s" << std::endl;
   std::cout << "Time of  eventloop  I/O read from tree:" << t_io.count() << " s" << std::endl;
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   std::cout << "Time of  GPU group Sim_total:" << t_g_sim.count() << " s" << std::endl;
   std::cout << "Time of  GPU copy params:" << t_g_sim_A.count() << " s" << std::endl;
   std::cout << "Time of  GPU Sim:" << t_g_sim_B.count() << " s" << std::endl;
@@ -567,7 +567,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   */
 }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 void TFCSShapeValidation::GeoLg() {
   m_gl = new GeoLoadGpu();
   m_gl->set_ncells( m_geo->get_cells()->size() );

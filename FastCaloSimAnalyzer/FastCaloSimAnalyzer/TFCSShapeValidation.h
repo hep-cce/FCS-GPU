@@ -13,7 +13,7 @@
 #include "ISF_FastCaloSimEvent/TFCSExtrapolationState.h"
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 #  include "FastCaloGpu/FastCaloGpu/GeoLoadGpu.h"
 #endif
 #include <chrono>
@@ -48,7 +48,7 @@ public:
   static std::chrono::duration<double> time_o1;
   static std::chrono::duration<double> time_o2;
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   void GeoLg();
   void region_data_cpy( CaloGeometryLookup* glkup, GeoRegion* gr );
   // void copy_all_regions( ) ;
@@ -68,7 +68,7 @@ private:
 
   std::vector<TFCSSimulationRun> m_validations;
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   GeoLoadGpu* m_gl;
   void*       m_rd4h;
 #endif

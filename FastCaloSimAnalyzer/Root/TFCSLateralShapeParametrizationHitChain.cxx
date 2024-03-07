@@ -6,7 +6,7 @@
 
 #include "ISF_FastCaloSimEvent/TFCSSimulationState.h"
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 #  include <typeinfo>
 #  include "ISF_FastCaloSimEvent/TFCS1DFunction.h"
 #  include "ISF_FastCaloSimEvent/TFCSCenterPositionCalculation.h"
@@ -91,7 +91,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   bool debug = msgLvl( MSG::DEBUG );
   if ( debug ) { ATH_MSG_DEBUG( "E(" << calosample() << ")=" << simulstate.E( calosample() ) << " #hits=" << nhit ); }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   if ( 0 ) {
     std::string sA[5] = { "TFCSCenterPositionCalculation", "TFCSValidationHitSpy",
                           "TFCSHistoLateralShapeParametrization", "TFCSHitCellMappingWiggle", "TFCSValidationHitSpy" };
@@ -365,7 +365,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
         }
       }
     }
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   }
 
   auto t2 = std::chrono::system_clock::now();
@@ -386,7 +386,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   }
   auto t3 = std::chrono::system_clock::now();
   TFCSShapeValidation::time_o2 += ( t3 - start );
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   if ( 0 ) {
     std::cout << "CS-Bin-Index " << simulstate.get_es()->bin_index << " , ";
     std::cout << "DoneGPU " << do_gpu_sim << " , ";

@@ -27,7 +27,7 @@ TFCSHistoLateralShapeParametrization::TFCSHistoLateralShapeParametrization( cons
 }
 
 TFCSHistoLateralShapeParametrization::~TFCSHistoLateralShapeParametrization() {
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 delete m_LdFH ;
 #endif 
 }
@@ -161,7 +161,7 @@ void TFCSHistoLateralShapeParametrization::Print( Option_t* option ) const {
   }  
 }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
 
  if (m_LdFH ){

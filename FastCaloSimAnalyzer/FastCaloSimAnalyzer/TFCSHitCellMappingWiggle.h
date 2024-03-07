@@ -7,7 +7,7 @@
 
 #include "ISF_FastCaloSimEvent/TFCSHitCellMapping.h"
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 #  include "FastCaloGpu/FastCaloGpu/LoadGpuFuncHist.h"
 #endif
 
@@ -42,7 +42,7 @@ public:
   void Print( Option_t* option = "" ) const override;
 
   static void unit_test(TFCSSimulationState* simulstate=nullptr,TFCSTruthState* truth=nullptr, TFCSExtrapolationState* extrapol=nullptr);
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   void             set_d_HistFuncs( FHs* hf_ptr ) { m_d_HistFuncs = hf_ptr; };
   const FHs*       d_HistFuncs() { return m_d_HistFuncs; };
   void             LoadHistFuncs();
@@ -55,7 +55,7 @@ private:
   std::vector<const TFCS1DFunction*> m_functions    = {nullptr};
   std::vector<float>                 m_bin_low_edge = {0, static_cast<float>( init_eta_max )};
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   FHs*             m_d_HistFuncs = nullptr;
   LoadGpuFuncHist* m_LdFH        = nullptr;
 #endif
