@@ -82,6 +82,9 @@ bool GeoLoadGpu::LoadGpu_omp() {
 	return false ;
     }
 
+    int m_default_device = omp_get_default_device();
+    int m_initial_device = omp_get_initial_device();
+    int m_offset = 0;
     std::cout << "Executing on GPU: " << m_default_device << std::endl;
 
     GeoGpu geo_gpu_h ;

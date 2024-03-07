@@ -11,7 +11,6 @@
 #include "FastCaloSimAnalyzer/TFCSValidationEnergyAndHits.h"
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
-#include <omp.h>
 
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
@@ -178,10 +177,6 @@ int runTFCSSimulation(int pdgid = 22,
          bool png = false,
          bool earlyReturn = false)
 {
-#ifdef USE_OMPGPU
-  printf("Executing on GPU dev ID %d with OpenMP; host ID %d \n", omp_get_default_device(), omp_get_initial_device());
-#endif
-
   auto t0 = std::chrono::system_clock::now();
 
   if (dataDir == "/") {
@@ -280,12 +275,9 @@ int runTFCSSimulation(int pdgid = 22,
   ///// Creat validation steering
   //////////////////////////////////////////////////////////
   TFCSShapeValidation* analyze = new TFCSShapeValidation( inputChain, analyze_layer, seed );
-  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   auto                 t2A     = std::chrono::system_clock::now();
   analyze->set_IsNewSample( true );
-  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   analyze->set_Nentries( nEvents );
-  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   analyze->set_Debug( debug );
   analyze->set_firstevent( firstEvent );
 

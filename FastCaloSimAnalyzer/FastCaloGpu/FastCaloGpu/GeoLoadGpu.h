@@ -17,10 +17,6 @@
 #include <Kokkos_Random.hpp>
 #endif
 
-#ifdef USE_OMPGPU
-#include <omp.h>
-#endif
-
 typedef std::map<Identifier, const CaloDetDescrElement *> t_cellmap;
 
 class GeoLoadGpu {
@@ -125,11 +121,5 @@ protected:
   Impl* pImpl{nullptr};
 #endif
 
-#ifdef USE_OMPGPU
-  int m_default_device = omp_get_default_device();
-  int m_initial_device = omp_get_initial_device();
-  int m_offset = 0;
-#endif
- 
 };
 #endif
