@@ -34,8 +34,6 @@ set(EnergyParametrization_LIB EnergyParametrization)
 
 if(ENABLE_GPU) 
   set(FastCaloGpu_LIB FastCaloGpu)
-elseif(ENABLE_OMPGPU)
-  set(FastCaloGpu_LIB FastCaloGpu)
 endif() 
 
 # Common definitions
@@ -47,7 +45,9 @@ endif()
 
 if(ENABLE_GPU) 
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
-elseif(ENABLE_OMPGPU)
+endif()
+
+if(ENABLE_OMPGPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_OMPGPU )
 endif()
 

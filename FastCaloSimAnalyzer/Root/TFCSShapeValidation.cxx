@@ -203,7 +203,13 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   auto                          t2   = std::chrono::system_clock::now();
   //for ( int ievent = m_firstevent; ievent < nentries; ievent++ ) {
   for ( int ievent = m_firstevent; ievent < 250; ievent++ ) {
+#if defined USE_GPU 
+#if defined USE_OMPGPU
     printf("OpenMP1 Event %d \n", ievent);
+#else
+    printf("CUDA1 Event %d \n", ievent);
+#endif
+#endif
 
 #if defined USE_GPU || defined USE_OMPGPU
 

@@ -43,9 +43,6 @@ public:
     return m_hf2d_d;
   };
 
-  //?
-  //FH2D * d_hf2d() {return m_d_hf2d ; } ;
-
 #ifdef USE_KOKKOS
   FHs_v *hf_v() const { return m_hf_v; } // on device
   //  Kokkos::View<FHs>    hf_dv()   const { return m_hf_dv; }      // on device

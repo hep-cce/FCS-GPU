@@ -280,9 +280,12 @@ int runTFCSSimulation(int pdgid = 22,
   ///// Creat validation steering
   //////////////////////////////////////////////////////////
   TFCSShapeValidation* analyze = new TFCSShapeValidation( inputChain, analyze_layer, seed );
+  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   auto                 t2A     = std::chrono::system_clock::now();
   analyze->set_IsNewSample( true );
+  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   analyze->set_Nentries( nEvents );
+  std::cout << " *   AvgShape file: " << avgSample << std::endl;
   analyze->set_Debug( debug );
   analyze->set_firstevent( firstEvent );
 

@@ -43,8 +43,8 @@ if(USE_STDPAR)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx gpuQ.cu Rand4Hits.cu Rand4Hits_sp.cxx )
 elseif(USE_KOKKOS)
   set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_kk.cxx DEV_BigMem_kk.cxx)
-elseif(USE_OMPGPU)
-  set(FastCaloGpu_Srcs gpuQ.cu OpenMPWrapper.cxx)
+elseif(ENABLE_OMPGPU)
+  set(FastCaloGpu_Srcs KernelWrapper_omp.cxx gpuQ.cxx CaloGpuGeneral.cxx DEV_BigMem_omp.cxx )
 elseif(USE_ALPAKA)
   set(FastCaloGpu_Srcs CaloGpuGeneral.cxx KernelWrapper_al.cxx Rand4Hits_al.cxx )
 else()
@@ -126,6 +126,7 @@ endif()
 
 if(ENABLE_OMPGPU)
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_OMPGPU )
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
 endif()
 
 # Install library

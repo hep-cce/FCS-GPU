@@ -2,49 +2,75 @@
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
 
-#include "CaloGpuGeneral.h"
+#include "CaloGpuGeneral_omp.h"
 #include "GeoRegion.h"
+#include "GeoGpu_structs.h"
 #include "Hit.h"
 #include "Rand4Hits.h"
 
 #include "gpuQ.h"
 #include "Args.h"
-#include "OMP_BigMem.h"
-
-#include <curand.h>
-#include <iostream>
+#include "DEV_BigMem.h"
+//#include "OMP_BigMem.h"
 #include <chrono>
 #include <mutex>
+#include <climits>
+
+#include <cuda_runtime_api.h>
+#include <curand.h>
+#include <iostream>
 #include <omp.h>
 
-static CaloGpuGeneral::KernelTime timing;
-
 #define DEFAULT_BLOCK_SIZE 256
-#define NLOOPS 1
-
-static std::once_flag calledGetEnv {};
-static int BLOCK_SIZE{DEFAULT_BLOCK_SIZE};
 
 #define M_PI 3.14159265358979323846
 #define M_2PI 6.28318530717958647692
 
+static std::once_flag calledGetEnv {};
+static int BLOCK_SIZE{DEFAULT_BLOCK_SIZE};
+
+static int count{ 0 };
+
+static CaloGpuGeneral::KernelTime timing;
+
+namespace CaloGpuGeneral_omp {
+
+void Rand4Hits_finish( void * rd4h ){ 
+
+  size_t free, total;
+  // gpuQ(cudaMemGetInfo(&free, &total));
+  std::cout << "TODO GPU memory used(MB): " << (total - free) / 1000000 << std::endl;
+  if ( (Rand4Hits *)rd4h ) 
+    delete (Rand4Hits *)rd4h  ;
+    
+  if (timing.count > 0) {
+    std::cout << "kernel timing\n";
+    std::cout << timing;
+    // std::cout << "\n\n\n";
+    // timing.printAll();
+  } else {
+    std::cout << "no kernel timing available" << std::endl;
+  }
+  
+}
+
 
 inline  long long getDDE( GeoGpu* geo, int sampling, float eta, float phi) {
 
-   float * distance = 0 ;
-   int * steps =0 ;
+  float * distance = 0 ;
+  int * steps =0 ;
 
-int MAX_SAMPLING = geo->max_sample ;
-Rg_Sample_Index * SampleIdx = geo->sample_index ;
- GeoRegion * regions_g = geo->regions ;
+  int MAX_SAMPLING = geo->max_sample ;
+  Rg_Sample_Index * SampleIdx = geo->sample_index ;
+  GeoRegion * regions_g = geo->regions ;
 
-if(sampling<0) return -1;
+  if(sampling<0) return -1;
   if(sampling>=MAX_SAMPLING) return -1;
 
-   int sample_size= SampleIdx[sampling].size ;
-   int sample_index=SampleIdx[sampling].index ;
+  int sample_size= SampleIdx[sampling].size ;
+  int sample_index=SampleIdx[sampling].index ;
 
-   GeoRegion * gr = ( GeoRegion *) regions_g ; 
+  GeoRegion * gr = ( GeoRegion *) regions_g ; 
   if(sample_size==0) return -1;
   float dist;
   long long bestDDE=-1;
@@ -217,94 +243,7 @@ inline  float  rnd_to_fct1d( float  rnd, uint32_t* contents, float* borders , in
 
 
 
-
-void *  CaloGpuGeneral::Rand4Hits_init( long long maxhits, int  maxbin, unsigned long long seed, bool hitspy ){ 
-
-   auto t0 = std::chrono::system_clock::now();
-      Rand4Hits * rd4h = new Rand4Hits ;
-	float * f  ;
-	curandGenerator_t gen ;
-   auto t1 = std::chrono::system_clock::now();
-   
-   //seed = 0; 
-        CURAND_CALL(curandCreateGenerator(&gen, CURAND_RNG_PSEUDO_DEFAULT));
-        CURAND_CALL(curandSetPseudoRandomGeneratorSeed(gen, seed)) ;
-   auto t2 = std::chrono::system_clock::now();
-       gpuQ(cudaMalloc((void**)&f , 3*maxhits*sizeof(float))) ;
-   auto t3 = std::chrono::system_clock::now();
-         rd4h->set_rand_ptr(f) ;
-	 rd4h->set_gen(gen) ;
-	 rd4h->set_t_a_hits(maxhits);
-	 rd4h->set_c_hits(0) ;
-	CURAND_CALL(curandGenerateUniform(gen, f, 3*maxhits));
-   auto t4 = std::chrono::system_clock::now();
-
-	std::cout<< "Allocating Hist in Rand4Hit_init()"<<std::endl;
-	//rd4h->allocate_hist(maxhits,maxbin,2000, 3, 1, hitspy) ; 
-	rd4h->allocate_simulation(maxbin,MAXHITCT, MAX_CELLS) ; 
-	OMP_BigMem * bm = new OMP_BigMem(M_SEG_SIZE) ;
-        OMP_BigMem::bm_ptr = bm ;
-   auto t5 = std::chrono::system_clock::now();
-
-
- int m_default_device = omp_get_default_device();
- int m_initial_device = omp_get_initial_device();
- std::size_t m_offset = 0;
- float f_host[20];
-   if ( omp_target_memcpy( f_host, f, 20*sizeof(float),
-          m_offset, m_offset, m_initial_device, m_default_device ) ) {
-     std::cout << "ERROR: copy hp hp_g. " << std::endl;
- }
- for(int i=0; i<20; i++) {printf("rand %d %f \n", i, f_host[i]);}
-  std::chrono::duration<double> diff1 = t1-t0 ;
-  std::chrono::duration<double> diff2 = t2-t1 ;
-  std::chrono::duration<double> diff3 = t3-t2 ;
-  std::chrono::duration<double> diff4 = t4-t3 ;
-  std::chrono::duration<double> diff5 = t5-t4 ;
-/*  std::cout<<"Time of R4hit: " << diff1.count() << 
-     ","<< 
-       diff2.count() <<  
-     ","<< 
-       diff3.count() <<  
-     ","<< 
-       diff4.count() <<  
-     ","<< 
-       diff5.count() <<  " s" << std::endl ;
-*/
-	return  (void* ) rd4h ;
-
-}
-
-void   CaloGpuGeneral::Rand4Hits_finish( void * rd4h ){ 
-
-  size_t free, total ;
-  gpuQ(cudaMemGetInfo(&free, &total)) ;
-  std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
-            << "  bm table allocate size(MB), used:  " << OMP_BigMem::bm_ptr->size() / 1000000 << ", "
-            << OMP_BigMem::bm_ptr->used() / 1000000 << std::endl;
-  if ( (Rand4Hits *)rd4h ) delete (Rand4Hits *)rd4h  ;
-  if (OMP_BigMem::bm_ptr)   delete OMP_BigMem::bm_ptr  ;
-  
-  if (timing.count > 0) {
-    std::cout << "kernel timing\n";
-    printf("%12s %15s %15s\n","kernel","total /s","avg launch /s");
-    printf("%12s %15.8f %15.8f\n","sim_clean",timing.t_sim_clean.count(),
-           timing.t_sim_clean.count()/timing.count);
-    printf("%12s %15.8f %15.8f\n","sim_A",timing.t_sim_A.count(),
-           timing.t_sim_A.count()/timing.count);
-    printf("%12s %15.8f %15.8f\n","sim_ct",timing.t_sim_ct.count(),
-           timing.t_sim_ct.count()/timing.count);
-    printf("%12s %15.8f %15.8f\n","sim_cp",timing.t_sim_cp.count(),
-           timing.t_sim_cp.count()/timing.count);
-    printf("%12s %15d\n","launch count",timing.count);
-  } else {
-    std::cout << "no kernel timing available" << std::endl;
-  }
-  
-}
-
-
-void CaloGpuGeneral::load_hitsim_params(void * rd4h, HitParams* hp, long* simbins, int bins) {
+void load_hitsim_params(void * rd4h, HitParams* hp, long* simbins, int bins) {
  
    int m_default_device = omp_get_default_device();
    int m_initial_device = omp_get_initial_device();
@@ -636,7 +575,7 @@ inline  void simulate_hits_ct( const Sim_Args args) {
 }
 
 
-void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
+void simulate_hits_gr(Sim_Args &  args ) {
 
   int m_default_device = omp_get_default_device();
   int m_initial_device = omp_get_initial_device();
@@ -652,66 +591,33 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
         }
   });
 
-  // get Randowm numbers ptr , generate if need
-  long nhits =args.nhits ;
-  Rand4Hits * rd4h = (Rand4Hits *) args.rd4h ;
-  float * r= rd4h->rand_ptr(nhits)  ;
-  rd4h->add_a_hits(nhits) ;
-  args.rand =r;
-  
-  args.cells_energy =  rd4h->get_cells_energy() ;
-  args.hitcells_E = rd4h->get_cell_e() ;
-  args.hitcells_E_h = rd4h->get_cell_e_h() ;
-  args.ct = rd4h->get_ct() ;
-  args.ct_h = rd4h->get_ct_h() ;
-  
-  args.simbins=rd4h->get_simbins();
-  args.hitparams = rd4h->get_hitparams() ;
-    
-//  cudaError_t err = cudaGetLastError();
-  
-  // clean up  for results ct[MAX_SIM] and hitcells_E[MAX_SIM*MAXHITCT]
-  // and workspace hitcells_energy[ncells*MAX_SIM]
-  
   int blocksize=BLOCK_SIZE ;
   int threads_tot= args.ncells*args.nsims  ;
   int nblocks= (threads_tot + blocksize-1 )/blocksize ;
-  auto t0 = std::chrono::system_clock::now();
-//  simulate_clean <<< nblocks, blocksize >>>( args) ;
-  simulate_clean ( args );
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
   
-  // Now main hit simulation find cell and populate hitcells_energy[] :
+  auto t0 = std::chrono::system_clock::now();
+  CaloGpuGeneral_omp::simulate_clean ( args );
+  
   blocksize=BLOCK_SIZE ;
   threads_tot= args.nhits  ;
-  nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  
   auto t1 = std::chrono::system_clock::now();
-//  simulate_hits_de <<<nblocks, blocksize >>> (args ) ;
-  simulate_hits_de (args ) ;
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
+  nblocks= (threads_tot + blocksize-1 )/blocksize ;
+  CaloGpuGeneral_omp::simulate_hits_de (args ) ;
   
-  // Get result ct[] and hitcells_E[] (list of hitcells_ids/enengy )  
   
-  nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
   auto t2 = std::chrono::system_clock::now();
-//  simulate_hits_ct <<<nblocks, blocksize >>>(args ) ; 
-  simulate_hits_ct (args ) ; 
-//  gpuQ( cudaGetLastError() );
-//  gpuQ( cudaDeviceSynchronize() );
+  nblocks = (args.ncells*args.nsims + blocksize -1 )/blocksize ;
+  CaloGpuGeneral_omp::simulate_hits_ct (args ) ; 
   
   // cpy result back 
   
   auto t3 = std::chrono::system_clock::now();
-//  gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims*sizeof(int), cudaMemcpyDeviceToHost));
   if ( omp_target_memcpy( args.ct_h, args.ct, args.nsims*sizeof(int),
          m_offset, m_offset, m_initial_device, m_default_device ) ) { 
     std::cout << "ERROR: copy hitcells_ct. " << std::endl;
   } 
 
-//  gpuQ(
-//      cudaMemcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
   if ( omp_target_memcpy( args.hitcells_E_h, args.hitcells_E, MAXHITCT * MAX_SIM * sizeof( Cell_E ),
                                         m_offset, m_offset, m_initial_device, m_default_device ) ) { 
     std::cout << "ERROR: copy hitcells_ct. " << std::endl;
@@ -719,10 +625,7 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
 
   auto t4 = std::chrono::system_clock::now();
   
-  CaloGpuGeneral::KernelTime kt(t1-t0, t2-t1, t3-t2, t4-t3);
-  timing += kt;
-
-//#ifdef DUMP_HITCELLS
+#ifdef DUMP_HITCELLS
   std::cout << "nsim: " << args.nsims << "\n";
   for (int isim = 0; isim < args.nsims; ++isim) {
     std::cout << "  nhit: " << args.ct_h[isim] << "\n";
@@ -732,15 +635,18 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &  args ) {
           args.hitcells_E_h[ihit + isim * MAXHITCT].energy;
   }
 
-    int i = 0;
-    for (auto &em : cm) {
+  int i = 0;
+  for (auto &em : cm) {
       std::cout << "   " << isim << " " << i++ << "  cell: " << em.first << "  "
                 << em.second << std::endl;
     }
   }
-//#endif
+#endif
 
-  //   for( int isim=0 ; isim<args.nsims ; isim++ ) 
-  //     gpuQ(cudaMemcpy(&args.hitcells_E_h[isim*MAXHITCT], &args.hitcells_E[isim*MAXHITCT],
-  //     args.ct_h[isim]*sizeof(Cell_E), cudaMemcpyDeviceToHost));
-} 
+  timing.add(t1 - t0, t2 - t1, t3 - t2, t4 - t3);
+}
+
+
+
+
+} //namespace CaloGpuGeneral_omp
