@@ -82,10 +82,6 @@ if(ENABLE_GPU)
   set(${FastCaloGpu_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloGpu
 )
-elseif(ENABLE_OMPGPU)
-  set(${FastCaloGpu_LIB}_Includes
-  ${CMAKE_SOURCE_DIR}/FastCaloGpu
-)
 endif() 
 
 
