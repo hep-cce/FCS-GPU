@@ -1,7 +1,7 @@
 # Copyright (C) 2002-2019 CERN for the benefit of the ATLAS collaboration
 
 # "First-class" CUDA support needs at least CMake 3.10.
-cmake_minimum_required( VERSION 3.10 )
+cmake_minimum_required( VERSION 3.17 )
 cmake_policy(SET CMP0074 NEW)
 
 set(FIND_CUDA ON)
@@ -27,6 +27,18 @@ endif()
 
 if(FIND_CUDA)
   find_package(CUDAToolkit REQUIRED)
+  if(NOT TARGET CUDA::curand)
+    set(CURAND_LIB "curand")
+  else()
+    set(CURAND_LIB "CUDA::curand")
+  endif()
+
+  if(NOT TARGET CUDA::nvToolsExt)
+    set(NVTOOLSEXT_lib "nvToolsExt")
+  else()
+    set(CURAND_LIB "CUDA::nvToolsExt")
+  endif()
+
   enable_language( CUDA )
   set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
 endif()
@@ -69,10 +81,10 @@ endif()
 target_include_directories(${FastCaloGpu_LIB} PRIVATE ../FastCaloGpu/  )
 
 if(USE_ALPAKA)
-  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} alpaka::alpaka)
+  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC alpaka::alpaka ${CURAND_LIB})
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE ${FCS_CommonDefinitions})
 else()
-  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${CUDA_curand_LIBRARY} ${CUDA_nvToolsExt_LIBRARY})
+  target_link_libraries(${FastCaloGpu_LIB}  PUBLIC ${NVTOOLSEXT_LIB} ${CURAND_LIB})
 endif()
 
 
@@ -85,7 +97,7 @@ if(USE_KOKKOS)
 endif()
 
 if(USE_STDPAR)  
-  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDA_LIBRARIES} )
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  CUDA::cudart CUDA::cuda_driver )
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 
   #
