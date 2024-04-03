@@ -34,9 +34,9 @@ if(FIND_CUDA)
   endif()
 
   if(TARGET CUDA::nvToolsExt)
-    set(NVTOOLSEXT_lib CUDA::nvToolsExt)
+    set(NVTOOLSEXT_LIB CUDA::nvToolsExt)
   else()
-    set(CURAND_LIB "nvToolsExt")
+    set(NVTOOLSEXT_LIB "nvToolsExt")
   endif()
 
   enable_language( CUDA )
