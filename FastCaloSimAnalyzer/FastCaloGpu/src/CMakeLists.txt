@@ -25,7 +25,7 @@ if(USE_STDPAR)
 endif()
 
 
-f(FIND_CUDA)
+if(FIND_CUDA)
   find_package(CUDAToolkit REQUIRED)
   if(TARGET CUDA::curand)
     set(CURAND_LIB CUDA::curand)
