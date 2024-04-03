@@ -3,7 +3,6 @@
 # load the default python module, ROOT was built with it.
 
 module load python
-source $ROOT_DIR/bin/thisroot.sh
 
 WORK_DIR=$SCRATCH/hep-mini-apps
 
@@ -12,6 +11,7 @@ BUILD_DIR=$WORK_DIR/FCS-GPU_gpu_build
 INSTALL_DIR=$WORK_DIR/FCS-GPU_gpu_install
 
 ROOT_DIR=$WORK_DIR/root_install
+source $ROOT_DIR/bin/thisroot.sh
 
 cd $WORK_DIR
 rm -rf $BUILD_DIR
