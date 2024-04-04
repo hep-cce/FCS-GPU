@@ -9,8 +9,10 @@
 
 namespace CaloGpuGeneral_cu {
 
+  void Rand4Hits_finish( void* rd4h );
   void simulate_hits( float, int, Chain0_Args& );
   void simulate_A_cu( float, int, Chain0_Args& );
+  void Rand4Hits_finish( void* );
 
 } // namespace CaloGpuGeneral_cu
 #endif

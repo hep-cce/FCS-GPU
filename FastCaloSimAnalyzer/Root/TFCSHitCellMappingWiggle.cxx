@@ -27,7 +27,7 @@ TFCSHitCellMappingWiggle::TFCSHitCellMappingWiggle( const char* name, const char
 
 TFCSHitCellMappingWiggle::~TFCSHitCellMappingWiggle() {
   for ( auto function : m_functions ) delete function;
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   delete m_LdFH;
 
 #endif
@@ -180,7 +180,7 @@ void TFCSHitCellMappingWiggle::unit_test( TFCSSimulationState* simulstate, TFCST
 #endif
 }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 void TFCSHitCellMappingWiggle::LoadHistFuncs() {
 
   if ( m_LdFH ) {

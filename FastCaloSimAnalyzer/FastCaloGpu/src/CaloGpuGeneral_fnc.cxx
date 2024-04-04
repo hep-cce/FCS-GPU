@@ -7,33 +7,28 @@
 #include "Hit.h"
 #include "Rand4Hits.h"
 #include "Args.h"
+#include "HostDevDef.h"
 
-#if defined USE_KOKKOS
-#  include <Kokkos_Core.hpp>
-#  include <Kokkos_Random.hpp>
-#  define __DEVICE__ KOKKOS_INLINE_FUNCTION
+#ifdef USE_ALPAKA
+#include "AlpakaDefs.h"
 #elif defined USE_OMPGPU
-#  define __DEVICE__ inline
-#else
-#  define __DEVICE__ __device__
+#define __DEVICE__ inline
+#include <omp.h>
 #endif
 
-#include <omp.h>
-
 namespace CaloGpuGeneral_fnc {
-
   __DEVICE__ long long getDDE( GeoGpu* geo, int sampling, float eta, float phi ) {
-
+    
     float* distance = 0;
     int*   steps    = 0;
-
+    
     int              MAX_SAMPLING = geo->max_sample;
     Rg_Sample_Index* SampleIdx    = geo->sample_index;
     GeoRegion*       regions_g    = geo->regions;
 
     if ( sampling < 0 ) return -1;
     if ( sampling >= MAX_SAMPLING ) return -1;
-
+    
     int          sample_size  = SampleIdx[sampling].size;
     unsigned int sample_index = SampleIdx[sampling].index;
 
@@ -52,7 +47,6 @@ namespace CaloGpuGeneral_fnc {
 
     if ( sampling < 21 ) {
       for ( int skip_range_check = 0; skip_range_check <= 1; ++skip_range_check ) {
-
         for ( unsigned int j = sample_index; j < sample_index + sample_size; ++j ) {
           if ( !skip_range_check ) {
             if ( eta < gr[j].mineta() ) continue;
@@ -79,7 +73,6 @@ namespace CaloGpuGeneral_fnc {
     if ( steps ) *steps = beststeps;
 
     return bestDDE;
-//    return -1;
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -123,14 +116,15 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D* hf2d ) {
+  __DEVICE__ void rnd_to_fct2d( float& valuex, float& valuey, float rnd0, float rnd1, FH2D* hf2d,
+                                unsigned long /*i*/, float /*ene*/) {
 
     int    nbinsx        = ( *hf2d ).nbinsx;
     int    nbinsy        = ( *hf2d ).nbinsy;
     float* HistoContents = ( *hf2d ).h_contents;
     float* HistoBorders  = ( *hf2d ).h_bordersx;
     float* HistoBordersy = ( *hf2d ).h_bordersy;
-
+        
     /*
      int ibin = nbinsx*nbinsy-1 ;
      for ( int i=0 ; i < nbinsx*nbinsy ; ++i) {
@@ -155,6 +149,7 @@ namespace CaloGpuGeneral_fnc {
       valuex = HistoBorders[binx] + ( HistoBorders[binx + 1] - HistoBorders[binx] ) / 2;
     }
     valuey = HistoBordersy[biny] + ( HistoBordersy[biny + 1] - HistoBordersy[biny] ) * rnd1;
+    
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -188,10 +183,8 @@ namespace CaloGpuGeneral_fnc {
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {
+  __DEVICE__ void CenterPositionCalculation_d( Hit& hit, const Chain0_Args args ) {           
 
-    //printf ( "Task being executed on host? %d!\n", omp_is_initial_device() );
-    //printf ( "Num teams, threads: %d %d!\n", omp_get_num_teams(), omp_get_num_threads() ); //1467, 128
     hit.setCenter_r( ( 1. - args.extrapWeight ) * args.extrapol_r_ent + args.extrapWeight * args.extrapol_r_ext );
     hit.setCenter_z( ( 1. - args.extrapWeight ) * args.extrapol_z_ent + args.extrapWeight * args.extrapol_z_ext );
     hit.setCenter_eta( ( 1. - args.extrapWeight ) * args.extrapol_eta_ent + args.extrapWeight * args.extrapol_eta_ext );
@@ -215,18 +208,20 @@ namespace CaloGpuGeneral_fnc {
     rnd1 = args.rand[t];
     rnd2 = args.rand[t + args.nhits];
 
+    //    printf("rand: %lu %f %f %f\n",t,hit.E(),rnd1,rnd2);
+    
     if ( args.is_phi_symmetric ) {
       if ( rnd2 >= 0.5 ) { // Fill negative phi half of shape
         rnd2 -= 0.5;
         rnd2 *= 2;
-        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
         alpha = -alpha;
       } else { // Fill positive phi half of shape
         rnd2 *= 2;
-        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+        rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
       }
     } else {
-      rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d );
+      rnd_to_fct2d( alpha, r, rnd1, rnd2, args.fh2d, t, hit.E() );
     }
 
     float delta_eta_mm = r * cos( alpha );
@@ -238,47 +233,82 @@ namespace CaloGpuGeneral_fnc {
     // Particle with negative charge are expected to have the same shape as positively charged particles after
     // transformation: delta_phi --> -delta_phi
     if ( charge < 0. ) delta_phi_mm = -delta_phi_mm;
-   
-    //TODO : save exp and divisions
-    float dist000    = sqrt( center_r * center_r + center_z * center_z );
+
+    // FIXME! use doulbe for testing purposes to have cuda results same as std::par
+    // float dist000    = std::sqrt( center_r * center_r + center_z * center_z );
+    float dist000    = std::sqrt( double(center_r * center_r) + double(center_z * center_z) );
     float eta_jakobi = abs( 2.0 * exp( -center_eta ) / ( 1.0 + exp( -2 * center_eta ) ) );
 
     float delta_eta = delta_eta_mm / eta_jakobi / dist000;
     float delta_phi = delta_phi_mm / center_r;
 
-    hit.setEtaPhiZE( center_eta + delta_eta, center_phi + delta_phi, center_z, hit.E() );
+    hit.setEtaPhiZ( center_eta + delta_eta, center_phi + delta_phi, center_z );
+
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+#ifdef USE_ALPAKA
+  __DEVICE__ void HitCellMapping_d( Acc const& acc, Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
+#else
+    __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args ) {
+#endif
 
-  __DEVICE__ void HitCellMapping_d( Hit& hit, unsigned long /*t*/, Chain0_Args args, float* cells_energy ) {
-    
+    //    printf("start HCM_d %lu\n",t);
     long long cellele = getDDE( args.geo, args.cs, hit.eta(), hit.phi() );
+    // printf("HCM: %lu %f %lld\n", t, hit.E(),cellele);
+
+    if ( cellele < 0 ) {
+      printf( "HitCellMappingWiggle_d: cellele not found  eta: %f  phi: %f\n",
+              hit.eta(), hit.phi() );
+      //      hit.print();
+    }
 
 #ifdef USE_KOKKOS
     Kokkos::View<float*> cellE_v( args.cells_energy, args.ncells );
     Kokkos::atomic_fetch_add( &cellE_v( cellele ), hit.E() );
-//#elif defined USE_OMPGPU
-//    #pragma omp target is_device_ptr ( cells_energy )
-//    #pragma omp atomic update
-//      cells_energy[cellele] += hit.E();
-////      args.cells_energy[cellele] += hit.E();
-//#else
-//    atomicAdd( &args.cells_energy[cellele], hit.E() );
+#elif defined (USE_STDPAR) && !defined( USE_ATOMICADD )
+
+    //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
+  #ifdef _NVHPC_STDPAR_NONE
+    args.cells_energy[cellele] += hit.E();
+  #else
+    args.cells_energy[cellele] += int( CELL_ENE_FAC*hit.E() );
+  #endif
+    //    printf("HCM_b: %lu %f %lld %lu\n", t, hit.E(), cellele, (int)args.cells_energy[cellele]);
+#elif defined (USE_ALPAKA)
+    alpaka::atomicAdd(acc,&args.cells_energy[cellele], hit.E());
+#else
+    atomicAdd( &args.cells_energy[cellele], hit.E() );
 #endif
 
+    //    printf("HCM: %lu %f %lld %f\n", t, hit.E(), cellele, args.cells_energy[cellele]);
+        
+    /*
+      CaloDetDescrElement cell =( *(args.geo)).cells[cellele] ;
+      long long id = cell.identify();
+      float eta=cell.eta();
+      float phi=cell.phi();
+      float z=cell.z();
+      float r=cell.r() ;
+    */
   }
 
   /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
-
-  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args& args, unsigned long t, float* cells_energy ) {
-
+#ifdef USE_ALPAKA
+  __DEVICE__ void HitCellMappingWiggle_d( Acc const& acc, Hit& hit, Chain0_Args args, unsigned long t ) {
+#else
+  __DEVICE__ void HitCellMappingWiggle_d( Hit& hit, Chain0_Args args, unsigned long t ) {
+#endif
     int    nhist        = ( *( args.fhs ) ).nhist;
     float* bin_low_edge = ( *( args.fhs ) ).low_edge;
 
     float eta = fabs( hit.eta() );
-    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args, cells_energy ); }
-
+#ifdef USE_ALPAKA
+    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( acc, hit, t, args ); }
+#else
+    if ( eta < bin_low_edge[0] || eta > bin_low_edge[nhist] ) { HitCellMapping_d( hit, t, args ); }
+#endif
+    
     int bin = nhist;
     for ( int i = 0; i < nhist + 1; ++i ) {
       if ( bin_low_edge[i] > eta ) {
@@ -299,12 +329,15 @@ namespace CaloGpuGeneral_fnc {
 
     float rnd = args.rand[t + 2 * args.nhits];
 
-    float wiggle = rnd_to_fct1d( rnd, contents, borders, h_size, s_MaxValue );
+    float wiggle = rnd_to_fct1d( rnd, contents, borders, h_size, s_MaxValue );    
 
     float hit_phi_shifted = hit.phi() + wiggle;
     hit.phi()             = Phi_mpi_pi( hit_phi_shifted );
-
-    HitCellMapping_d( hit, t, args, cells_energy );
+#ifdef USE_ALPAKA
+    HitCellMapping_d( acc, hit, t, args );
+#else
+    HitCellMapping_d( hit, t, args );
+#endif
   }
 } // namespace CaloGpuGeneral_fnc
 

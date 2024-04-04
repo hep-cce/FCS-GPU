@@ -9,13 +9,16 @@
 
 #include <map>
 #include <vector>
-#include <omp.h>
 
 #include "GeoGpu_structs.h"
 
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
 #  include <Kokkos_Random.hpp>
+#endif
+
+#ifdef USE_OMPGPU
+#include <omp.h>
 #endif
 
 typedef std::map<Identifier, const CaloDetDescrElement*> t_cellmap;
@@ -41,28 +44,27 @@ public:
   void                       set_sample_index_h( Rg_Sample_Index* s ) { m_sample_index_h = s; };
   const CaloDetDescrElement* index2cell( unsigned long index ) { return ( *m_cells )[m_cellid_array[index]]; };
 
-  bool LoadGpu() {
-#ifdef USE_KOKKOS
-    return LoadGpu_kk();
-#elif defined USE_OMPGPU
-    return LoadGpu_omp();
-#else
-    return LoadGpu_cu();
-#endif
-  }
+  Rg_Sample_Index* get_sample_index_h();
+  Rg_Sample_Index* get_sample_index_h_al();
+  GeoRegion* get_regions();
+  GeoRegion* get_regions_al();
+
+  long long* get_cell_grid(int neta, int nphi);
+  long long* get_cell_grid_al(int neta, int nphi);
+  
+  bool LoadGpu();
+  
   bool LoadGpu_kk();
   bool LoadGpu_omp();
   bool UnloadGpu_omp();
   bool LoadGpu_cu();
+  bool LoadGpu_sp();
+  bool LoadGpu_al();
 
   void    set_geoPtr( GeoGpu* ptr ) { m_geo_d = ptr; }
   GeoGpu* get_geoPtr() const { return m_geo_d; }
 
   unsigned long get_ncells() const { return m_ncells; }
-  unsigned long get_nregions() const { return m_nregions; }
-  int           get_max_sample() const { return m_max_sample; }
-  const         GeoRegion* get_g_regions_d() { return m_regions_d; };
-  const         GeoRegion* get_g_regions_h() { return m_regions; };
 
   // bool LoadGpu_Region(GeoRegion * ) ;
 
@@ -82,6 +84,7 @@ protected:
   Rg_Sample_Index*     m_sample_index_h{0}; // index for flatout of  GeoLookup over sample
 
   GeoGpu* m_geo_d{0};
+  GeoGpu* m_geo_h{0};
 
 #ifdef USE_KOKKOS
   Kokkos::View<CaloDetDescrElement*> m_cells_vd;
@@ -91,5 +94,12 @@ protected:
 
   std::vector<Kokkos::View<long long*>*> m_reg_vec;
 #endif
+
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl{nullptr};
+#endif
+
 };
 #endif

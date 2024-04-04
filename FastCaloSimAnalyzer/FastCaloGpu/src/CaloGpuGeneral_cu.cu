@@ -3,14 +3,17 @@
 */
 
 #include "CaloGpuGeneral_cu.h"
+#include "CaloGpuGeneral_al.h"
 #include "GeoRegion.h"
 #include "GeoGpu_structs.h"
 #include "Hit.h"
 #include "Rand4Hits.h"
+//#include "helloWorld.h"
 
 #include "gpuQ.h"
 #include "Args.h"
 #include <chrono>
+#include <climits>
 
 #ifdef USE_KOKKOS
 #include <Kokkos_Core.hpp>
@@ -24,7 +27,23 @@
 
 using namespace CaloGpuGeneral_fnc;
 
+static CaloGpuGeneral::KernelTime timing;
+
 namespace CaloGpuGeneral_cu {
+
+  __host__ void Rand4Hits_finish( void* rd4h ) {
+
+    size_t free, total;
+    gpuQ( cudaMemGetInfo( &free, &total ) );
+    std::cout << "GPU memory used(MB): " << ( total - free ) / 1000000
+              << std::endl;
+    //    if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+
+    std::cout << timing;
+    
+  }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __global__ void simulate_A( float E, int nhits, Chain0_Args args ) {
 
@@ -32,11 +51,15 @@ namespace CaloGpuGeneral_cu {
     if ( t < nhits ) {
       Hit hit;
       hit.E() = E;
+
       CenterPositionCalculation_d( hit, args );
       HistoLateralShapeParametrization_d( hit, t, args );
       HitCellMappingWiggle_d( hit, args, t );
+
     }
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __global__ void simulate_ct( Chain0_Args args ) {
 
@@ -48,15 +71,20 @@ namespace CaloGpuGeneral_cu {
         ce.cellid           = tid;
         ce.energy           = args.cells_energy[tid];
         args.hitcells_E[ct] = ce;
+        // printf("i: %u  id: %lu  ene: %f\n", ct, ce.cellid, ce.energy);
       }
     }
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __global__ void simulate_clean( Chain0_Args args ) {
     unsigned long tid = threadIdx.x + blockIdx.x * blockDim.x;
     if ( tid < args.ncells ) { args.cells_energy[tid] = 0.0; }
     if ( tid == 0 ) args.hitcells_ct[0] = 0;
   }
+
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
   __host__ void simulate_A_cu( float E, int nhits, Chain0_Args& args ) {
     int blocksize   = BLOCK_SIZE;
@@ -65,8 +93,12 @@ namespace CaloGpuGeneral_cu {
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
   }
 
+  /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
   __host__ void simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
+    //    printf("nhits: %d   ene: %f\n",nhits,E);
+    
     cudaError_t err = cudaGetLastError();
 
     unsigned long ncells      = args.ncells;
@@ -74,47 +106,50 @@ namespace CaloGpuGeneral_cu {
     int           threads_tot = args.ncells;
     int           nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
 
+    
+    auto              t0   = std::chrono::system_clock::now();
     simulate_clean<<<nblocks, blocksize>>>( args );
-    // 	cudaDeviceSynchronize() ;
-    // if (err != cudaSuccess) {
-    //       std::cout<< "simulate_clean "<<cudaGetErrorString(err)<< std::endl;
-    //}
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
 
     blocksize   = BLOCK_SIZE;
     threads_tot = nhits;
     nblocks     = ( threads_tot + blocksize - 1 ) / blocksize;
-
-    //	 std::cout<<"Nblocks: "<< nblocks << ", blocksize: "<< blocksize
-    //               << ", total Threads: " << threads_tot << std::endl ;
-
-    //  int fh_size=args.fh2d_h.nbinsx+args.fh2d_h.nbinsy+2+(args.fh2d_h.nbinsx+1)*(args.fh2d_h.nbinsy+1) ;
-    // if(args.debug) std::cout<<"2DHisto_Func_size: " << args.fh2d_h.nbinsx << ", " << args.fh2d_h.nbinsy << "= " <<
-    // fh_size <<std::endl ;
-
+    auto t1     = std::chrono::system_clock::now();
     simulate_A<<<nblocks, blocksize>>>( E, nhits, args );
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
 
-    //  cudaDeviceSynchronize() ;
-    //  err = cudaGetLastError();
-    // if (err != cudaSuccess) {
-    //        std::cout<< "simulate_A "<<cudaGetErrorString(err)<< std::endl;
-    //}
 
     nblocks = ( ncells + blocksize - 1 ) / blocksize;
+    auto t2 = std::chrono::system_clock::now();
     simulate_ct<<<nblocks, blocksize>>>( args );
-    //  cudaDeviceSynchronize() ;
-    // err = cudaGetLastError();
-    // if (err != cudaSuccess) {
-    //        std::cout<< "simulate_chain0_B1 "<<cudaGetErrorString(err)<< std::endl;
-    //}
+    gpuQ( cudaGetLastError() );
+    gpuQ( cudaDeviceSynchronize() );
 
     int ct;
+    auto t3 = std::chrono::system_clock::now();
     gpuQ( cudaMemcpy( &ct, args.hitcells_ct, sizeof( int ), cudaMemcpyDeviceToHost ) );
-    // std::cout<< "ct="<<ct<<std::endl;
     gpuQ( cudaMemcpy( args.hitcells_E_h, args.hitcells_E, ct * sizeof( Cell_E ), cudaMemcpyDeviceToHost ) );
 
+    auto t4 = std::chrono::system_clock::now();
     // pass result back
     args.ct = ct;
     //   args.hitcells_ct_h=hitcells_ct ;
+
+#ifdef DUMP_HITCELLS
+    std::cout << "hitcells: " << args.ct << "  nhits: " << nhits << "  E: " << E << "\n";
+    std::map<unsigned int,float> cm;
+    for (int i=0; i<args.ct; ++i) {
+      cm[args.hitcells_E_h[i].cellid] = args.hitcells_E_h[i].energy;
+    }
+    for (auto &em: cm) {
+      std::cout << "  cell: " << em.first << "  " << em.second << std::endl;
+    }
+#endif
+    
+    timing.add( t1 - t0, t2 - t1, t3 - t2, t4 - t3 );
+    
   }
 
 } // namespace CaloGpuGeneral_cu

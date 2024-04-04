@@ -11,7 +11,10 @@
 #include "FastCaloSimAnalyzer/TFCSValidationEnergyAndHits.h"
 #include "TFCSSampleDiscovery.h"
 #include <chrono>
-#include <omp.h>
+
+#include <cstdio>
+#include "citer.h"
+
 
 #ifdef USE_KOKKOS
 #  include <Kokkos_Core.hpp>
@@ -35,7 +38,7 @@ static const char* USAGE =
     R"(Run toy simulation to validate the shape parametrization
 
 Usage:
-  runTFCSSimulation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--pcabin <pcabin>] [--debug <debug>] [--png]
+  runTFCSSimulation [--pdgId <pdgId>] [-s <seed> | --seed <seed>] [-o <file> | --output <file>] [--dataDir <dir>] [--energy <energy>] [--etaMin <etaMin>] [-l <layer> | --layer <layer>] [--nEvents <nEvents>] [--firstEvent <firstEvent>] [--pcabin <pcabin>] [--debug <debug>] [--png] [--earlyReturn]
   runTFCSSimulation (-h | --help)
 
 Options:
@@ -45,12 +48,14 @@ Options:
   --energy <energy>            Input sample energy in MeV. Should match energy point on the grid. [default: 65536].
   --etaMin <etaMin>            Minimum eta of the input sample. Should match eta point on the grid. [default: 0.2].
   -o <file>, --output <file>   Output plot file name [default: Simulation.root].
+  --dataDir <dir>              Directory for input data [default: /].
   -l <layer>, --layer <layer>  Layer to analyze [default: 2].
   --nEvents <nEvents>          Number of events to run over with. All events will be used if nEvents<=0 [default: -1].
   --firstEvent <firstEvent>    Run will start from this event [default: 0].
   --pcabin <pcabin>            Select over which pcabin to run. pcabin=-1 runs over all bins and over each individual bin. pcabin=-2 runs only over all bins [default: -1].
   --debug <debug>              Set debug level to print debug messages [default: 0].
   --png                        Save all the histograms in .png images.
+  --earlyReturn                Return early to avoid ROOT segfault
 )";
 
 void Draw_1Dhist( TH1* hist1, double ymin = 0, double ymax = 0, bool logy = false, TString name = "",
@@ -157,45 +162,49 @@ void set_prefix( int analyze_layer, int analyze_pcabin ) {
   }
 }
 
-int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, int analyze_layer = 2,
-                       const std::string& plotfilename = "Simulation.root", long seed = 42, int nEvents = -1,
-                       int firstEvent = 0, int selectPCAbin = -1, int debug = 0, bool png = false ) {
-  
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+int runTFCSSimulation( int pdgid = 22,
+                       int int_E = 65536,
+                       double etamin = 0.2,
+                       int analyze_layer = 2,
+                       const std::string& plotfilename = "Simulation.root",
+                       std::string dataDir = "/",
+                       long seed = 42, int nEvents = -1,
+                       int firstEvent = 0,
+                       int selectPCAbin = -1,
+                       int debug = 0,
+                       bool png = false,
+                       bool earlyReturn = false ) {
   auto t0 = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
+  if (dataDir == "/") {
+    char * dd = std::getenv( "FCS_DATAPATH" );
+    if (dd == NULL) {
+      std::cout << "ERROR: no dataDir option specified, and env var FCS_DATAPATH is unset"
+                << std::endl;
+      return 1;
+    } else {
+      dataDir = std::string(dd);
+    }
+  }
+
+  auto                     sample        = std::make_unique<TFCSSampleDiscovery>(dataDir);
   TFCSParametrizationBase* fullchain     = nullptr;
-  std::string              paramName     = TFCSSampleDiscovery::getParametrizationName();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+  std::string              paramName     = sample->getParametrizationName();
   auto                     t00_A         = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                     fullchainfile = std::unique_ptr<TFile>( TFile::Open( paramName.c_str() ) );
   std::cout << "Parametrization File: '" << paramName << "'" << std::endl;
   if ( !fullchainfile ) {
     std::cerr << "Error: Could not open file '" << paramName << "'" << std::endl;
     return 1;
   }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t0_A = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
 #ifdef FCS_DEBUG
   fullchainfile->ls();
 #endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01  = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
   fullchain = dynamic_cast<TFCSParametrizationBase*>( fullchainfile->Get( "SelPDGID" ) );
   fullchainfile->Close();
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto   t1            = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
   double etamax        = etamin + 0.05;
   init_eta             = etamin + 0.025;
   std::string particle = "";
@@ -215,12 +224,7 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   std::cout << " eta_label = " << eta_label << std::endl;
   std::string     etamin_label = eta_label.substr( 0, eta_label.find( "_" ) );
   std::string     etamax_label = eta_label.substr( 4, eta_label.find( "_" ) );
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto            t01_A        = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
-  auto            sample       = std::make_unique<TFCSSampleDiscovery>();
   int             dsid         = sample->findDSID( pdgid, int_E, etamin * 100, 0 ).dsid;
   FCS::SampleInfo sampleInfo   = sample->findSample( dsid );
   TString         inputSample  = sampleInfo.location;
@@ -229,14 +233,15 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   TString         pcaSample    = sample->getFirstPCAAppName( dsid );
   TString         avgSample    = sample->getAvgSimShapeName( dsid );
   set_prefix( analyze_layer, -1 );
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01_B = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
 #if defined( __linux__ )
   std::cout << "* Running on linux system " << std::endl;
 #endif
+  if (inputSample == "") {
+    std::cout << "no input sample file found for dsid " << dsid << " with pid " << pdgid
+              << " and energy " << int_E << std::endl;
+    return 1;
+  }
   std::cout << dsid << "\t" << inputSample << std::endl;
   TChain* inputChain = new TChain( "FCS_ParametrizationInput" );
   if ( inputChain->Add( inputSample, -1 ) == 0 ) {
@@ -261,19 +266,12 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
   std::cout << " *   1stPCA file: " << pcaSample << std::endl;
   std::cout << " *   AvgShape file: " << avgSample << std::endl;
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t01_C = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
   //////////////////////////////////////////////////////////
   ///// Creat validation steering
   //////////////////////////////////////////////////////////
   TFCSShapeValidation* analyze = new TFCSShapeValidation( inputChain, analyze_layer, seed );
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                 t2A     = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
   analyze->set_IsNewSample( true );
   analyze->set_Nentries( nEvents );
   analyze->set_Debug( debug );
@@ -288,18 +286,19 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
     std::cout << "=============================" << std::endl;
   }
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t2 = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
 
   //////////////////////////////////////////////////////////
   ///// Run over events
   //////////////////////////////////////////////////////////
   analyze->LoopEvents( -1 );
 
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto t3 = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
+
+  if (earlyReturn) {
+    std::cout << "exiting early\n";
+    return 0;
+  }
 
   if ( plotfilename != "" ) {
     fout = TFile::Open( plotfilename.c_str(), "recreate" );
@@ -330,11 +329,7 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
     }
     ++ibin;
   }
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
   auto                          t4   = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
   std::chrono::duration<double> diff = t2 - t0;
   std::cout << "Time before loop:" << diff.count() << " s" << std::endl;
   diff = t00_A - t0;
@@ -365,11 +360,7 @@ int runTFCSSimulation( int pdgid = 22, int int_E = 65536, double etamin = 0.2, i
 }
 
 int main( int argc, char** argv ) {
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-  auto t_main_bgn = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-
+  
   std::map<std::string, docopt::value> args = docopt::docopt( USAGE, {argv + 1, argv + argc}, true );
 
   int         pdgId        = args["--pdgId"].asLong();
@@ -377,27 +368,23 @@ int main( int argc, char** argv ) {
   double      etamin       = std::stof( args["--etaMin"].asString() );
   long        seed         = args["--seed"].asLong();
   std::string output       = args["--output"].asString();
+  std::string dataDir      = args["--dataDir"].asString();
   int         layer        = args["--layer"].asLong();
   int         nEvents      = args["--nEvents"].asLong();
   int         firstEvent   = args["--firstEvent"].asLong();
   int         selectPCAbin = args["--pcabin"].asLong();
   int         debug        = args["--debug"].asLong();
   bool        png          = args["--png"].asBool();
+  bool        earlyReturn  = args["--earlyReturn"].asBool();
+
 #ifdef USE_KOKKOS
   Kokkos::initialize( argc, argv );
 #endif
   int ret =
-      runTFCSSimulation( pdgId, energy, etamin, layer, output, seed, nEvents, firstEvent, selectPCAbin, debug, png );
+    runTFCSSimulation( pdgId, energy, etamin, layer, output, dataDir, seed, nEvents, firstEvent, selectPCAbin, debug, png, earlyReturn );
 
 #ifdef USE_KOKKOS
   Kokkos::finalize();
 #endif
-
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-  auto t_main_end = std::chrono::system_clock::now();
-/* * * * * * * * * * * * * * * * * * * * * * * * * * */  
-  std::chrono::duration<double> diff = t_main_end - t_main_bgn;
-  std::cout << "Time in main: " << diff.count() << " s" << std::endl;
- 
- return ret;
+  return ret;
 }

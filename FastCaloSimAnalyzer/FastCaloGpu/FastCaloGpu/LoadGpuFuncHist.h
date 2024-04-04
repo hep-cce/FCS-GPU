@@ -6,10 +6,13 @@
 #define LOADGPUFUNCHIST_H
 
 #include "FH_structs.h"
-#include <omp.h>
 
 #ifdef USE_KOKKOS
 #  include "FH_views.h"
+#endif
+
+#ifdef USE_OMPGPU
+#include <omp.h>
 #endif
 
 class LoadGpuFuncHist {
@@ -32,14 +35,14 @@ public:
   void LD();
   void LD2D();
 
-  void select_omp_device ( ) {
 #ifdef USE_OMPGPU
+  void select_omp_device ( ) {
   if ( offload_var == "mandatory" ) 
 	m_select_device = m_default_device;
   else if ( offload_var == "disabled" )
       m_select_device = m_initial_device;
-#endif
   };
+#endif
 
 private:
   struct FHs* m_hf{0};
@@ -69,6 +72,11 @@ private:
 
   FHs_v*            m_hf_v{0};
   Kokkos::View<FHs> m_hf_dv;
+#endif
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl{nullptr};
 #endif
 };
 

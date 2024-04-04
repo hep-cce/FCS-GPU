@@ -27,7 +27,7 @@ TFCSHistoLateralShapeParametrization::TFCSHistoLateralShapeParametrization( cons
 }
 
 TFCSHistoLateralShapeParametrization::~TFCSHistoLateralShapeParametrization() {
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
   delete m_LdFH;
 #endif
 }
@@ -105,11 +105,6 @@ FCSReturnCode TFCSHistoLateralShapeParametrization::simulate_hit( Hit& hit, TFCS
   const float delta_eta = delta_eta_mm / eta_jakobi / dist000;
   const float delta_phi = delta_phi_mm / center_r;
 
-  //const float exp_ctreta = TMath::Exp( -center_eta );
-  //const float eta_jakobi = TMath::Abs( exp_ctreta + 1.0/exp_ctreta );//Abs required? 
-  //const float delta_eta  = 0.5 * delta_eta_mm * eta_jakobi / dist000;
-
-
   hit.setEtaPhiZE( center_eta + delta_eta, center_phi + delta_phi, center_z, hit.E() );
 
   ATH_MSG_DEBUG( "HIT: E=" << hit.E() << " cs=" << cs << " eta=" << hit.eta() << " phi=" << hit.phi()
@@ -165,7 +160,7 @@ void TFCSHistoLateralShapeParametrization::Print( Option_t* option ) const {
   }
 }
 
-#if defined USE_GPU || defined USE_OMPGPU
+#ifdef USE_GPU
 void TFCSHistoLateralShapeParametrization::LoadHistFuncs() {
 
   if ( m_LdFH ) {

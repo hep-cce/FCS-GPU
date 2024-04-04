@@ -2,8 +2,6 @@
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
 
-#include "Rand4Hits.h"
-
 #include <random>
 #include <vector>
 #include <algorithm>
@@ -17,10 +15,12 @@ void Rand4Hits::createCPUGen( unsigned long long seed ) {
 
 void Rand4Hits::destroyCPUGen() {
   if ( m_gen ) { delete (cpu_randgen_t*)m_gen; }
+  //  if ( m_rnd_cpu ) { delete (m_rnd_cpu); }
 }
 
 float* Rand4Hits::genCPU( size_t num ) {
-  m_rnd_cpu.resize( num );
+  
+  m_rnd_cpu->resize( num );
 
   cpu_randgen_t* eng = (cpu_randgen_t*)( m_gen );
 
@@ -30,7 +30,7 @@ float* Rand4Hits::genCPU( size_t num ) {
     return randomFunc;
   };
 
-  std::generate_n( m_rnd_cpu.begin(), num, RNG( 0.f, 1.f ) );
+  std::generate_n( m_rnd_cpu->begin(), num, RNG( 0.f, 1.f ) );
 
-  return m_rnd_cpu.data();
+  return m_rnd_cpu->data();
 }

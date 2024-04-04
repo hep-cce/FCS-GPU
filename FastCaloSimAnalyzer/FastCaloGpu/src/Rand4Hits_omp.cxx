@@ -21,13 +21,15 @@ extern "C" void *llvm_omp_target_alloc_shared(size_t Size, int DeviceNum);
 void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*maxbins*/, unsigned short maxhitct,
                                      unsigned long n_cells ) {
 
-  float* Cells_Energy ;
-  Cells_Energy = (float *) omp_target_alloc( n_cells * sizeof( float ), m_select_device);
+  // for args.cells_energy
+  CELL_ENE_T* Cells_Energy ;
+  Cells_Energy = (CELL_ENE_T *) omp_target_alloc( n_cells * sizeof( CELL_ENE_T ), m_select_device);
   if ( Cells_Energy == NULL ) {
     std::cout << " ERROR: No space left on device for Cells_Energy." << std::endl;
   }
   m_cells_energy = Cells_Energy;
 
+  // for args.hitcells_E
   Cell_E* cell_e;
   cell_e = (Cell_E *) omp_target_alloc( maxhitct * sizeof( Cell_E ), m_select_device);
   if ( cell_e == NULL ) {
@@ -37,7 +39,6 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
 
   auto cell_e_h = (Cell_E*) malloc( maxhitct * sizeof( Cell_E ) );
   m_cell_e_h = cell_e_h;
-  //m_cell_e_h = new Cell_E[maxhitct];
 
   int*   ct;
   ct = (int *) omp_target_alloc( sizeof( int ), m_select_device);
@@ -47,8 +48,15 @@ void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*max
   m_ct = ct;
 }
 
+void Rand4Hits::allocateGenMem(size_t num) {
+  m_rnd_cpu = new std::vector<float>;
+  m_rnd_cpu->resize(num);
+  std::cout << "m_rnd_cpu: " << m_rnd_cpu << "  " << m_rnd_cpu->data() << std::endl;
+}
+
 Rand4Hits::~Rand4Hits() {
 
+  delete ( m_rnd_cpu );
   if ( m_useCPU ) {
     omp_target_free ( m_rand_ptr, m_select_device );
     destroyCPUGen();
@@ -61,7 +69,7 @@ Rand4Hits::~Rand4Hits() {
 void Rand4Hits::rd_regen() {
   if ( m_useCPU ) {
     genCPU( 3 * m_total_a_hits );
-    if ( omp_target_memcpy( m_rand_ptr, m_rnd_cpu.data(), 3 * m_total_a_hits * sizeof( float ), 
+    if ( omp_target_memcpy( m_rand_ptr, m_rnd_cpu->data(), 3 * m_total_a_hits * sizeof( float ), 
 			    m_offset, m_offset, m_select_device, m_initial_device ) ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
   }
@@ -73,16 +81,19 @@ void Rand4Hits::rd_regen() {
 void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
 
   float* f{nullptr};
+  
+  m_useCPU = useCPU;
+  
   f = (float *) omp_target_alloc( num * sizeof( float ), m_select_device);
   if ( f == NULL ) {
     std::cout << " ERROR: No space left on device." << std::endl;
   }
 
-  m_useCPU = useCPU;
   if ( m_useCPU ) {
+    allocateGenMem( num );
     createCPUGen( seed );
     genCPU( num );
-    if ( omp_target_memcpy( f, m_rnd_cpu.data(), num * sizeof( float ), 
+    if ( omp_target_memcpy( f, m_rnd_cpu->data(), num * sizeof( float ), 
 			    m_offset, m_offset, m_select_device, m_initial_device ) ) {
        std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl; 
     }

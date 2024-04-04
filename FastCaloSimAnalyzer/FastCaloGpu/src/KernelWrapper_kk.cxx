@@ -4,8 +4,8 @@
 
 #include "CaloGpuGeneral.cxx"
 #include "GeoRegion.cxx"
-#include "GeoLoadGpu_omp.cxx"
-#include "LoadGpuFuncHist_omp.cxx"
+#include "GeoLoadGpu_kk.cxx"
+#include "LoadGpuFuncHist_kk.cxx"
 #include "CaloGpuGeneral_fnc.cxx"
-#include "CaloGpuGeneral_omp.cxx"
-#include "Rand4Hits_omp.cxx"
+#include "CaloGpuGeneral_kk.cxx"
+#include "Rand4Hits_kk.cxx"
