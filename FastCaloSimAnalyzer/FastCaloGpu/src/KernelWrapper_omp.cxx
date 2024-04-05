@@ -5,7 +5,7 @@
 #include "CaloGpuGeneral.cxx"
 #include "GeoLoadGpu.cxx"
 #include "GeoLoadGpu_omp.cxx"
-//#include "CaloGpuGeneral_fnc.cxx"
+// #include "CaloGpuGeneral_fnc.cxx"
 #include "CaloGpuGeneral_omp.cxx"
 #include "GeoRegion.cxx"
 #include "LoadGpuFuncHist_omp.cxx"
