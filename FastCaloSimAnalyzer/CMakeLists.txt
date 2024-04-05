@@ -55,6 +55,8 @@ endif()
 include(FastCaloSim)
 include(XRootD)
 
+
+
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)
 
 add_subdirectory(FastCaloSimCommon/src FastCaloSimCommon)
@@ -64,5 +66,4 @@ add_subdirectory(Root)
 if(ENABLE_GPU) 
   add_subdirectory(FastCaloGpu/src FastCaloGpu)
 endif() 
-
 add_subdirectory(macro)

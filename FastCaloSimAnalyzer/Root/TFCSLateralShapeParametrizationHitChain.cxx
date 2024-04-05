@@ -131,9 +131,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
     our_chainA = true;
   // else
   //   our_chainC = true;
+
   //    if ( nhit > MIN_GPU_HITS && (our_chainA || our_chainB) ) {
   if ( nhit > MIN_GPU_HITS && our_chainA ) {
-    auto start_nhits = std::chrono::system_clock::now();
     onGPU=true;
     GeoLoadGpu* gld = (GeoLoadGpu*)simulstate.get_geold();
 
@@ -216,7 +216,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       ichn++;
     }
 
-    auto t_sh = std::chrono::system_clock::now();
+    //  auto t1 = std::chrono::system_clock::now();
     //  std::chrono::duration<double> diff = t1-start;
     //   std::cout <<  "Time before GPU simulate_hit :" << diff.count() <<" s" << std::endl ;
 
@@ -229,18 +229,10 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
       simulstate.deposit( cellele, args.hitcells_E_h[ii].energy );
     }
 
-    auto t_eh = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_o2 += ( t_eh - t_sh );
-    
     //    auto t2 = std::chrono::system_clock::now();
     //   diff = t2-t1;
     //  std::cout <<  "Time of GPU simulate_hit :" << diff.count() <<" s" <<" CT="<<args.ct<<  std::endl ;
     //   TFCSShapeValidation::time_g += (t2-start) ;
-    auto end_nhits = std::chrono::system_clock::now();
-    TFCSShapeValidation::time_nhits += end_nhits - start_nhits;
-
-    TFCSShapeValidation::time_g1 += args.time1;
-    TFCSShapeValidation::time_g2 += args.time2;
   } else {
 #endif
     for ( int i = 0; i < nhit; ++i ) {
@@ -279,9 +271,9 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
 
   auto t2 = std::chrono::system_clock::now();
   if ( nhit > MIN_GPU_HITS && our_chainA ) {
-    //TFCSShapeValidation::time_g1 += ( t2 - start );
+    TFCSShapeValidation::time_g1 += ( t2 - start );
   } else if ( nhit > MIN_GPU_HITS && our_chainB ) {
-    //TFCSShapeValidation::time_g2 += ( t2 - start );
+    TFCSShapeValidation::time_g2 += ( t2 - start );
   } else
 #endif
   {
@@ -290,7 +282,7 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
   }
   {
     auto t3 = std::chrono::system_clock::now();
-    //TFCSShapeValidation::time_o2 += ( t3 - start );
+    TFCSShapeValidation::time_o2 += ( t3 - start );
   }
 
 

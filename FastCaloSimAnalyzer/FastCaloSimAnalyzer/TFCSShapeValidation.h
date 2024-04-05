@@ -52,9 +52,6 @@ public:
   static std::chrono::duration<double> time_g2;
   static std::chrono::duration<double> time_o1;
   static std::chrono::duration<double> time_o2;
-  static std::chrono::duration<double> time_nhits;
-  static std::chrono::duration<double> time_mchain;
-  static std::chrono::duration<double> time_hitsim;
 
 #ifdef USE_GPU
   void GeoLg();

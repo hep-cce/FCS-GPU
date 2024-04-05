@@ -45,9 +45,6 @@ std::chrono::duration<double> TFCSShapeValidation::time_g2;
 std::chrono::duration<double> TFCSShapeValidation::time_o1;
 std::chrono::duration<double> TFCSShapeValidation::time_o2;
 std::chrono::duration<double> TFCSShapeValidation::time_h;
-std::chrono::duration<double> TFCSShapeValidation::time_nhits;
-std::chrono::duration<double> TFCSShapeValidation::time_mchain;
-std::chrono::duration<double> TFCSShapeValidation::time_hitsim;
 
 TFCSShapeValidation::TFCSShapeValidation( long seed ) {
   m_debug      = 0;
@@ -57,7 +54,7 @@ TFCSShapeValidation::TFCSShapeValidation( long seed ) {
 
   m_randEngine = new CLHEP::TRandomEngine();
   m_randEngine->setSeed( seed );
-#pragma warning BEFORE USEGPU
+
 #ifdef USE_GPU
   m_gl   = 0;
   m_rd4h = CaloGpuGeneral::Rand4Hits_init( MAXHITS, MAXBINS, seed, true );
@@ -104,11 +101,10 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   auto                          t_01 = std::chrono::system_clock::now();
   std::chrono::duration<double> diff;
 
-  time_nhits = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o1 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_o2 = std::chrono::duration<double, std::ratio<1>>::zero();
-  //time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
-  //time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_g1 = std::chrono::duration<double, std::ratio<1>>::zero();
+  time_g2 = std::chrono::duration<double, std::ratio<1>>::zero();
   time_h  = std::chrono::duration<double, std::ratio<1>>::zero();
 
   std::chrono::duration<double> t_c[5] = {std::chrono::duration<double, std::ratio<1>>::zero()};
@@ -406,15 +402,6 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   std::chrono::duration<double> diff1 = t3 - t2;
   diff                                = t_01 - start;
   std::cout << "Time of  LoadGeo cpu IO:" << diff.count() << " s" << std::endl;
-
-  std::cout << "* * * * * * * * * * * * * * * * * * * * * * * * * * * *" << std::endl;
-  std::cout << "Total Time in Eventloop " << diff1.count() << " s" << std::endl;
-  std::cout << "        Total simulate Lateral else " << time_o1.count() << " s" << std::endl;
-  std::cout << "        Total simulate Lateral if   " << time_nhits.count() << " s" << std::endl;  
-  std::cout << "          Total CaloGPU simulate_hits " << time_o2.count() << " s" << std::endl;
-  std::cout << "            Total CaloGPU args set    " << time_g1.count() << " s" << std::endl;
-  std::cout << "            Total CaloGPU simulatehit " << time_g2.count() << " s" << std::endl;
-  std::cout << "* * * * * * * * * * * * * * * * * * * * * * * * * * * *" << std::endl;
 #ifdef USE_GPU
   diff = t1 - t_01;
   std::cout << "Time of  GPU GeoLg() :" << diff.count() << " s" << std::endl;

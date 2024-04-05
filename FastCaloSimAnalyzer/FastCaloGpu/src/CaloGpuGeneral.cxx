@@ -95,9 +95,7 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   Rand4Hits* rd4h = (Rand4Hits*)args.rd4h;
 
-  auto start = std::chrono::system_clock::now();
   float* r = rd4h->rand_ptr( nhits );
-  auto mid = std::chrono::system_clock::now();
 
   rd4h->add_a_hits( nhits );
   args.rand = r;
