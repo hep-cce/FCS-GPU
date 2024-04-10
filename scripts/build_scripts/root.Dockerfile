@@ -2,6 +2,7 @@ ARG CUDA_VERSION=12.2.2
 ARG CUDA_BASE=docker.io/nvidia/cuda:$CUDA_VERSION-devel-ubuntu22.04
 ARG NVHPC_CUDA_VERSION=23.9-devel-cuda12.2
 ARG NVHPC_BASE=nvcr.io/nvidia/nvhpc:${NVHPC_CUDA_VERSION}-ubuntu22.04
+ARG UBUNTU_BASE=docker.io/library/ubuntu:22.04
 
 ARG BASE=$CUDA_BASE
 FROM $BASE
