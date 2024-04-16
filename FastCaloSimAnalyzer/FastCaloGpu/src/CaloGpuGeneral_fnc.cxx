@@ -11,6 +11,9 @@
 
 #ifdef USE_ALPAKA
 #include "AlpakaDefs.h"
+#elif defined USE_OMPGPU
+#define __DEVICE__ inline
+#include <omp.h>
 #endif
 
 namespace CaloGpuGeneral_fnc {
