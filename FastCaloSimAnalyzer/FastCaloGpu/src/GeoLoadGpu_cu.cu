@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include "GeoLoadGpu.h"
+#include "gpuQ.h"
 
 __global__ void testHello() { printf( "Hello, I am from GPU thread %d\n", threadIdx.x ); }
 
@@ -80,7 +81,7 @@ __global__ void testGeo_g( GeoGpu* geo, int r, int ir, int ip ) {
 
 bool GeoLoadGpu::TestGeo() {
   testGeo<<<1, 1>>>( m_cells_d, m_regions_d, m_ncells, m_nregions, 14, 0, 32 );
-  cudaDeviceSynchronize();
+  gpuQ( cudaDeviceSynchronize() );
   cudaError_t err = cudaGetLastError();
   if ( err != cudaSuccess ) {
     std::cout << cudaGetErrorString( err ) << std::endl;
@@ -88,7 +89,7 @@ bool GeoLoadGpu::TestGeo() {
   }
 
   testGeo_g<<<1, 1>>>( m_geo_d, 14, 0, 32 );
-  cudaDeviceSynchronize();
+  gpuQ( cudaDeviceSynchronize() );
   err = cudaGetLastError();
   if ( err != cudaSuccess ) {
     std::cout << cudaGetErrorString( err ) << std::endl;
@@ -115,7 +116,7 @@ bool GeoLoadGpu::SanityCheck() {
   // sanity check/test
   testHello<<<1, 1>>>();
   testCell<<<1, 1>>>( m_cells_d, 1872 );
-  cudaDeviceSynchronize();
+  gpuQ( cudaDeviceSynchronize() );
 
   std::cout << " ID of 2000's cell " << m_cellid_array[2000] << std::endl;
   Identifier Id = m_cellid_array[2000];
@@ -141,6 +142,10 @@ bool GeoLoadGpu::LoadGpu_cu() {
     return false;
   }
 
+  cudaDeviceProp prop;
+  gpuQ( cudaGetDeviceProperties( &prop, 0 ) );
+  std::cout << "Executing on GPU: " << prop.name << std::endl;
+  
   GeoGpu geo_gpu_h;
 
   // Allocate Device memory for cells and copy cells as array
@@ -222,10 +227,26 @@ bool GeoLoadGpu::LoadGpu_cu() {
   geo_gpu_h.max_sample   = m_max_sample;
   geo_gpu_h.sample_index = SampleIndex_g;
 
+
+  std::cout << "CUDA GEO\n";
+  std::cout << "ncells: " << geo_gpu_h.ncells << "\n";
+  // for (int i=0; i<m_geo_d->ncells; ++i) {
+  //   CaloDetDescrElement& d= m_geo_d->cells[i];
+  //   std::cout << "  " << i << " " << d.m_identify << "  " << d.m_r << "  " << d.m_eta << "\n";
+  // }
+  std::cout << "regions: " << m_nregions << "\n";
+  // for (int i=0; i<m_nregions; ++i) {
+  //   GeoRegion& g=m_geo_d->regions[i];
+  //   std::cout << "  " << i << " " << g.index() << "  " << g.cell_grid_eta()
+  //             << "  " << g.maxphi() << "\n";
+  // }
+
+  std::cout << "=================================\n";
+  
   // Now copy this to GPU and set the static member to this pointer
   GeoGpu* Gptr;
-  cudaMalloc( (void**)&Gptr, sizeof( GeoGpu ) );
-  cudaMemcpy( Gptr, &geo_gpu_h, sizeof( GeoGpu ), cudaMemcpyHostToDevice );
+  gpuQ( cudaMalloc( (void**)&Gptr, sizeof( GeoGpu ) ) );
+  gpuQ( cudaMemcpy( Gptr, &geo_gpu_h, sizeof( GeoGpu ), cudaMemcpyHostToDevice ) );
 
   //  Geo_g = Gptr;
   m_geo_d = Gptr;
@@ -234,5 +255,4 @@ bool GeoLoadGpu::LoadGpu_cu() {
   if ( 0 ) { return TestGeo(); }
   return true;
 }
-
 

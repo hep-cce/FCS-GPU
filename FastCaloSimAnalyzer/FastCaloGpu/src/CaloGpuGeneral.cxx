@@ -6,6 +6,8 @@
 #include "CaloGpuGeneral_cu.h"
 #include "CaloGpuGeneral_kk.h"
 #include "CaloGpuGeneral_omp.h"
+#include "CaloGpuGeneral_sp.h"
+#include "CaloGpuGeneral_al.h"
 
 #include "Rand4Hits.h"
 #include <chrono>
@@ -22,10 +24,12 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
   // This is controlled by cmake parameter -DRNDGEN_CPU
 #ifndef RNDGEN_CPU
   constexpr bool genOnCPU{false};
+  std::cout << "generating random numbers on GPU\n";
 #else
   constexpr bool genOnCPU{true};
+  std::cout << "generating random numbers on CPU\n";
 #endif
-  
+
   auto t2 = std::chrono::system_clock::now();
   // use CPU rand num gen to be able to compare GPU implementations
   rd4h->create_gen( seed, 3 * maxhits, genOnCPU );
@@ -45,20 +49,53 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
   std::cout << "Time of R4hit: " << diff1.count() << "," << diff2.count() << "," << diff3.count() << ","
             << diff4.count() << "," << diff5.count() << " s" << std::endl;
 
-  return (void*)rd4h;
+#ifdef USE_STDPAR
+  std::cout << "using STDPAR on ";
+  #ifdef _NVHPC_STDPAR_MULTICORE
+  std::cout << "multicore CPU";
+  #endif
+  #ifdef _NVHPC_STDPAR_GPU
+  std::cout << "GPU";
+  #endif
+  #ifdef _NVHPC_STDPAR_NONE
+  std::cout << "serial CPU";
+  #endif
+  std::cout << "\n";
+#elif defined (USE_KOKKOS)
+  std::cout << "using Kokkos\n";
+#elif defined (USE_OMPGPU)
+  std::cout << "using OMPGPU\n";
+#elif defined (USE_ALPAKA)
+  std::cout << "using alpaka\n";
+#else
+  std::cout << "using CUDA\n";
+#endif
+
+  
+  return (void*)rd4h;  
 }
 
 void CaloGpuGeneral::Rand4Hits_finish( void* rd4h ) {
-  if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
+  #ifdef USE_STDPAR
+  CaloGpuGeneral_stdpar::Rand4Hits_finish( rd4h );
+  #elif defined (USE_KOKKOS)
+  CaloGpuGeneral_kk::Rand4Hits_finish( rd4h );
+  #elif defined (USE_ALPAKA)
+  CaloGpuGeneral_al::Rand4Hits_finish( rd4h );
+  #elif defined (USE_OMPGPU)
+  CaloGpuGeneral_omp::Rand4Hits_finish( rd4h );
+  #else
+  CaloGpuGeneral_cu::Rand4Hits_finish( rd4h );
+  #endif  
+  
+//   if ( (Rand4Hits*)rd4h ) delete (Rand4Hits*)rd4h;
 }
 
 void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   Rand4Hits* rd4h = (Rand4Hits*)args.rd4h;
 
-  auto start = std::chrono::system_clock::now();
   float* r = rd4h->rand_ptr( nhits );
-  auto mid = std::chrono::system_clock::now();
 
   rd4h->add_a_hits( nhits );
   args.rand = r;
@@ -71,19 +108,27 @@ void CaloGpuGeneral::simulate_hits( float E, int nhits, Chain0_Args& args ) {
 
   args.hitcells_ct = rd4h->get_ct(); // single value, number of  uniq hit cells
 
-
-  auto mid1 = std::chrono::system_clock::now();
 #ifdef USE_KOKKOS
   CaloGpuGeneral_kk::simulate_hits( E, nhits, args );
-#elif defined USE_OMPGPU
+#elif defined (USE_STDPAR)
+  CaloGpuGeneral_stdpar::simulate_hits( E, nhits, args );
+#elif defined (USE_ALPAKA)
+  CaloGpuGeneral_al::simulate_hits( E, nhits, args, rd4h );
+#elif defined (USE_OMPGPU)
+  const int m_default_device = omp_get_default_device();
+  const int m_initial_device = omp_get_initial_device();
+  const char *env_var = "OMP_TARGET_OFFLOAD";
+  std::string offload_var = std::getenv (env_var);
+  int select_device = m_default_device;
+  if ( offload_var == "mandatory" )
+      select_device = m_default_device;
+  else if ( offload_var == "disabled" )
+      select_device = m_initial_device;
   #pragma omp target enter data map (to : args)  
-  CaloGpuGeneral_omp::simulate_hits( E, nhits, args );
+  CaloGpuGeneral_omp::simulate_hits( E, nhits, args, select_device );
   #pragma omp target exit data map (release : args)  
 #else
   CaloGpuGeneral_cu::simulate_hits( E, nhits, args );
 #endif
-
-  auto end = std::chrono::system_clock::now();
-  args.time1 += mid - start;
-  args.time2 += end - mid1;
+  
 }

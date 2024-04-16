@@ -34,9 +34,7 @@ set(EnergyParametrization_LIB EnergyParametrization)
 
 if(ENABLE_GPU) 
   set(FastCaloGpu_LIB FastCaloGpu)
-elseif(ENABLE_OMPGPU)
-  set(FastCaloGpu_LIB FastCaloGpu)
-endif() 
+endif()
 
 # Common definitions
 set(FCS_CommonDefinitions -D__FastCaloSimStandAlone__)
@@ -47,12 +45,26 @@ endif()
 
 if(ENABLE_GPU) 
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
-elseif(ENABLE_OMPGPU)
+endif() 
+
+if(ENABLE_OMPGPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_OMPGPU )
 endif() 
 
 if(USE_KOKKOS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
+endif()
+
+if(USE_ALPAKA)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_ALPAKA )
+endif()
+
+if(USE_STDPAR)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
+endif()
+
+if(DUMP_HITCELLS)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DDUMP_HITCELLS )
 endif()
 
 if(RNDGEN_CPU)
@@ -79,10 +91,6 @@ set(${FastCaloSimAnalyzer_LIB}_Includes
 )
 
 if(ENABLE_GPU)
-  set(${FastCaloGpu_LIB}_Includes
-  ${CMAKE_SOURCE_DIR}/FastCaloGpu
-)
-elseif(ENABLE_OMPGPU)
   set(${FastCaloGpu_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloGpu
 )

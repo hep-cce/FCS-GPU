@@ -68,6 +68,11 @@ function(fcs_make_task)
     target_link_libraries(${_target} Kokkos::kokkos) 
   endif()
 
+  if(USE_STDPAR)
+    target_compile_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
+    target_link_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
+  endif()
+  
   foreach(_dependency ${ARG_DEPENDENCY})
     fcs_add_dependency(${_target} ${_dependency})
   endforeach()

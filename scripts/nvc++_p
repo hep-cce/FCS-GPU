@@ -1,0 +1,90 @@
+#!/bin/bash
+
+NVCPP=$( which nvc++ )
+CXX=$( which g++ )
+A=$*
+
+#
+## These can be generated with
+## > makelocalrc -gcc PATH_TO_GCC -gpp PATH_TO_G++ -x -d PATH_TO_LOCALRC_DIR
+#
+LOCALRC=""
+GCCVER=$( gcc --version | head -1 | awk '{print $NF}' )
+case $GCCVER in
+    11.3.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc113"
+        ;;
+    11.2.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc112"
+        ;;
+    10.2.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
+        ;;
+    10.1.0)
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
+        ;;
+    9.3.0)    
+        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
+        ;;
+esac
+
+if [[ ! -f $LOCALRC ]]; then
+    echo "nvc++_p ERROR: no local rc file \"$LOCALRC\" found"
+    exit 1
+fi
+
+LOCALRC="-rc=${LOCALRC}"
+
+STDPAROPTS="-cudalib=curand"
+
+# CMAKE_BUILD_TYPE == RelWithDebInfo or Release uses -DNDEBUG
+echo $A | grep -q DNDEBUG
+DBG=$?
+
+## ubsan needed for Debug
+if [[ $DBG -eq 1 ]]; then    
+    DBGOPTS=" -lubsan"
+fi
+
+echo $A | grep -q USE_STDPAR
+SP=$?
+
+echo $A | grep -q FastCaloGpu.dir
+FC=$?
+
+echo $A | grep -q runTFCSSimulation.dir
+echo $A | grep -q runTFCS.*.dir
+RT=$?
+
+# echo $A | grep -q macro
+# RT=1
+
+if [[ $FC -eq 0 || $RT -eq 0 || $FORCE_NVCPP -eq 1 ]]; then
+    X=$( echo $* | sed s/-pipe// )
+    X=$( echo $X | sed s/-Wno-unused-local-typedefs// )
+    X=$( echo $X | sed s/-Woverloaded-virtual// )
+    X=$( echo $X | sed s/-fdiagnostics-color=always// )
+    X=$( echo $X | sed s/gnu++17/c++17/ )
+
+    ## needed for CMAKE_RELEASE_TYPE=Debug
+    X=$( echo $X | sed s/-fsanitize=undefined// )
+
+    ## get an undefined cudaGetDevice
+    X=$( echo $X | perl -ne '@X=split(" ",$_); @Y=map(/libcudart_static.a/ ? () : $_, @X); print "@Y"' )
+    X=$( echo $X | sed s/-lcudart_static// )
+
+    CXX=${NVCPP}
+    CXXARGS="$LOCALRC $STDPAROPTS $X"
+    
+else
+    A=$( echo $A | perl -ne '@X=split(" ",$_); @Y=map(/libcudart_static.a/ ? () : $_, @X); print "@Y"' )
+
+    CXXARGS=$A
+fi
+
+CXXARGS+=$DBGOPTS
+
+if [[ ! -z ${NVCPP_VERBOSE+set} ]]; then
+    echo "==> $CXX $CXXARGS"
+fi
+$CXX $CXXARGS

@@ -4,38 +4,16 @@
 
 #ifndef GeoRegion_H
 #define GeoRegion_H
-
-#include "CaloDetDescrElement_g.h"
-
 #include <cmath>
 
-// #ifndef CUDA_HOSTDEV
-// #  ifdef __CUDACC__
-// #    define CUDA_HOSTDEV __host__ __device__
-// #  else
-// #    ifdef USE_KOKKOS
-// #      include <Kokkos_Core.hpp>
-// #      include <Kokkos_Random.hpp>
-// #      define CUDA_HOSTDEV KOKKOS_INLINE_FUNCTION
-// #    else
-// #      define CUDA_HOSTDEV
-// #    endif
-// #  endif
-// #endif
+#include "CaloDetDescrElement_g.h"
+#include "HostDevDef.h"
 
-//#ifdef USE_KOKKOS
-//#  include <Kokkos_Core.hpp>
-//#  include <Kokkos_Random.hpp>
-//#  define __HOSTDEV__ KOKKOS_INLINE_FUNCTION
-//#else
-//#  ifdef __CUDACC__
-//#    define __HOSTDEV__ __host__ __device__
-//#  else
-//#    define __HOSTDEV__ inline
-//#  endif
-//#endif
+#ifdef USE_KOKKOS
+#  include <Kokkos_Core.hpp>
+#  include <Kokkos_Random.hpp>
+#endif
 
-#    define __HOSTDEV__ inline
 __HOSTDEV__ double Phi_mpi_pi( double );
 
 class GeoRegion {
@@ -110,7 +88,7 @@ public:
   __HOSTDEV__ float                minphi() const { return m_minphi; };
 
   __HOSTDEV__ int raw_eta_position_to_index( float eta_raw ) const {
-    return std::floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
+    return floor( ( eta_raw - m_mineta_raw ) / m_deta_double );
   };
   __HOSTDEV__ int raw_phi_position_to_index( float phi_raw ) const {
     return std::floor( ( phi_raw - m_minphi_raw ) / m_dphi_double );

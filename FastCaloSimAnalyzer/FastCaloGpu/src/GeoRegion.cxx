@@ -4,7 +4,6 @@
 
 #include "GeoRegion.h"
 #include <iostream>
-#include <algorithm> 
 
 #define PI 3.14159265358979323846
 #define TWOPI 2 * 3.14159265358979323846
@@ -38,10 +37,20 @@ __HOSTDEV__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, fl
 #ifdef KOKKOS_ACTIVE_EXECUTION_MEMORY_SPACE_HOST
   using std::max;
 #endif
+#ifdef USE_STDPAR
+  using std::max;
+#endif
+#ifdef USE_ALPAKA
+  using std::max;
+#endif
+#ifdef USE_OMPGPU
+  using std::max;
+#endif
   dist_eta0           = ( eta - m_all_cells[DDE].eta() ) / m_deta_double;
   dist_phi0           = ( Phi_mpi_pi( phi - m_all_cells[DDE].phi() ) ) / m_dphi_double;
   float abs_dist_eta0 = abs( dist_eta0 );
   float abs_dist_phi0 = abs( dist_phi0 );
+
   return std::max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
 }
 
@@ -50,10 +59,8 @@ __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, 
   float     dist;
   long long bestDDE = -1;
   if ( !distance ) distance = &dist;
-/**/
   *distance    = +10000000;
   int intsteps = 0;
-/**/
   if ( !steps ) steps = &intsteps;
 
   float best_eta_corr = m_eta_correction;

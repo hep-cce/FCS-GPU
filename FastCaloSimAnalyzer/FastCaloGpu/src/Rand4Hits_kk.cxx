@@ -7,6 +7,7 @@
 
 #include <Kokkos_Core.hpp>
 #include <Kokkos_Random.hpp>
+#include <vector>
 
 #define kok_randgen_t Kokkos::Random_XorShift64_Pool<>
 
@@ -39,7 +40,7 @@ void Rand4Hits::rd_regen() {
   Kokkos::View<float*> devData_v( m_rand_ptr, 3 * m_total_a_hits );
   if ( m_useCPU ) {
     genCPU( 3 * m_total_a_hits );
-    Kokkos::View<float*, Kokkos::HostSpace> rhst( m_rnd_cpu.data(), 3 * m_total_a_hits );
+    Kokkos::View<float *, Kokkos::HostSpace> rhst(m_rnd_cpu->data(), 3 * m_total_a_hits);
     Kokkos::deep_copy( m_rand_ptr_v, rhst );
   } else {
     Kokkos::fill_random( devData_v, *( (kok_randgen_t*)m_gen ), 1.f );
@@ -55,7 +56,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
   if ( m_useCPU ) {
     createCPUGen( seed );
     genCPU( num );
-    Kokkos::View<float*, Kokkos::HostSpace> rhst( m_rnd_cpu.data(), num );
+    Kokkos::View<float*, Kokkos::HostSpace> rhst( m_rnd_cpu->data(), num );
     Kokkos::deep_copy( m_rand_ptr_v, rhst );
   } else {
     kok_randgen_t* gen{nullptr};

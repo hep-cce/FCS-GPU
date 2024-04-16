@@ -6,10 +6,13 @@
 #define LOADGPUFUNCHIST_H
 
 #include "FH_structs.h"
-#include <omp.h>
 
 #ifdef USE_KOKKOS
 #  include "FH_views.h"
+#endif
+
+#ifdef USE_OMPGPU
+#include <omp.h>
 #endif
 
 class LoadGpuFuncHist {
@@ -32,6 +35,15 @@ public:
   void LD();
   void LD2D();
 
+#ifdef USE_OMPGPU
+  void select_omp_device ( ) {
+  if ( offload_var == "mandatory" ) 
+	m_select_device = m_default_device;
+  else if ( offload_var == "disabled" )
+      m_select_device = m_initial_device;
+  };
+#endif
+
 private:
   struct FHs* m_hf{0};
   struct FHs* m_hf_d{0}; // device pointer
@@ -43,10 +55,16 @@ private:
 
   //TODO: Wrap device IDs from omp APIs to a class
   //link to GeoLoadGpu.h, Rand4Hits.h, LoadGpuFuncHist
+#ifdef USE_OMPGPU
   int m_num_devices    = omp_get_num_devices();
-  int m_initial_device = omp_get_initial_device();
   int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
   std::size_t m_offset = 0;
+  const char *env_var = "OMP_TARGET_OFFLOAD";
+  std::string offload_var = std::getenv (env_var);
+  int m_select_device = m_default_device;
+#endif
+
 
 #ifdef USE_KOKKOS
   FH2D_v*            m_hf2d_v{0};
@@ -54,6 +72,11 @@ private:
 
   FHs_v*            m_hf_v{0};
   Kokkos::View<FHs> m_hf_dv;
+#endif
+
+#ifdef USE_ALPAKA
+  class Impl;
+  Impl* pImpl{nullptr};
 #endif
 };
 
