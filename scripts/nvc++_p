@@ -11,6 +11,9 @@ A=$*
 LOCALRC=""
 GCCVER=$( gcc --version | head -1 | awk '{print $NF}' )
 case $GCCVER in
+    12.3.0)
+        LOCALRC="${WORK_DIR}/localrc_gcc123"
+	;;
     11.3.0)
         LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc113"
         ;;

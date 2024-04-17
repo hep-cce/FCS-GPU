@@ -6,6 +6,7 @@ cmake_policy(SET CMP0074 NEW)
 
 set(FIND_CUDA ON)
 
+
 # don't check for CUDA w/ Kokkos incase backend is something else
 if(USE_KOKKOS)
   set(FIND_CUDA OFF)
@@ -20,6 +21,11 @@ endif()
 if(USE_STDPAR)
   if ( ${STDPAR_TARGET} STREQUAL "gpu" )
     find_package(NVHPC REQUIRED COMPONENTS MATH)
+    set(CMAKE_THREAD_LIBS_INIT "-lpthread")
+    set(CMAKE_HAVE_THREADS_LIBRARY 1)
+    set(CMAKE_USE_WIN32_THREADS_INIT 0)
+    set(CMAKE_USE_PTHREADS_INIT 1)
+    set(THREADS_PREFER_PTHREAD_FLAG ON)
     set(FIND_CUDA ON)
   endif()
 endif()
