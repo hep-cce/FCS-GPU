@@ -93,3 +93,5 @@ for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; d
       build_and_push_fcs_image ${base_image} ${image_type}
   done
 done
+
+build_and_push_fcs_image ${NVHPC_BASE_IMAGE} fcs-stdpar
