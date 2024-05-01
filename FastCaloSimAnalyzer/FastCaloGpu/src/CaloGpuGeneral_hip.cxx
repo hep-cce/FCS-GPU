@@ -1,3 +1,4 @@
+#include "hip/hip_runtime.h"
 /*
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
@@ -34,7 +35,7 @@ namespace CaloGpuGeneral_cu {
 __host__ void Rand4Hits_finish(void *rd4h) {
 
   size_t free, total;
-  gpuQ(cudaMemGetInfo(&free, &total));
+  gpuQ(hipMemGetInfo(&free, &total));
   std::cout << "GPU memory used(MB): " << (total - free) / 1000000 << std::endl;
   if ((Rand4Hits *)rd4h)
     delete (Rand4Hits *)rd4h;
@@ -116,7 +117,7 @@ __host__ void simulate_hits_gr(Sim_Args &args) {
     }
   });
 
-  cudaError_t err = cudaGetLastError();
+  hipError_t err = hipGetLastError();
 
   int blocksize = BLOCK_SIZE;
   int threads_tot = args.ncells * args.nsims;
@@ -124,33 +125,33 @@ __host__ void simulate_hits_gr(Sim_Args &args) {
 
   // clean workspace
   auto t0 = std::chrono::system_clock::now();
-  simulate_clean <<<nblocks, blocksize>>> (args);
-  gpuQ(cudaGetLastError());
-  gpuQ(cudaDeviceSynchronize());
+  hipLaunchKernelGGL(simulate_clean, nblocks, blocksize, 0, 0, args);
+  gpuQ(hipGetLastError());
+  gpuQ(hipDeviceSynchronize());
 
   // main simulation
   blocksize = BLOCK_SIZE;
   threads_tot = args.nhits;
   nblocks = (threads_tot + blocksize - 1) / blocksize;
   auto t1 = std::chrono::system_clock::now();
-  simulate_hits_de <<<nblocks, blocksize>>> (args);
-  gpuQ(cudaGetLastError());
-  gpuQ(cudaDeviceSynchronize());
+  hipLaunchKernelGGL(simulate_hits_de, nblocks, blocksize, 0, 0, args);
+  gpuQ(hipGetLastError());
+  gpuQ(hipDeviceSynchronize());
 
   // stream compaction
   nblocks = (args.ncells * args.nsims + blocksize - 1) / blocksize;
   auto t2 = std::chrono::system_clock::now();
-  simulate_hits_ct <<<nblocks, blocksize>>> (args);
-  gpuQ(cudaGetLastError());
-  gpuQ(cudaDeviceSynchronize());
+  hipLaunchKernelGGL(simulate_hits_ct, nblocks, blocksize, 0, 0, args);
+  gpuQ(hipGetLastError());
+  gpuQ(hipDeviceSynchronize());
 
   // copy back to host
   auto t3 = std::chrono::system_clock::now();
-  gpuQ(cudaMemcpy(args.ct_h, args.ct, args.nsims * sizeof(int),
-                  cudaMemcpyDeviceToHost));
-  gpuQ(cudaMemcpy(args.hitcells_E_h, args.hitcells_E,
+  gpuQ(hipMemcpy(args.ct_h, args.ct, args.nsims * sizeof(int),
+                  hipMemcpyDeviceToHost));
+  gpuQ(hipMemcpy(args.hitcells_E_h, args.hitcells_E,
                   MAXHITCT * args.nsims * sizeof(Cell_E),
-                  cudaMemcpyDeviceToHost));
+                  hipMemcpyDeviceToHost));
 
   auto t4 = std::chrono::system_clock::now();
 
@@ -188,9 +189,9 @@ __host__ void load_hitsim_params(void *rd4h, HitParams *hp, long *simbins,
   HitParams *hp_g = ((Rand4Hits *)rd4h)->get_hitparams();
   long *simbins_g = ((Rand4Hits *)rd4h)->get_simbins();
 
-  gpuQ(cudaMemcpy(hp_g, hp, bins * sizeof(HitParams), cudaMemcpyHostToDevice));
-  gpuQ(cudaMemcpy(simbins_g, simbins, bins * sizeof(long),
-                  cudaMemcpyHostToDevice));
+  gpuQ(hipMemcpy(hp_g, hp, bins * sizeof(HitParams), hipMemcpyHostToDevice));
+  gpuQ(hipMemcpy(simbins_g, simbins, bins * sizeof(long),
+                  hipMemcpyHostToDevice));
 }
 
 } // namespace CaloGpuGeneral_cu

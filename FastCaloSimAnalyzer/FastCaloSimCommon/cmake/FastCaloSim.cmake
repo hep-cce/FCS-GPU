@@ -59,6 +59,10 @@ if(USE_ALPAKA)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_ALPAKA )
 endif()
 
+if(USE_HIP)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_HIP )
+endif()
+
 # Common includes
 set(${FastCaloSimCommon_LIB}_Includes
   ${CMAKE_SOURCE_DIR}/FastCaloSimCommon

@@ -8,6 +8,7 @@
 #ifndef ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
 #define ISF_FASTCALOSIMPARAMETRIZATION_CALODETDESCRELEMENT_H
 
+#include "HostDevDef.h"
 #include "Identifier_g.h"
 
 class CaloDetDescrElement {

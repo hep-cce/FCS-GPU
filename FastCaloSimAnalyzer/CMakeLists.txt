@@ -20,6 +20,9 @@ set(DUMP_HITCELLS OFF CACHE BOOL "printout hit cell contents")
 set(USE_ATOMIC_ADD OFF CACHE BOOL "use atomicAdd on float and int structs")
 set(RNDGEN_CPU OFF CACHE BOOL "use CPU for random number generation")
 set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
+set(USE_HIP OFF CACHE BOOL "Use HIP")
+set(HIP_TARGET "AMD" CACHE STRING "HIP backend. must be either AMD or NVIDIA")
+
 
 if ( USE_STDPAR )
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )
@@ -42,6 +45,8 @@ elseif( USE_KOKKOS )
   find_package(Kokkos) 
 elseif(USE_ALPAKA)
   find_package(alpaka REQUIRED)
+elseif(USE_HIP)
+  find_package(HIP REQUIRED)  
 endif()
 
 include(FastCaloSim)
