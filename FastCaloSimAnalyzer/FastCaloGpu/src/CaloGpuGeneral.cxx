@@ -142,7 +142,7 @@ void CaloGpuGeneral::simulate_hits_gr(Sim_Args &args) {
 #elif defined USE_OMPGPU
   CaloGpuGeneral_omp::simulate_hits_gr(args);
 #else
-  //CaloGpuGeneral_cu::simulate_hits_gr(args);
+  CaloGpuGeneral_cu::simulate_hits_gr(args);
 #endif
 }
 
@@ -163,6 +163,6 @@ void CaloGpuGeneral::load_hitsim_params(void *rd4h, HitParams *hp,
 #elif defined(USE_OMPGPU)
   CaloGpuGeneral_omp::load_hitsim_params(rd4h, hp, simbins, bins);
 #else
-  //CaloGpuGeneral_cu::load_hitsim_params(rd4h, hp, simbins, bins);
+  CaloGpuGeneral_cu::load_hitsim_params(rd4h, hp, simbins, bins);
 #endif
 }
