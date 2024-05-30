@@ -7,7 +7,7 @@
 #include "DEV_BigMem.h"
 
 #include <iostream>
-#include <hiprand.h>
+//#include <hiprand.h>
 
 #if defined (__HIP_PLATFORM_NVIDIA__)
 #include <curand.h>
@@ -16,11 +16,19 @@
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
 
-#define CURAND_CALL(x)                                                         \
-  if ((x) != HIPRAND_STATUS_SUCCESS) {                                          \
-    printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
-    exit(EXIT_FAILURE);                                                        \
-  }
+#if defined (__HIP_PLATFORM_NVIDIA__)
+  #define CURAND_CALL(x)                                                         \
+    if ((x) != CURAND_STATUS_SUCCESS) {                                          \
+      printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+      exit(EXIT_FAILURE);                                                        \
+    }
+#else
+  #define CURAND_CALL(x)                                                         \
+    if ((x) != HIPRAND_STATUS_SUCCESS) {                                          \
+      printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+      exit(EXIT_FAILURE);                                                        \
+    }
+#endif
 
 #ifndef USE_STDPAR
 void Rand4Hits::allocate_simulation(int maxbins, int maxhitct,

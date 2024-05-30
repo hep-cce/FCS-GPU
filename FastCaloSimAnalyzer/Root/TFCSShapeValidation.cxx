@@ -431,68 +431,68 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
         }
         //       else std::cout<<"Skipping GPU for E/P: " << ievent<< " , "<< p << std::endl ;
 
-//        bin_index = ( *( chain_simul.get_es() ) ).bin_index;
-//        tot_hits  = ( *( chain_simul.get_es() ) ).tot_hits;
-//        n_simbins = ( *( chain_simul.get_es() ) ).n_simbins;
-//        if ( index >= MAX_SIM || tot_hits > ( MAXHITS - 100000 ) || es.is_last ) {
+        bin_index = ( *( chain_simul.get_es() ) ).bin_index;
+        tot_hits  = ( *( chain_simul.get_es() ) ).tot_hits;
+        n_simbins = ( *( chain_simul.get_es() ) ).n_simbins;
+        if ( index >= MAX_SIM || tot_hits > ( MAXHITS - 100000 ) || es.is_last ) {
 
           //   here need to do GPU simulation !!!!.
           
-//          auto tg_s = std::chrono::system_clock::now();
-//          CaloGpuGeneral::load_hitsim_params( m_rd4h, &( hitparams[0] ), &( simbins[0] ), n_simbins );
-//          auto tg_s_A = std::chrono::system_clock::now();
-//          t_g_sim_A += tg_s_A - tg_s;
-//
-//          Sim_Args args;
-//          args.debug        = m_debug;
-//          args.rd4h         = m_rd4h;
-//          args.geo          = GeoLoadGpu::Geo_g;
-//          args.cells_energy = nullptr;
-//          args.hitcells_E   = nullptr;
-//          args.hitcells_E_h = nullptr;
-//          args.ct           = nullptr;
-//          args.ct_h         = nullptr;
-//          args.hitparams    = nullptr;
-//          args.hitparams_h  = hitparams;
-//          args.simbins      = nullptr;
-//          args.nbins        = n_simbins;
-//          args.nsims        = index;
-//          args.nhits        = tot_hits;
-//          args.ncells       = GeoLoadGpu::num_cells;
-//
-//
-//          
-//
-//          CaloGpuGeneral::simulate_hits_gr( args );
-//          auto tg_s_B = std::chrono::system_clock::now();
-//          t_g_sim_B += tg_s_B - tg_s;
-//
-//          
-//          for ( int isim = 0; isim < index; isim++ ) {
-//            TFCSSimulationState& sim = m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]];
-//            //  std::cout << "gpucellCT["<<isim<<"]=" << args.ct_h[isim] <<std::endl ;
-//            for ( int ii = 0; ii < args.ct_h[isim]; ii++ ) {
-//              // if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0
-//              // ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<",
-//              // isim="<<isim <<", ii="<<ii << std::endl ; std::cout << "Id:" <<
-//              // args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
-//              const CaloDetDescrElement* cellele = m_gl->index2cell( args.hitcells_E_h[ii + isim * MAXHITCT].cellid );
-//              // std::cout << ",Is" << isim <<"Ic"<<ii;
-//              sim.deposit( cellele, args.hitcells_E_h[ii + isim * MAXHITCT].energy );
-//            }
-//          }
-//          //   std::cout<<std::endl;
-//
-//          auto tg_e = std::chrono::system_clock::now();
-//          t_g_sim += tg_e - tg_s;
-//
-//          //		std::cout<<"reset after Event: "<< ievent<<" partical "<< p << ",total Hits: " << tot_hits
-//          //		<<", Index="<< index <<" , N_simbins="<< n_simbins<<std::endl;
-//          index     = 0;
-//          tot_hits  = 0;
-//          n_simbins = 0;
-//        }
-//
+          auto tg_s = std::chrono::system_clock::now();
+          CaloGpuGeneral::load_hitsim_params( m_rd4h, &( hitparams[0] ), &( simbins[0] ), n_simbins );
+          auto tg_s_A = std::chrono::system_clock::now();
+          t_g_sim_A += tg_s_A - tg_s;
+
+          Sim_Args args;
+          args.debug        = m_debug;
+          args.rd4h         = m_rd4h;
+          args.geo          = GeoLoadGpu::Geo_g;
+          args.cells_energy = nullptr;
+          args.hitcells_E   = nullptr;
+          args.hitcells_E_h = nullptr;
+          args.ct           = nullptr;
+          args.ct_h         = nullptr;
+          args.hitparams    = nullptr;
+          args.hitparams_h  = hitparams;
+          args.simbins      = nullptr;
+          args.nbins        = n_simbins;
+          args.nsims        = index;
+          args.nhits        = tot_hits;
+          args.ncells       = GeoLoadGpu::num_cells;
+
+
+          
+
+          CaloGpuGeneral::simulate_hits_gr( args );
+          auto tg_s_B = std::chrono::system_clock::now();
+          t_g_sim_B += tg_s_B - tg_s;
+
+          
+          for ( int isim = 0; isim < index; isim++ ) {
+            TFCSSimulationState& sim = m_validations[g_sims_v[isim]].simul()[g_sims_st[isim]];
+            //  std::cout << "gpucellCT["<<isim<<"]=" << args.ct_h[isim] <<std::endl ;
+            for ( int ii = 0; ii < args.ct_h[isim]; ii++ ) {
+              // if(args.hitcells_E_h[ii+isim*MAXHITCT].cellid >200000 || args.hitcells_E_h[ii+isim*MAXHITCT].cellid <=0
+              // ) std::cout << "Something Wrong cellid: " << args.hitcells_E_h[ii+isim*MAXHITCT].cellid <<",
+              // isim="<<isim <<", ii="<<ii << std::endl ; std::cout << "Id:" <<
+              // args.hitcells_E_h[ii+isim*MAXHITCT].cellid ;
+              const CaloDetDescrElement* cellele = m_gl->index2cell( args.hitcells_E_h[ii + isim * MAXHITCT].cellid );
+              // std::cout << ",Is" << isim <<"Ic"<<ii;
+              sim.deposit( cellele, args.hitcells_E_h[ii + isim * MAXHITCT].energy );
+            }
+          }
+          //   std::cout<<std::endl;
+
+          auto tg_e = std::chrono::system_clock::now();
+          t_g_sim += tg_e - tg_s;
+
+          //		std::cout<<"reset after Event: "<< ievent<<" partical "<< p << ",total Hits: " << tot_hits
+          //		<<", Index="<< index <<" , N_simbins="<< n_simbins<<std::endl;
+          index     = 0;
+          tot_hits  = 0;
+          n_simbins = 0;
+        }
+
 #endif
         auto e = std::chrono::system_clock::now();
         t_c[ii++] += e - ss;
