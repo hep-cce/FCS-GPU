@@ -503,7 +503,7 @@ void TFCSShapeValidation::LoopEvents( int pcabin = -1 ) {
   }   // end loop over events
   // auto t_04 = std::chrono::system_clock::now();
 #ifdef USE_GPU
-//  if ( m_rd4h ) CaloGpuGeneral::Rand4Hits_finish( m_rd4h );
+  if ( m_rd4h ) CaloGpuGeneral::Rand4Hits_finish( m_rd4h );
 #endif
 
   auto                          t3    = std::chrono::system_clock::now();
