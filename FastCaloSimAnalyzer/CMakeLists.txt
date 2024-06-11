@@ -45,13 +45,10 @@ elseif( USE_KOKKOS )
   find_package(Kokkos) 
 elseif(USE_ALPAKA)
   find_package(alpaka REQUIRED)
-elseif(USE_HIP)
-  find_package(HIP REQUIRED)  
 endif()
 
 include(FastCaloSim)
 include(XRootD)
-
 
 set(PROJECT_SRC_DIR ${CMAKE_SOURCE_DIR}/Root)
 
