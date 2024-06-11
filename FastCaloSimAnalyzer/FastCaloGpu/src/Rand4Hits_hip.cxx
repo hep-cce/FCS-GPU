@@ -7,16 +7,19 @@
 #include "DEV_BigMem.h"
 
 #include <iostream>
-//#include <hiprand.h>
 
-#if defined (__HIP_PLATFORM_NVIDIA__)
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
 #include <curand.h>
+#else
+#include <hiprand.h>
+#endif
 #endif
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
 
-#if defined (__HIP_PLATFORM_NVIDIA__)
+#if defined (HIP_TARGET_NVIDIA)
   #define CURAND_CALL(x)                                                         \
     if ((x) != CURAND_STATUS_SUCCESS) {                                          \
       printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
@@ -102,12 +105,14 @@ Rand4Hits::~Rand4Hits() {
   if (m_useCPU) {
     destroyCPUGen();
   } else {
-#if defined (__HIP_PLATFORM_NVIDIA__)
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
     CURAND_CALL(curandDestroyGenerator(*((curandGenerator_t *)m_gen)));
     delete (curandGenerator_t *)m_gen;
 #else
     CURAND_CALL(hiprandDestroyGenerator(*((hiprandGenerator_t *)m_gen)));
     delete (hiprandGenerator_t *)m_gen;
+#endif
 #endif
   }
 };
@@ -121,12 +126,14 @@ void Rand4Hits::rd_regen() {
                     hipMemcpyHostToDevice));
 #endif
   } else {
-#if defined (__HIP_PLATFORM_NVIDIA__)
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
     CURAND_CALL(curandGenerateUniform(*((curandGenerator_t *)m_gen), m_rand_ptr,
                                       3 * m_total_a_hits));
 #else
     CURAND_CALL(hiprandGenerateUniform(*((hiprandGenerator_t *)m_gen), m_rand_ptr,
                                       3 * m_total_a_hits));
+#endif
 #endif
   }
 };
@@ -149,8 +156,9 @@ void Rand4Hits::create_gen(unsigned long long seed, size_t num, bool useCPU) {
                     hipMemcpyHostToDevice));
 #endif
   } else {
+#ifndef RNDGEN_CPU
     gpuQ(hipMalloc(&f, num * sizeof(float)));
-#if defined (__HIP_PLATFORM_NVIDIA__)
+#if defined (HIP_TARGET_NVIDIA)
     curandGenerator_t *gen = new curandGenerator_t;
     CURAND_CALL(curandCreateGenerator(gen, CURAND_RNG_PSEUDO_DEFAULT));
     CURAND_CALL(curandSetPseudoRandomGeneratorSeed(*gen, seed));
@@ -162,6 +170,7 @@ void Rand4Hits::create_gen(unsigned long long seed, size_t num, bool useCPU) {
     CURAND_CALL(hiprandGenerateUniform(*gen, f, num));
 #endif
     m_gen = (void *)gen;
+#endif
   }
 
   m_rand_ptr = f;
