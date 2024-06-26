@@ -51,7 +51,7 @@ __HOSTDEV__ float GeoRegion::calculate_distance_eta_phi( const long long DDE, fl
   float abs_dist_eta0 = abs( dist_eta0 );
   float abs_dist_phi0 = abs( dist_phi0 );
 
-  return std::max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
+  return max( abs_dist_eta0, abs_dist_phi0 ) - 0.5;
 }
 
 __HOSTDEV__ long long GeoRegion::getDDE( float eta, float phi, float* distance, int* steps ) {
