@@ -177,7 +177,7 @@ cmake ../src/FastCaloSimAnalyzer \
 ## BNL CSI lambda2: HIP for AMD
 ```
 module use /work/software/modulefiles
-module load rocm/4.5.0
+module load rocmmod4.5.0
 source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh
 export FCS_DATAPATH=/work/atif/FastCaloSimInputs/
 /work/atif/packages/cmake-3.25.0-linux-x86_64/bin/cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=hipcc -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_EXTENSIONS=Off -DENABLE_GPU=on -DUSE_HIP=on -DHIP_TARGET=AMD -DCMAKE_CXX_FLAGS="-I/opt/rocm/hip/include/hip/"
