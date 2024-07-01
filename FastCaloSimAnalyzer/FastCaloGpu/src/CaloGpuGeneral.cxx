@@ -12,8 +12,6 @@
 #include "Rand4Hits.h"
 #include <chrono>
 #include <iostream>
-#include "gpuQ.h"
-#include "hip/hip_runtime.h"
 
 void *CaloGpuGeneral::Rand4Hits_init(long long maxhits, int maxbin,
                                      unsigned long long seed, bool /*hitspy*/) {
