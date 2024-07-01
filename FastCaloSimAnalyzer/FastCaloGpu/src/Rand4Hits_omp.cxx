@@ -8,6 +8,7 @@
 #include <omp.h>
 #include <cuda_runtime_api.h>
 #include <curand.h>
+#include "openmp_rng.h"
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
@@ -105,14 +106,28 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
-    gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
-    curandGenerator_t* gen = new curandGenerator_t;
-    CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
-    CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
-    CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
-    m_gen = (void*)gen;
+    //gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
+    float* f = (float*) malloc (sizeof(float) * (num));
+    // TODO: fix compilation errors with openmp_target_alloc, is_device_ptr 
+    //curandGenerator_t* gen = new curandGenerator_t;
+    //CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
+    auto gen_type = generator_enum::xorwow; 
+      std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
+//#if defined(OMP_RND_ARCH_CUDA) || defined(OMP_RNG_ARCH_HIP)
+//#endif
+    #pragma omp target data map(tofrom:f[0:num])
+    {
+      //CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
+      //CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
+      #pragma omp target data use_device_ptr(f)
+      omp_get_rng_uniform_float(f, num, seed, gen_type);
+
+    }
+    m_gen = (void*)gen_type;
   }
 
+  //TODO this needs to be a device pointer enforcing it throws compilation errors
+  #pragma omp target data use_device_ptr(f)
   m_rand_ptr = f;
 
   std::cout << "R4H m_rand_ptr: " << m_rand_ptr << std::endl;
