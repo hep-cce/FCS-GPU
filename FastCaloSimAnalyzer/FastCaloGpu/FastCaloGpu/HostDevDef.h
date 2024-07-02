@@ -18,6 +18,12 @@
  #define __HOSTDEV__
  #define __INLINE__  inline
 #elif defined(USE_HIP)
+ #if defined(HIP_TARGET_NVIDIA)
+   #include "cuda_runtime.h"
+ #endif
+ #if defined(HIP_TARGET_AMD)
+   #include "hip_runtime.h"
+ #endif
  #define __DEVICE__  __device__
  #define __HOST__    __host__
  #define __HOSTDEV__ __host__ __device__

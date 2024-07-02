@@ -7,16 +7,31 @@
 #include "DEV_BigMem.h"
 
 #include <iostream>
+
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
+#include <curand.h>
+#else
 #include <hiprand.h>
+#endif
+#endif
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
 
-#define CURAND_CALL(x)                                                         \
-  if ((x) != HIPRAND_STATUS_SUCCESS) {                                          \
-    printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
-    exit(EXIT_FAILURE);                                                        \
-  }
+#if defined (HIP_TARGET_NVIDIA)
+  #define CURAND_CALL(x)                                                         \
+    if ((x) != CURAND_STATUS_SUCCESS) {                                          \
+      printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+      exit(EXIT_FAILURE);                                                        \
+    }
+#else
+  #define CURAND_CALL(x)                                                         \
+    if ((x) != HIPRAND_STATUS_SUCCESS) {                                          \
+      printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+      exit(EXIT_FAILURE);                                                        \
+    }
+#endif
 
 #ifndef USE_STDPAR
 void Rand4Hits::allocate_simulation(int maxbins, int maxhitct,
@@ -90,8 +105,15 @@ Rand4Hits::~Rand4Hits() {
   if (m_useCPU) {
     destroyCPUGen();
   } else {
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
+    CURAND_CALL(curandDestroyGenerator(*((curandGenerator_t *)m_gen)));
+    delete (curandGenerator_t *)m_gen;
+#else
     CURAND_CALL(hiprandDestroyGenerator(*((hiprandGenerator_t *)m_gen)));
     delete (hiprandGenerator_t *)m_gen;
+#endif
+#endif
   }
 };
 
@@ -104,8 +126,15 @@ void Rand4Hits::rd_regen() {
                     hipMemcpyHostToDevice));
 #endif
   } else {
+#ifndef RNDGEN_CPU
+#if defined (HIP_TARGET_NVIDIA)
+    CURAND_CALL(curandGenerateUniform(*((curandGenerator_t *)m_gen), m_rand_ptr,
+                                      3 * m_total_a_hits));
+#else
     CURAND_CALL(hiprandGenerateUniform(*((hiprandGenerator_t *)m_gen), m_rand_ptr,
                                       3 * m_total_a_hits));
+#endif
+#endif
   }
 };
 
@@ -127,12 +156,21 @@ void Rand4Hits::create_gen(unsigned long long seed, size_t num, bool useCPU) {
                     hipMemcpyHostToDevice));
 #endif
   } else {
+#ifndef RNDGEN_CPU
     gpuQ(hipMalloc(&f, num * sizeof(float)));
+#if defined (HIP_TARGET_NVIDIA)
+    curandGenerator_t *gen = new curandGenerator_t;
+    CURAND_CALL(curandCreateGenerator(gen, CURAND_RNG_PSEUDO_DEFAULT));
+    CURAND_CALL(curandSetPseudoRandomGeneratorSeed(*gen, seed));
+    CURAND_CALL(curandGenerateUniform(*gen, f, num));
+#else
     hiprandGenerator_t *gen = new hiprandGenerator_t;
     CURAND_CALL(hiprandCreateGenerator(gen, HIPRAND_RNG_PSEUDO_DEFAULT));
     CURAND_CALL(hiprandSetPseudoRandomGeneratorSeed(*gen, seed));
     CURAND_CALL(hiprandGenerateUniform(*gen, f, num));
+#endif
     m_gen = (void *)gen;
+#endif
   }
 
   m_rand_ptr = f;

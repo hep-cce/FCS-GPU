@@ -174,6 +174,28 @@ cmake ../src/FastCaloSimAnalyzer \
 -DENABLE_GPU=on -DUSE_HIP
 ```
 
+## BNL CSI lambda2: HIP for AMD
+```
+module use /work/software/modulefiles
+module load rocmmod4.5.0
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh
+export FCS_DATAPATH=/work/atif/FastCaloSimInputs/
+/work/atif/packages/cmake-3.25.0-linux-x86_64/bin/cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=hipcc -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_EXTENSIONS=Off -DENABLE_GPU=on -DUSE_HIP=on -DHIP_TARGET=AMD -DCMAKE_CXX_FLAGS="-I/opt/rocm/hip/include/hip/"
+```
+
+## Perlmutter: HIP for Nvidia
+For Nvidia backend with HIP select HIP_PLATFORM=nvidia, HIP_COMPILER=nvcc, HIP_RUNTIME=cuda
+and use hipcc_nvidia compiler script
+```
+export HIP_PLATFORM=nvidia
+export HIP_COMPILER=nvcc
+export HIP_RUNTIME=cuda
+module load hip
+export FCS_DATAPATH=/pscratch/sd/a/atif/FastCaloSimInputs
+source /global/homes/a/atif/packages/root_install/bin/thisroot.sh
+cmake ../FastCaloSimAnalyzer/ -DENABLE_XROOTD=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=/global/homes/a/atif/FCS-GPU/scripts/hipcc_nvidia -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off -DENABLE_GPU=on -DUSE_HIP=on -DHIP_TARGET=NVIDIA -DCMAKE_LIBRARY_PATH="/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/;/global/common/software/nersc/pe/rocm/5.5.1/hip/include/hip/" -DRNDGEN_CPU=on
+```
+
 ### alpaka
 
 ### OpenMP
@@ -190,6 +212,14 @@ cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU
  -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so \
  -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
 ```
+
+## Build Instructions for Perlmutter
+module use /global/homes/a/atif/modulefiles
+module load clang-16.0.6-omp-nvptx
+module load cudatoolkit
+source /global/homes/a/atif/packages/root_install/bin/thisroot.sh
+export FCS_DATAPATH=/pscratch/sd/a/atif/FastCaloSimInputs
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DINPUT_PATH="../../FastCaloSimInputs" -DCMAKE_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/
 
 ## Build Instructions for Cori
 
