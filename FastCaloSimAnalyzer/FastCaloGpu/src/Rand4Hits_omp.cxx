@@ -72,8 +72,9 @@ Rand4Hits::~Rand4Hits() {
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
-    CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
-    delete (curandGenerator_t*)m_gen;
+    // TODO: Do we need this for Portable RNG?
+    // CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
+    // delete (curandGenerator_t*)m_gen;
   }
 };
 
@@ -85,7 +86,9 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
-    CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
+    auto gen = generator_enum::xorwow; 
+    omp_get_rng_uniform_float(m_rand_ptr, 3 * m_total_a_hits, m_seed, gen);
+    //CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
   }
 };
 
@@ -106,28 +109,14 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
-    //gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
-    float* f = (float*) malloc (sizeof(float) * (num));
-    // TODO: fix compilation errors with openmp_target_alloc, is_device_ptr 
-    //curandGenerator_t* gen = new curandGenerator_t;
-    //CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
-    auto gen_type = generator_enum::xorwow; 
-      std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
-//#if defined(OMP_RND_ARCH_CUDA) || defined(OMP_RNG_ARCH_HIP)
-//#endif
-    #pragma omp target data map(tofrom:f[0:num])
-    {
-      //CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
-      //CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
-      #pragma omp target data use_device_ptr(f)
-      omp_get_rng_uniform_float(f, num, seed, gen_type);
-
-    }
-    m_gen = (void*)gen_type;
+    f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
+    auto gen = generator_enum::xorwow; 
+    omp_get_rng_uniform_float(f, num, seed, gen);
+    m_gen = (void*)gen;
+    // We need to save the seed for rd_regen
+    m_seed = seed;
   }
 
-  //TODO this needs to be a device pointer enforcing it throws compilation errors
-  #pragma omp target data use_device_ptr(f)
   m_rand_ptr = f;
 
   std::cout << "R4H m_rand_ptr: " << m_rand_ptr << std::endl;
