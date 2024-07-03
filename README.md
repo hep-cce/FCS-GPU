@@ -175,13 +175,13 @@ variables `NV_NOSWITCHERROR=1`.
 
 ### HIP
 
-Checkout from branch `hip`. For group simulation use branch `group_sim_hip`.
+Checkout from branch `main`. For group simulation use branch `group_sim_combined`.
 Build the project with
 
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
--DENABLE_GPU=on -DCMAKE_CXX_COMPILER=hipcc
+-DENABLE_GPU=on -DUSE_HIP=on -DCMAKE_CXX_COMPILER=hipcc \
+-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off 
 ```
 
 ### alpaka

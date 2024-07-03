@@ -63,6 +63,10 @@ if(USE_STDPAR)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 endif()
 
+if(USE_HIP)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_HIP )
+endif()
+
 if(DUMP_HITCELLS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DDUMP_HITCELLS )
 endif()

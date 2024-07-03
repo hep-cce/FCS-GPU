@@ -17,6 +17,11 @@
 #  define __HOST__
 #  define __HOSTDEV__
 #  define __INLINE__ inline
+#elif defined(USE_HIP)
+#  define __DEVICE__  __device__
+#  define __HOST__    __host__
+#  define __HOSTDEV__ __host__ __device__
+#  define __INLINE__  inline
 #elif defined (__CUDACC__)
 #  define __DEVICE__ __device__
 #  define __HOST__   __host__

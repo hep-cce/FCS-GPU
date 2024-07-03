@@ -67,6 +67,15 @@ void* CaloGpuGeneral::Rand4Hits_init( long long maxhits, unsigned short maxbin, 
   std::cout << "using OMPGPU\n";
 #elif defined (USE_ALPAKA)
   std::cout << "using alpaka\n";
+#elif defined(USE_HIP)
+  std::cout << "using HIP on ";
+  #ifdef __HIP_PLATFORM_NVIDIA__
+  std::cout << "NVIDIA\n";
+  #elif defined __HIP_PLATFORM_AMD__
+  std::cout << "AMD\n";
+  #else
+  std::cout << "UNKNOWN\n";
+  #endif
 #else
   std::cout << "using CUDA\n";
 #endif
