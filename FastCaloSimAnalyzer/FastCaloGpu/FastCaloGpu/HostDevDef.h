@@ -22,7 +22,7 @@
    #include "cuda_runtime.h"
  #endif
  #if defined(HIP_TARGET_AMD)
-   #include "hip_runtime.h"
+//   #include "hip_runtime.h"
  #endif
  #define __DEVICE__  __device__
  #define __HOST__    __host__
