@@ -52,6 +52,11 @@ elseif(USE_ALPAKA)
 
 elseif(USE_HIP)
   find_package(HIP REQUIRED)  
+  if ( ${HIP_TARGET} STREQUAL "NVIDIA" )
+    if ( NOT RNDGEN_CPU )
+      message(FATAL_ERROR "when HIP_TARGET=NVIDIA, RNDGEN_CPU must be ON")
+    endif()
+  endif()
 endif()
 
 include(FastCaloSim)
