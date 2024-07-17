@@ -87,7 +87,6 @@ Rand4Hits::~Rand4Hits() {
   } else {
 #ifndef RNDGEN_CPU
 #if defined (HIP_TARGET_NVIDIA)
-#if defined (HIP_TARGET_NVIDIA)
     CURAND_CALL(curandDestroyGenerator(*((curandGenerator_t *)m_gen)));
     delete (curandGenerator_t *)m_gen;
 #else	  
