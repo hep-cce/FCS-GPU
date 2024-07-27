@@ -8,7 +8,7 @@
 #include "Hit.h"
 #include "Rand4Hits.h"
 
-#include "gpuQ.h"
+//#include "gpuQ.h"
 #include "Args.h"
 #include "DEV_BigMem.h"
 // #include "OMP_BigMem.h"
@@ -16,8 +16,8 @@
 #include <mutex>
 #include <climits>
 
-#include <cuda_runtime_api.h>
-#include <curand.h>
+// #include <cuda_runtime_api.h>
+// #include <curand.h>
 #include <iostream>
 #include <omp.h>
 
