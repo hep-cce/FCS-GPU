@@ -1,0 +1,98 @@
+name: Build and run TFCSS Simulation on self-hosted runner
+
+on: 
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    
+jobs:
+  build:
+    runs-on: self-hosted
+    name: Build and push images 
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build images
+      run: |
+        cd ./scripts/build_scripts
+        ./build_images.sh
+
+    - name: Upload log file
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log File - Building and Pushing container images
+        path: ./scripts/build_scripts/build_image_log_*.txt
+
+  run:
+    runs-on: self-hosted
+    name: Run FastCaloSim
+    needs: build
+
+    env:
+      FCS_DATAPATH: /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
+      NERSC_CONTAINER_REGISTRY_USER: ${{ secrets.NERSC_CONTAINER_REGISTRY_USER }}
+      NERSC_CONTAINER_REGISTRY_PASSWORD: ${{ secrets.NERSC_CONTAINER_REGISTRY_PASSWORD }}
+
+    steps:    
+    - name: Run containers
+      run: |
+        cd ./scripts/run_scripts
+        ./run_images.sh
+
+    - name: Upload log files
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log Files - Run FastCaloSim
+        path: ./scripts/run_scripts/run_logs
+
+  postprocess:
+    runs-on: self-hosted
+    name: Postprocess log files
+    needs: run
+
+    steps:
+    - name: Download log files
+      uses: actions/download-artifact@v4
+      with:
+        name: Log Files - Run FastCaloSim
+
+    - name: Postprocess Perlmutter
+      if: contains(runner.name, 'perlmutter')
+      run: | 
+        module load python/3.11
+        cd ./scripts
+        python ./postprocessing/postprocess.py ./run_scripts/run_logs ./postprocessing/json
+        
+    - name: Upload json files
+      uses: actions/upload-artifact@v4
+      with:
+        name: FastCaloSim Results (JSON)
+        path: ./scripts/postprocessing/json
+
+  plot:
+    runs-on: self-hosted
+    name: Plot results
+    needs: postprocess
+
+    steps:
+    - name: Download json files
+      uses: actions/download-artifact@v4
+      with:
+        name: FastCaloSim Results (JSON)
+
+    - name: Postprocess Perlmutter
+      if: contains(runner.name, 'perlmutter')
+      run: | 
+        module load python/3.11
+        cd ./scripts
+        python ./plotting/plot.py ./postprocessing/json ./plotting
+
+    - name: Upload json files
+      uses: actions/upload-artifact@v4
+      with:
+        name: Result plot
+        path: ./scripts/plotting/Results.png
