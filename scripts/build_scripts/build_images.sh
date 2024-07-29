@@ -18,10 +18,14 @@ CHECK_REPO=${CHECK_REPO:-0}
 
 logfile="build_image_log_$(date +%Y%m%d%H%M%S).txt"
 
+check_command_exists() {
+  command -v "$1" >/dev/null 2>&1
+}
+
 check_image_exists() {
   local image_tag=$1
 
-  podman-hpc manifest inspect ${image_tag} > /dev/null 2>&1
+  $CONTAINER_CMD manifest inspect ${image_tag} >/dev/null 2>&1
   if [ $? -eq 0 ]; then
     return 0
   else
@@ -44,12 +48,13 @@ build_and_push_root_image() {
   fi
 
   echo "INFO - $(date)) - Building image: ${root_image_tag}"
-  podman-hpc build -f root.Dockerfile \
+  $CONTAINER_CMD build -f root.Dockerfile \
     --build-arg=BASE=${base_image} \
     --build-arg=ROOT_VERSION=${ROOT_VERSION} \
-    -t ${root_image_tag} . >> ${logfile}
-  echo "INFO - $(date) - Pushing image: ${root_image_tag}"
-  podman-hpc push ${root_image_tag}
+    --build-arg=GH_TOKEN=${GH_TOKEN} \
+    -t ${root_image_tag} . >>${logfile}
+  # echo "INFO - $(date) - Pushing image: ${root_image_tag}"
+  # $CONTAINER_CMD push ${root_image_tag}
 }
 
 build_and_push_fcs_image() {
@@ -69,29 +74,40 @@ build_and_push_fcs_image() {
   fi
 
   echo "INFO - $(date)) - Building image: ${fcs_image_tag}"
-  podman-hpc build -f ${image_type}.Dockerfile \
+  $CONTAINER_CMD build -f ${image_type}.Dockerfile \
     --build-arg=BASE=${root_image_tag} \
     --build-arg=FCS_BRANCH=${FCS_BRANCH} \
-    -t ${fcs_image_tag} . >> ${logfile}
-  echo "INFO - $(date) - Pushing image: ${fcs_image_tag}"
-  podman-hpc push ${fcs_image_tag}
+    -t ${fcs_image_tag} . >>${logfile}
+  # echo "INFO - $(date) - Pushing image: ${fcs_image_tag}"
+  # $CONTAINER_CMD push ${fcs_image_tag}
 }
+
+if check_command_exists podman-hpc; then
+  CONTAINER_CMD="podman-hpc"
+elif check_command_exists docker; then
+  CONTAINER_CMD="docker"
+else
+  echo "ERROR: Neither podman-hpc nor docker is installed on this system."
+  exit 1
+fi
 
 for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; do
   build_and_push_root_image ${base_image}
 
   # Build FCS images using different base images
-  for image_type in fcs fcs-cuda fcs-kokkos-cuda; do
-     # Only build FCS CPU variant using Ubuntu base image
-     if [ "${image_type}" = "fcs" ] && [ "${base_image}" != ${UBUNTU_BASE_IMAGE} ]; then
+  for image_type in fcs-cpu fcs-cuda fcs-kokkos-cuda; do
+    # Only build FCS CPU variant using Ubuntu base image
+    if [ "${image_type}" = "fcs-cpu" ] && [ "${base_image}" != ${UBUNTU_BASE_IMAGE} ]; then
       continue
-     fi
-     # Only build FCS GPU variant using non-Ubuntu base image
-     if [ "${image_type}" != "fcs" ] && [ "${base_image}" = ${UBUNTU_BASE_IMAGE} ]; then
+    fi
+    # Only build FCS GPU variant using non-Ubuntu base image
+    if [ "${image_type}" != "fcs-cpu" ] && [ "${base_image}" = ${UBUNTU_BASE_IMAGE} ]; then
       continue
-     fi
-      build_and_push_fcs_image ${base_image} ${image_type}
+    fi
+    build_and_push_fcs_image ${base_image} ${image_type}
   done
 done
 
 build_and_push_fcs_image ${NVHPC_BASE_IMAGE} fcs-stdpar
+
+build_and_push_fcs_image ${CUDA_BASE_IMAGE} fcs-hip-cuda
