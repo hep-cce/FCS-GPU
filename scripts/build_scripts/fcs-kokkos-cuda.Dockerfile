@@ -1,6 +1,7 @@
-ARG BASE=docker.io/dingpf/root:6.30.04-cuda12.2.2-ubuntu22.04 
+ARG BASE=registry.nersc.gov/m2845/root:6.30.04-cuda12.2.2-devel-ubuntu22.04
 FROM $BASE
 
+# ARG BASE=docker.io/dingpf/root:6.30.04-cuda12.2.2-ubuntu22.04 
 #ARG BASE=docker.io/dingpf/root:6.30.04-nvhpc23.9-cuda12.2-ubuntu22.04
 
 ARG WORK_DIR=/hep-mini-apps
@@ -42,7 +43,7 @@ RUN \
   . $ROOT_INSTALL_DIR/bin/thisroot.sh && \
   mkdir -p $FCS_BUILD_DIR && \
   mkdir -p $FCS_INSTALL_DIR && \
-  git clone https://github.com/cgleggett/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR && \
+  git clone https://github.com/hep-cce/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR && \
   cd $FCS_BUILD_DIR && \
   cmake -DCMAKE_INSTALL_PREFIX=$FCS_INSTALL_DIR \
 	  -DENABLE_XROOTD=Off \

@@ -47,5 +47,5 @@ RUN \
           -DCMAKE_CXX_STANDARD=17 \
           -DCMAKE_CXX_EXTENSIONS=Off \
           $ROOT_SRC_DIR && \
-     make -j 128 install && \
+     make -j 64 install && \
      rm -rf $ROOT_BUILD_DIR
