@@ -1,0 +1,979 @@
+[
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "cuda12.2.2-devel-ubuntu22.04",
+                "image_type": "cuda",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": {
+                " clocks.max.memory [MHz]": " 1512 MHz",
+                " clocks.max.sm [MHz]": " 1410 MHz",
+                " count": " 1",
+                " driver_version": " 550.54.15",
+                " memory.free [MiB]": " 81037 MiB",
+                " memory.total [MiB]": " 81920 MiB",
+                " memory.used [MiB]": " 0 MiB",
+                " temperature.gpu": " 38",
+                " temperature.memory": " 51",
+                " utilization.gpu [%]": " 20 %",
+                " utilization.memory [%]": " 0 %",
+                "name": "NVIDIA A100 80GB PCIe"
+            },
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [
+                    {
+                        "compute_capability": "8.0",
+                        "driver": "550.54.15",
+                        "gpu_id": "NVIDIA A100 80GB PCIe",
+                        "graphics_clock": "1512 MHz",
+                        "memory": "81920 MiB",
+                        "memory_clock": "1410 MHz",
+                        "sm_clock": "1410 MHz"
+                    }
+                ],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "da8d6a272186",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:13:57"
+        },
+        "metrics": [
+            {
+                "data_type": "<class 'int'>",
+                "name": "GPU memory used",
+                "unit": "MB",
+                "value": 527
+            },
+            {
+                "data_type": "<class 'str'>",
+                "name": "launch count",
+                "unit": null,
+                "value": "19973"
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  LoadGeo cpu IO",
+                "unit": "s",
+                "value": 0.726031
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  GPU GeoLg()",
+                "unit": "s",
+                "value": 0.0247775
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  InitInputTree",
+                "unit": "s",
+                "value": 0.0177158
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  resizeTruth",
+                "unit": "s",
+                "value": 0.00503153
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop GPU load FH",
+                "unit": "s",
+                "value": 0.00453769
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  LateralShapeParamHitChain",
+                "unit": "s",
+                "value": 2.02886
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop",
+                "unit": "s",
+                "value": 2.39977
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainA",
+                "unit": "s",
+                "value": 1.68442
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainB",
+                "unit": "s",
+                "value": 0.00340656
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  host Chain0",
+                "unit": "s",
+                "value": 0.339178
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  before chain simul",
+                "unit": "s",
+                "value": 0.00647577
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  I/O read from tree",
+                "unit": "s",
+                "value": 0.303344
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 0",
+                "unit": "s",
+                "value": 2.07586
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 1",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 2",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 3",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 4",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'pandas.core.frame.DataFrame'>",
+                "name": "kernel timing",
+                "unit": null,
+                "value": "{\"kernel\":{\"0\":\"sim_clean\",\"1\":\"sim_A\",\"2\":\"sim_ct\",\"3\":\"sim_cp\"},\"total \\/s\":{\"0\":0.20832632,\"1\":0.48336262,\"2\":0.19353935,\"3\":0.37192848},\"avg launch \\/us\":{\"0\":10.4,\"1\":24.2,\"2\":9.7,\"3\":18.6},\"std dev \\/us\":{\"0\":1.3,\"1\":3.2,\"2\":1.2,\"3\":2.2}}"
+            }
+        ]
+    },
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "nvhpc23.9-devel-cuda12.2-ubuntu22.04",
+                "image_type": "cuda",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": {
+                " clocks.max.memory [MHz]": " 1512 MHz",
+                " clocks.max.sm [MHz]": " 1410 MHz",
+                " count": " 1",
+                " driver_version": " 550.54.15",
+                " memory.free [MiB]": " 81037 MiB",
+                " memory.total [MiB]": " 81920 MiB",
+                " memory.used [MiB]": " 0 MiB",
+                " temperature.gpu": " 38",
+                " temperature.memory": " 51",
+                " utilization.gpu [%]": " 20 %",
+                " utilization.memory [%]": " 0 %",
+                "name": "NVIDIA A100 80GB PCIe"
+            },
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [
+                    {
+                        "compute_capability": "8.0",
+                        "driver": "550.54.15",
+                        "gpu_id": "NVIDIA A100 80GB PCIe",
+                        "graphics_clock": "1512 MHz",
+                        "memory": "81920 MiB",
+                        "memory_clock": "1410 MHz",
+                        "sm_clock": "1410 MHz"
+                    }
+                ],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "aa5ef7c9c27e",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:12:40"
+        },
+        "metrics": [
+            {
+                "data_type": "<class 'int'>",
+                "name": "GPU memory used",
+                "unit": "MB",
+                "value": 527
+            },
+            {
+                "data_type": "<class 'str'>",
+                "name": "launch count",
+                "unit": null,
+                "value": "19973"
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  LoadGeo cpu IO",
+                "unit": "s",
+                "value": 0.707652
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  GPU GeoLg()",
+                "unit": "s",
+                "value": 0.0246851
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  InitInputTree",
+                "unit": "s",
+                "value": 0.0176983
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  resizeTruth",
+                "unit": "s",
+                "value": 0.00498405
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop GPU load FH",
+                "unit": "s",
+                "value": 0.00442894
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  LateralShapeParamHitChain",
+                "unit": "s",
+                "value": 2.01168
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop",
+                "unit": "s",
+                "value": 2.37223
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainA",
+                "unit": "s",
+                "value": 1.67147
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainB",
+                "unit": "s",
+                "value": 0.00332568
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  host Chain0",
+                "unit": "s",
+                "value": 0.335094
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  before chain simul",
+                "unit": "s",
+                "value": 0.00654652
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  I/O read from tree",
+                "unit": "s",
+                "value": 0.307414
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 0",
+                "unit": "s",
+                "value": 2.05658
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 1",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 2",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 3",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 4",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'pandas.core.frame.DataFrame'>",
+                "name": "kernel timing",
+                "unit": null,
+                "value": "{\"kernel\":{\"0\":\"sim_clean\",\"1\":\"sim_A\",\"2\":\"sim_ct\",\"3\":\"sim_cp\"},\"total \\/s\":{\"0\":0.20625765,\"1\":0.48149875,\"2\":0.19245834,\"3\":0.36716598},\"avg launch \\/us\":{\"0\":10.3,\"1\":24.1,\"2\":9.6,\"3\":18.4},\"std dev \\/us\":{\"0\":1.0,\"1\":2.8,\"2\":0.9,\"3\":1.3}}"
+            }
+        ]
+    },
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "cuda12.2.2-devel-ubuntu22.04",
+                "image_type": "kokkos-cuda",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": {
+                " clocks.max.memory [MHz]": " 1512 MHz",
+                " clocks.max.sm [MHz]": " 1410 MHz",
+                " count": " 1",
+                " driver_version": " 550.54.15",
+                " memory.free [MiB]": " 81037 MiB",
+                " memory.total [MiB]": " 81920 MiB",
+                " memory.used [MiB]": " 0 MiB",
+                " temperature.gpu": " 38",
+                " temperature.memory": " 51",
+                " utilization.gpu [%]": " 20 %",
+                " utilization.memory [%]": " 0 %",
+                "name": "NVIDIA A100 80GB PCIe"
+            },
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [
+                    {
+                        "compute_capability": "8.0",
+                        "driver": "550.54.15",
+                        "gpu_id": "NVIDIA A100 80GB PCIe",
+                        "graphics_clock": "1512 MHz",
+                        "memory": "81920 MiB",
+                        "memory_clock": "1410 MHz",
+                        "sm_clock": "1410 MHz"
+                    }
+                ],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "1a3ae75ea67e",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:14:34"
+        },
+        "metrics": [
+            {
+                "data_type": "<class 'str'>",
+                "name": "launch count",
+                "unit": null,
+                "value": "19973"
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  LoadGeo cpu IO",
+                "unit": "s",
+                "value": 0.707511
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  GPU GeoLg()",
+                "unit": "s",
+                "value": 0.0576766
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  InitInputTree",
+                "unit": "s",
+                "value": 0.0181598
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  resizeTruth",
+                "unit": "s",
+                "value": 0.00701503
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop GPU load FH",
+                "unit": "s",
+                "value": 0.0109189
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  LateralShapeParamHitChain",
+                "unit": "s",
+                "value": 2.88591
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop",
+                "unit": "s",
+                "value": 3.27094
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainA",
+                "unit": "s",
+                "value": 2.5357
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainB",
+                "unit": "s",
+                "value": 0.00333486
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  host Chain0",
+                "unit": "s",
+                "value": 0.344944
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  before chain simul",
+                "unit": "s",
+                "value": 0.00662612
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  I/O read from tree",
+                "unit": "s",
+                "value": 0.321609
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 0",
+                "unit": "s",
+                "value": 2.94052
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 1",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 2",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 3",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 4",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'pandas.core.frame.DataFrame'>",
+                "name": "kernel timing",
+                "unit": null,
+                "value": "{\"kernel\":{\"0\":\"sim_clean\",\"1\":\"sim_A\",\"2\":\"sim_ct\",\"3\":\"sim_cp\"},\"total \\/s\":{\"0\":0.51891751,\"1\":0.70366945,\"2\":0.23812975,\"3\":0.59703218},\"avg launch \\/us\":{\"0\":26.0,\"1\":35.2,\"2\":11.9,\"3\":29.9},\"std dev \\/us\":{\"0\":4.1,\"1\":2.8,\"2\":0.8,\"3\":2.0}}"
+            }
+        ]
+    },
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "nvhpc23.9-devel-cuda12.2-ubuntu22.04",
+                "image_type": "kokkos-cuda",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": {
+                " clocks.max.memory [MHz]": " 1512 MHz",
+                " clocks.max.sm [MHz]": " 1410 MHz",
+                " count": " 1",
+                " driver_version": " 550.54.15",
+                " memory.free [MiB]": " 81037 MiB",
+                " memory.total [MiB]": " 81920 MiB",
+                " memory.used [MiB]": " 0 MiB",
+                " temperature.gpu": " 38",
+                " temperature.memory": " 51",
+                " utilization.gpu [%]": " 20 %",
+                " utilization.memory [%]": " 0 %",
+                "name": "NVIDIA A100 80GB PCIe"
+            },
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [
+                    {
+                        "compute_capability": "8.0",
+                        "driver": "550.54.15",
+                        "gpu_id": "NVIDIA A100 80GB PCIe",
+                        "graphics_clock": "1512 MHz",
+                        "memory": "81920 MiB",
+                        "memory_clock": "1410 MHz",
+                        "sm_clock": "1410 MHz"
+                    }
+                ],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "35323be8c88b",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:13:18"
+        },
+        "metrics": [
+            {
+                "data_type": "<class 'str'>",
+                "name": "launch count",
+                "unit": null,
+                "value": "19973"
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  LoadGeo cpu IO",
+                "unit": "s",
+                "value": 0.729442
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  GPU GeoLg()",
+                "unit": "s",
+                "value": 0.0271369
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  InitInputTree",
+                "unit": "s",
+                "value": 0.0179467
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  resizeTruth",
+                "unit": "s",
+                "value": 0.00612663
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop GPU load FH",
+                "unit": "s",
+                "value": 0.0113988
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  LateralShapeParamHitChain",
+                "unit": "s",
+                "value": 2.8824
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop",
+                "unit": "s",
+                "value": 3.26986
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainA",
+                "unit": "s",
+                "value": 2.53221
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  GPU ChainB",
+                "unit": "s",
+                "value": 0.00334502
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  host Chain0",
+                "unit": "s",
+                "value": 0.344875
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  before chain simul",
+                "unit": "s",
+                "value": 0.0066083
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time of  eventloop  I/O read from tree",
+                "unit": "s",
+                "value": 0.32318
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 0",
+                "unit": "s",
+                "value": 2.93794
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 1",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 2",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 3",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'float'>",
+                "name": "Time for Chain 4",
+                "unit": "s",
+                "value": 0.0
+            },
+            {
+                "data_type": "<class 'pandas.core.frame.DataFrame'>",
+                "name": "kernel timing",
+                "unit": null,
+                "value": "{\"kernel\":{\"0\":\"sim_clean\",\"1\":\"sim_A\",\"2\":\"sim_ct\",\"3\":\"sim_cp\"},\"total \\/s\":{\"0\":0.51431751,\"1\":0.70151908,\"2\":0.23960878,\"3\":0.59184934},\"avg launch \\/us\":{\"0\":25.8,\"1\":35.1,\"2\":12.0,\"3\":29.6},\"std dev \\/us\":{\"0\":4.0,\"1\":2.8,\"2\":0.7,\"3\":1.9}}"
+            }
+        ]
+    },
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "nvhpc23.9-devel-cuda12.2-ubuntu22.04",
+                "image_type": "stdpar",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": {
+                " clocks.max.memory [MHz]": " 1512 MHz",
+                " clocks.max.sm [MHz]": " 1410 MHz",
+                " count": " 1",
+                " driver_version": " 550.54.15",
+                " memory.free [MiB]": " 81037 MiB",
+                " memory.total [MiB]": " 81920 MiB",
+                " memory.used [MiB]": " 0 MiB",
+                " temperature.gpu": " 37",
+                " temperature.memory": " 51",
+                " utilization.gpu [%]": " 20 %",
+                " utilization.memory [%]": " 0 %",
+                "name": "NVIDIA A100 80GB PCIe"
+            },
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [
+                    {
+                        "compute_capability": "8.0",
+                        "driver": "550.54.15",
+                        "gpu_id": "NVIDIA A100 80GB PCIe",
+                        "graphics_clock": "1512 MHz",
+                        "memory": "81920 MiB",
+                        "memory_clock": "1410 MHz",
+                        "sm_clock": "1410 MHz"
+                    }
+                ],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "ffd161669a69",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:15:12"
+        },
+        "metrics": null
+    },
+    {
+        "info": {
+            "cpu_info": {
+                "Address sizes": "43 bits physical, 48 bits virtual",
+                "Architecture": "x86_64",
+                "BogoMIPS": "5988.87",
+                "Byte Order": "Little Endian",
+                "CPU family": "23",
+                "CPU max MHz": "3000.0000",
+                "CPU min MHz": "1500.0000",
+                "CPU op-mode(s)": "32-bit, 64-bit",
+                "CPU(s)": "32",
+                "Core(s) per socket": "16",
+                "Flags": "fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es",
+                "Frequency boost": "enabled",
+                "L1d cache": "512 KiB (16 instances)",
+                "L1i cache": "512 KiB (16 instances)",
+                "L2 cache": "8 MiB (16 instances)",
+                "L3 cache": "128 MiB (8 instances)",
+                "Model": "49",
+                "Model name": "AMD EPYC 7302P 16-Core Processor",
+                "NUMA node(s)": "1",
+                "NUMA node0 CPU(s)": "0-31",
+                "On-line CPU(s) list": "0-31",
+                "Socket(s)": "1",
+                "Stepping": "0",
+                "Thread(s) per core": "2",
+                "Vendor ID": "AuthenticAMD",
+                "Virtualization": "AMD-V",
+                "Vulnerability Gather data sampling": "Not affected",
+                "Vulnerability Itlb multihit": "Not affected",
+                "Vulnerability L1tf": "Not affected",
+                "Vulnerability Mds": "Not affected",
+                "Vulnerability Meltdown": "Not affected",
+                "Vulnerability Mmio stale data": "Not affected",
+                "Vulnerability Retbleed": "Mitigation; untrained return thunk; SMT enabled with STIBP protection",
+                "Vulnerability Spec rstack overflow": "Mitigation; Safe RET",
+                "Vulnerability Spec store bypass": "Mitigation; Speculative Store Bypass disabled via prctl",
+                "Vulnerability Spectre v1": "Mitigation; usercopy/swapgs barriers and __user pointer sanitization",
+                "Vulnerability Spectre v2": "Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected",
+                "Vulnerability Srbds": "Not affected",
+                "Vulnerability Tsx async abort": "Not affected"
+            },
+            "datapath": "/local/scratch/cgleggett/data/FastCaloSimInputs:/input",
+            "image_info": {
+                "image_tag": "ubuntu22.04",
+                "image_type": "x86",
+                "root_version": "6.30.04"
+            },
+            "nvidia_info": null,
+            "run_cmd": null,
+            "system_info": {
+                "GPUs": [],
+                "OS": "unknown",
+                "cores": "32",
+                "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+                "hostname": "cd8ef94064f4",
+                "max_clock": "3000.0000",
+                "sockets": "1",
+                "threads_per_core": "2"
+            },
+            "timestamp": "2024-08-01T10:11:59"
+        },
+        "metrics": null
+    }
+]

@@ -1,15 +1,26 @@
-name: Build and run TFCSS Simulation on self-hosted runner
+name: Run FastCaloSim Benchmarking
 
-on: 
+on:
   workflow_dispatch:
+    inputs:
+      run_build:
+        description: "Run the build job?"
+        required: false
+        default: "false"
   push:
     branches:
       - main
-    
+  pull_request:
+    branches:
+      - main
+
 jobs:
   build:
     runs-on: self-hosted
-    name: Build and push images 
+    name: Build and push images
+    if: ${{ github.event.inputs.run_build == 'true' }}
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/build
 
     steps:
     - name: Checkout repository
@@ -20,79 +31,159 @@ jobs:
         cd ./scripts/build_scripts
         ./build_images.sh
 
-    - name: Upload log file
+    - name: Upload log files
       uses: actions/upload-artifact@v4
       with:
         name: Log File - Building and Pushing container images
-        path: ./scripts/build_scripts/build_image_log_*.txt
+        path: ${{ env.LOG_DIR }}/*.txt
 
+
+  # Idea: Make all permutations of runs
   run:
     runs-on: self-hosted
     name: Run FastCaloSim
-    needs: build
-
+    strategy:
+      matrix:
+        runner-label: [perlmutter, exalearn]
     env:
-      FCS_DATAPATH: /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
+      LOG_DIR: ${{ github.workspace }}/logs/run
       NERSC_CONTAINER_REGISTRY_USER: ${{ secrets.NERSC_CONTAINER_REGISTRY_USER }}
       NERSC_CONTAINER_REGISTRY_PASSWORD: ${{ secrets.NERSC_CONTAINER_REGISTRY_PASSWORD }}
 
-    steps:    
-    - name: Run containers
+    steps:
+    - name: Run FastCaloSim on Perlmutter
+      if: contains(runner.name, 'perlmutter')
+      env:
+        RUNNER_LABEL: perlmutter
+        FCS_DATAPATH: /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
       run: |
         cd ./scripts/run_scripts
         ./run_images.sh
 
+    - name: Run FastCaloSim on exalearn
+      if: contains(runner.name, 'exalearn')
+      env:
+        RUNNER_LABEL: exalearn
+        FCS_DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs
+      run: |
+        cd ./scripts/run_scripts
+        ./run_images.sh
+
+    - name: Create tarball of log files
+      run: tar -czf log_files_${{ matrix.runner-label }}.tar.gz "${{ env.LOG_DIR }}"/*.txt
+
     - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log Files - ${{ matrix.runner-label }}
+        path: log_files_${{ matrix.runner-label }}.tar.gz
+
+  postprocess:
+    runs-on: ubuntu-latest
+    name: Postprocess log files
+    needs: run
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/postprocess
+      INPUT_DIR: ${{ github.workspace }}/logs/run
+      OUTPUT_DIR: ${{ github.workspace }}/logs/postprocess
+      SCRIPT: ./postprocess.sh
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download perlmutter log files
+      uses: actions/download-artifact@v4
+      with:
+        name: Log Files - perlmutter
+        path: ${{ env.INPUT_DIR }}
+
+    - name: Download exalearn log files
+      uses: actions/download-artifact@v4
+      with:
+        name: Log Files - exalearn
+        path: ${{ env.INPUT_DIR }}
+
+    - name: Untar and uncompress logs
+      run: |
+        for runner in perlmutter exalearn; do
+          tar -xzf /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run/log_files_${runner}.tar.gz -C /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run
+        done
+
+
+    - name: Debug input directory
+      run: |
+        ls -l ${{ env.INPUT_DIR }}
+
+    - name: Build hmatools image
+      run: |
+        cd ./hmatools/scripts
+        ./build_image.sh
+
+    - name: Run hmatools postprocessing
+      run: |
+        cd ./hmatools/scripts
+        ./run_image.sh
+
+    - name: Upload logfiles
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: Log Files - Run FastCaloSim
-        path: ./scripts/run_scripts/run_logs
+        name: Postprocess log file
+        path: ${{ env.LOG_DIR }}/*.txt
 
-  postprocess:
-    runs-on: self-hosted
-    name: Postprocess log files
-    needs: run
-
-    steps:
-    - name: Download log files
-      uses: actions/download-artifact@v4
-      with:
-        name: Log Files - Run FastCaloSim
-
-    - name: Postprocess Perlmutter
-      if: contains(runner.name, 'perlmutter')
-      run: | 
-        module load python/3.11
-        cd ./scripts
-        python ./postprocessing/postprocess.py ./run_scripts/run_logs ./postprocessing/json
-        
     - name: Upload json files
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: FastCaloSim Results (JSON)
-        path: ./scripts/postprocessing/json
+        path: ${{ env.OUTPUT_DIR }}/*.json
 
+  # Idea: Make all permutations of plots
   plot:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     name: Plot results
     needs: postprocess
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/plot
+      INPUT_DIR: ${{ github.workspace }}/logs/postprocess
+      OUTPUT_DIR: ${{ github.workspace }}/logs/plot
+      SCRIPT: ./plot.sh
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Download json files
       uses: actions/download-artifact@v4
       with:
         name: FastCaloSim Results (JSON)
+        path: ${{ env.INPUT_DIR }}
 
-    - name: Postprocess Perlmutter
-      if: contains(runner.name, 'perlmutter')
-      run: | 
-        module load python/3.11
-        cd ./scripts
-        python ./plotting/plot.py ./postprocessing/json ./plotting
+    - name: Debug input directory
+      run: |
+        ls -l ${{ env.INPUT_DIR }}
 
-    - name: Upload json files
+    - name: Build hmatools image
+      run: |
+        cd ./hmatools/scripts
+        ./build_image.sh
+
+    - name: Run hmatools plotting
+      run: |
+        cd ./hmatools/scripts
+        ./run_image.sh
+
+    - name: Upload logfiles
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Plot log file
+        path: ${{ env.LOG_DIR }}/*.txt
+
+    - name: Upload plot files
+      if: always()
       uses: actions/upload-artifact@v4
       with:
         name: Result plot
-        path: ./scripts/plotting/Results.png
+        path: ${{ env.OUTPUT_DIR }}/*.png
