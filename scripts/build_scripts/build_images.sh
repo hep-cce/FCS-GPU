@@ -39,6 +39,7 @@ build_and_push_root_image() {
     check_image_exists ${root_image_tag}
     if [ $? -eq 0 ]; then
       echo "INFO - $(date) - Skipping build. Image ${root_image_tag} already exists in the registry."
+      podman-hpc push ${root_image_tag}
       return
     fi
   fi
@@ -90,7 +91,7 @@ for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; d
      if [ "${image_type}" != "fcs" ] && [ "${base_image}" = ${UBUNTU_BASE_IMAGE} ]; then
       continue
      fi
-      build_and_push_fcs_image ${base_image} ${image_type}
+     build_and_push_fcs_image ${base_image} ${image_type}
   done
 done
 
