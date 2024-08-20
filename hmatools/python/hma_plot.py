@@ -60,7 +60,6 @@ class HmaPlot:
         self.launch_count_list: List[Tuple[str, int]]
         self.kernels, self.launch_count_list = self.get_kernel_data()
         self.df_all: pd.DataFrame = self.prepare_dataframe()
-        _, self.axes = plt.subplots(2, 1, figsize=(10, 9))
 
     def read_hma_input(self) -> List[Dict[str, Any]]:
         """Read and deserialize input from a file or directory"""
@@ -90,13 +89,10 @@ class HmaPlot:
         """Prepare kernel information from the HMA data"""
         runner_label = kernel_run["info"]["runner_label"]
         image_info = kernel_run["info"]["image_info"]
-        kernel_info = (
-            runner_label
-            + ":"
-            + image_info["image_type"]
-            + "_"
-            + image_info["image_tag"]
-        )
+        image_type = image_info["image_type"]
+        image_tag = image_info["image_tag"]
+        short_tag = image_tag.split("-")[0]
+        kernel_info = runner_label + ":" + image_type + "_" + short_tag
         return kernel_info
 
     def get_kernel_data(self) -> Tuple[List[pd.DataFrame], List[Tuple[str, int]]]:
@@ -122,6 +118,8 @@ class HmaPlot:
                 kernel_info = self._prepare_kernel_info(kernel_run)
                 df_kernel = metrics[kernel_timing_idx].value
                 df_kernel["kernel_info"] = kernel_info
+                df_kernel["runner"] = kernel_run["info"]["runner_label"]
+                df_kernel["image_type"] = kernel_run["info"]["image_info"]["image_type"]
                 print(f"Kernel timing metrics found for {kernel_info}")
                 pr_models.append(df_kernel)
             else:
@@ -136,7 +134,7 @@ class HmaPlot:
         return pr_models, launch_count_list
 
     def prepare_dataframe(self) -> pd.DataFrame:
-        """Prepare a combined DataFrame with multiple kernel results"""
+        """Prepare a combined DataFrame with all kernel results"""
         kernel_df = pd.concat(self.kernels, ignore_index=True)
         kernel_df["kernel_info"] = kernel_df["kernel_info"].str.replace(
             r"^fcs-", "", regex=True
@@ -148,6 +146,7 @@ class HmaPlot:
         self,
         save_plot: bool = True,
         filename: Optional[str] = None,
+        group_by: Optional[str] = None,
     ) -> None:
         """Save or show the plot"""
         plt.tight_layout()
@@ -155,14 +154,18 @@ class HmaPlot:
         if save_plot:
             if filename is None:
                 plot_filename = (
-                    f"plot_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+                    f"results_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
                 )
             elif os.path.isdir(filename):
                 plot_filename = os.path.join(
-                    filename, f"plot_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png"
+                    filename,
+                    f"results_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png",
                 )
             else:
                 plot_filename = filename
+
+            if group_by is not None:
+                plot_filename = plot_filename.replace(".png", f"_{group_by}.png")
 
             plt.savefig(plot_filename)
             print(f"Plot saved to {plot_filename}")
@@ -170,57 +173,61 @@ class HmaPlot:
             plt.show()
         plt.close()
 
-    def plot(
-        self,
-        save_plot: bool = True,
-        filename: Optional[str] = None,
+    def _make_total_run_time_plot(
+        self, ax: plt.Axes, df: pd.DataFrame, title: str
     ) -> None:
-        """Plot the kernel run time comparisons, include error bars for average kernel run time"""
-        axes = self.axes
+
         sns.barplot(
-            ax=axes[0],
+            ax=ax,
             x="kernel",
             y="total /s",
             hue="kernel_info",
-            data=self.df_all,
+            data=df,
             errorbar=None,
             capsize=0.1,
         )
-        axes[0].set_title(
-            "FastCaloSim Run time comparison for different technologies and kernels"
-        )
-        axes[0].set_ylabel("Total elapsed run time [s]")
-        axes[0].legend(title="Technology", loc="upper right", fontsize=12)
+        ax.set_title(title)
+        ax.set_ylabel("Total elapsed run time [s]")
+        ax.legend(title="Technology", loc="upper right", fontsize=12)
+
+    def _make_avg_run_time_plot(
+        self,
+        ax: plt.Axes,
+        df: pd.DataFrame,
+        launch_count_list: List[Tuple[str, int]],
+        title: Optional[str] = None,
+    ) -> None:
 
         sns.barplot(
-            ax=axes[1],
+            ax=ax,
             x="kernel",
             y="avg launch /us",
             hue="kernel_info",
-            data=self.df_all,
+            data=df,
             errorbar=None,
             capsize=0.1,
         )
-        axes[1].set_title("Average Kernel Run time in us")
-        axes[1].set_ylabel("Average Run time and standard deviation [us]")
-        axes[1].legend(title="Technology", loc="upper right", fontsize=12)
+        ax.set_title(title or "Average Kernel Run time in us")
+
+        ax.set_ylabel("Average Run time and standard deviation [us]")
+        ax.legend(title="Technology", loc="upper right", fontsize=12)
 
         props = {"boxstyle": "round", "facecolor": "wheat", "alpha": 0.5}
-        launch_count_str = make_launch_count_str(self.launch_count_list)
-        axes[1].text(
+        launch_count_str = make_launch_count_str(launch_count_list)
+        ax.text(
             0.02,
             0.95,
             launch_count_str,
-            transform=axes[1].transAxes,
+            transform=ax.transAxes,
             fontsize=12,
             verticalalignment="top",
             horizontalalignment="left",
             bbox=props,
         )
 
-        df_errorbar = make_df_for_errorbar(self.df_all, axes[1])
+        df_errorbar = make_df_for_errorbar(df, ax)
 
-        axes[1].errorbar(
+        ax.errorbar(
             df_errorbar["bar_x"],
             df_errorbar["bar_y"],
             yerr=df_errorbar["std dev /us"],
@@ -228,9 +235,60 @@ class HmaPlot:
             c="red",
             capsize=5,
         )
-        axes[1].set_ylim(bottom=0)  # Set y-axis minimum to 0
+        ax.set_ylim(bottom=0)
 
-        self.save_or_show_plot(save_plot, filename)
+    def plot(
+        self,
+        group_by: Optional[str] = None,
+        save_plot: bool = True,
+        filename: Optional[str] = None,
+    ) -> None:
+        """Plot the kernel run time comparisons, include error bars for average kernel run time"""
+        if group_by == "runner":
+            n = len(self.df_all["runner"].unique())
+            _, axes = plt.subplots(2, n, figsize=((10 * n), 9))
+            for i, runner in enumerate(self.df_all["runner"].unique()):
+                df_runner = self.df_all[self.df_all["runner"] == runner]
+                self._make_total_run_time_plot(
+                    axes[0, i],
+                    df_runner,
+                    f"FastCaloSim Run Time comparison on {runner} for different technologies",
+                )
+                self._make_avg_run_time_plot(
+                    axes[1, i],
+                    df_runner,
+                    [x for x in self.launch_count_list if runner in x[0]],
+                    f"Average Run Time comparison: {runner} kernels",
+                )
+            filename = filename if filename is not None else "per_runner.png"
+        elif group_by == "image_type":
+            n = len(self.df_all["image_type"].unique())
+            _, axes = plt.subplots(2, n, figsize=((10 * n), 9))
+            for i, image_type in enumerate(self.df_all["image_type"].unique()):
+                df_image_type = self.df_all[self.df_all["image_type"] == image_type]
+                self._make_total_run_time_plot(
+                    axes[0, i],
+                    df_image_type,
+                    f"FastCaloSim Run Time comparison of {image_type} across systems",
+                )
+                self._make_avg_run_time_plot(
+                    axes[1, i],
+                    df_image_type,
+                    [x for x in self.launch_count_list if image_type in x[0]],
+                    f"Average Run Time comparison: {image_type} kernels",
+                )
+            filename = filename if filename is not None else "per_image_type.png"
+        else:
+            _, axes = plt.subplots(2, 1, figsize=(10, 9))
+            self._make_total_run_time_plot(
+                axes[0],
+                self.df_all,
+                "FastCaloSim Run Time comparison for different technologies",
+            )
+            self._make_avg_run_time_plot(axes[1], self.df_all, self.launch_count_list)
+            filename = filename if filename is not None else "all.png"
+
+        self.save_or_show_plot(save_plot, filename, group_by)
 
 
 def main(input_path, output):
@@ -238,6 +296,16 @@ def main(input_path, output):
     print(f"Plotting: input_path={input_path}, output={output}")
     plot = HmaPlot(input_path)
     plot.plot(
+        save_plot=True,
+        filename=output,
+    )
+    plot.plot(
+        group_by="runner",
+        save_plot=True,
+        filename=output,
+    )
+    plot.plot(
+        group_by="image_type",
         save_plot=True,
         filename=output,
     )

@@ -149,7 +149,6 @@ jobs:
     - name: Cleanup workspace
       run: rm -rf ${{ github.workspace }}/*
 
-  # Idea: Make all permutations of plots
   plot:
     runs-on: ubuntu-latest
     name: Plot results
@@ -195,5 +194,5 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: Result plot
+        name: Result plots
         path: ${{ env.OUTPUT_DIR }}/*.png
