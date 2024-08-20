@@ -37,10 +37,13 @@ jobs:
         name: Log File - Building and Pushing container images
         path: ${{ env.LOG_DIR }}/*.txt
 
+    - name: Cleanup workspace
+      run: rm -rf ${{ github.workspace }}/*
+
 
   # Idea: Make all permutations of runs
   run:
-    runs-on: self-hosted
+    runs-on: ${{ matrix.runner-label }}
     name: Run FastCaloSim
     strategy:
       matrix:
@@ -51,6 +54,9 @@ jobs:
       NERSC_CONTAINER_REGISTRY_PASSWORD: ${{ secrets.NERSC_CONTAINER_REGISTRY_PASSWORD }}
 
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
     - name: Run FastCaloSim on Perlmutter
       if: contains(runner.name, 'perlmutter')
       env:
@@ -70,7 +76,9 @@ jobs:
         ./run_images.sh
 
     - name: Create tarball of log files
-      run: tar -czf log_files_${{ matrix.runner-label }}.tar.gz "${{ env.LOG_DIR }}"/*.txt
+      run: |
+        cd ${{ env.LOG_DIR }}
+        tar -czf ${{ github.workspace }}/log_files_${{ matrix.runner-label }}.tar.gz ./*.txt
 
     - name: Upload log files
       uses: actions/upload-artifact@v4
@@ -110,7 +118,6 @@ jobs:
           tar -xzf /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run/log_files_${runner}.tar.gz -C /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run
         done
 
-
     - name: Debug input directory
       run: |
         ls -l ${{ env.INPUT_DIR }}
@@ -138,6 +145,9 @@ jobs:
       with:
         name: FastCaloSim Results (JSON)
         path: ${{ env.OUTPUT_DIR }}/*.json
+
+    - name: Cleanup workspace
+      run: rm -rf ${{ github.workspace }}/*
 
   # Idea: Make all permutations of plots
   plot:

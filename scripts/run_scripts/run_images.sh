@@ -17,11 +17,14 @@ UBUNTU_BASE_IMAGE=docker.io/library/ubuntu:22.04
 REGISTRY_PROJECT=registry.nersc.gov/m2845
 MOUNTED_RUN_DIR=/run
 DATAPATH="${FCS_DATAPATH}"
+RUNNER_LABEL="${RUNNER_LABEL}"
 
 CHECK_LOCAL_IMAGES=${CHECK_LOCAL_IMAGES:-0}
 
 # Ensure the log directory exists
 mkdir -p "${LOG_DIR}"
+
+echo RUNNER_LABEL: ${RUNNER_LABEL}
 
 clean() {
     $CONTAINER_CMD ps -aq | xargs -r $CONTAINER_CMD stop | xargs -r $CONTAINER_CMD rm --force
@@ -40,17 +43,15 @@ run_fcs_image() {
     local container_name="${image_type}_${image_tag}"
     local container_script
     local run_cmd
-    local backend
+    local backend=${BACKEND_OPTION}
     local container_log_file="run_log_${RUNNER_LABEL}_${image_type}-${ROOT_DOT_VERSION}-${image_tag}_$(date +%Y%m%d%H%M%S).txt"
 
     case ${image_type} in
     fcs-cuda)
         container_script="${MOUNTED_RUN_DIR}/run_fcs-gpu.sh"
-        backend="--gpus 1 "
         ;;
     fcs-kokkos-cuda)
         container_script="${MOUNTED_RUN_DIR}/run_fcs-kokkos-cuda.sh"
-        backend="--gpus 1 "
         ;;
     fcs-x86)
         container_script="${MOUNTED_RUN_DIR}/run_fcs-x86.sh"
@@ -59,12 +60,10 @@ run_fcs_image() {
         ;;
     fcs-stdpar)
         container_script="${MOUNTED_RUN_DIR}/run_fcs-gpu.sh"
-        backend="--gpus 1 "
         fcs_image_tag=${REGISTRY_PROJECT}/fcs-stdpar:${ROOT_DOT_VERSION}-${image_tag}
         ;;
     fcs-hip-cuda)
         container_script="${MOUNTED_RUN_DIR}/run_fcs-gpu.sh"
-        backend="--gpus 1 "
         fcs_image_tag=${REGISTRY_PROJECT}/hip-cuda:${ROOT_DOT_VERSION}-${image_tag}
         ;;
     esac
@@ -73,8 +72,8 @@ run_fcs_image() {
         --attach STDOUT \
         --rm \
         ${backend}\
-        -v $PWD:${MOUNTED_RUN_DIR} \
-        -v ${DATAPATH}:/input \
+        -v $PWD:"${MOUNTED_RUN_DIR}" \
+        -v "${DATAPATH}":/input \
         -v "${LOG_DIR}":/log_dir \
         -e SYSINFO=${MOUNTED_RUN_DIR}/sysinfo.pl \
         -e DATAPATH=${DATAPATH} \
@@ -92,9 +91,11 @@ run_fcs_image() {
 if check_command_exists podman-hpc; then
     echo "Using podman-hpc"
     CONTAINER_CMD="podman-hpc"
+    BACKEND_OPTION="--gpu "
 elif check_command_exists docker; then
     echo "Using docker"
     CONTAINER_CMD="docker"
+    BACKEND_OPTION="--gpus 1"
 else
     echo "ERROR: Neither podman-hpc nor docker is installed on this system."
     exit 1

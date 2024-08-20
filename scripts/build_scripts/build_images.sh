@@ -112,8 +112,7 @@ for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; d
   build_and_push_root_image ${base_image}
 
   # Build FCS images using different base images
-  for image_type in fcs-cuda fcs-kokkos-cuda; do
-    echo "Building FCS image: ${image_type} with base image: ${base_image}" | tee -a ${logfile}
+  for image_type in fcs-x86 fcs-cuda fcs-kokkos-cuda; do
     # Only build FCS x86 variant using Ubuntu base image
     if [ "${image_type}" = "fcs-x86" ] && [ "${base_image}" != ${UBUNTU_BASE_IMAGE} ]; then
       echo "Skipping FCS x86 variant for non-Ubuntu base image" | tee -a ${logfile}
@@ -124,6 +123,7 @@ for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; d
       echo "Skipping FCS GPU variant for Ubuntu base image" | tee -a ${logfile}
       continue
     fi
+    echo "Building FCS image: ${image_type} with base image: ${base_image}" | tee -a ${logfile}
     build_and_push_fcs_image ${base_image} ${image_type}
   done
 done

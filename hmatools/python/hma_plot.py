@@ -122,6 +122,7 @@ class HmaPlot:
                 kernel_info = self._prepare_kernel_info(kernel_run)
                 df_kernel = metrics[kernel_timing_idx].value
                 df_kernel["kernel_info"] = kernel_info
+                print(f"Kernel timing metrics found for {kernel_info}")
                 pr_models.append(df_kernel)
             else:
                 print(f"No kernel timing metrics found for {kernel_info}")

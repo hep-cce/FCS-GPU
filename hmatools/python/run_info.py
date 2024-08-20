@@ -29,7 +29,7 @@ class RunInfo:
     def _split_log_name(self, logfile: Union[str, os.PathLike]) -> Tuple[str, str, str]:
         tag, _ = os.path.splitext(os.path.basename(logfile))
         if tag.startswith("run_log_"):
-            tag = tag[9:]
+            tag = tag[8:]
         tags = tag.split("_")
         if len(tags) == 2:
             description, timestamp = tags

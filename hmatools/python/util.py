@@ -81,7 +81,7 @@ def make_df_for_errorbar(df: pd.DataFrame, axis) -> pd.DataFrame:
 
     unique_kernels = df["kernel"].unique()
     df["kernel"] = pd.Categorical(df["kernel"], categories=unique_kernels, ordered=True)
-    sorted_df = df.sort_values(by=["kernel", "technology"]).reset_index(drop=True)
+    sorted_df = df.sort_values(by=["kernel", "kernel_info"]).reset_index(drop=True)
     sorted_df["bar_x"] = bar_x
     sorted_df["bar_y"] = bar_y
     return sorted_df
