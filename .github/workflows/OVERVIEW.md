@@ -23,6 +23,7 @@ The `benchmarking.yaml` workflow is designed to automate the benchmarking of Fas
   - It downloads the processed JSON files and runs a plotting script using HMATools.
   - The generated plots and associated logs are uploaded for analysis.
 
+For postprocessing, and plotting, a docker container with HMATools is built and run to execute the steps.
 
 ## 2. Python Code Checks (`Python_CI.yaml`)
 

@@ -69,7 +69,7 @@ jobs:
     - name: Run FastCaloSim on exalearn
       if: contains(runner.name, 'exalearn')
       env:
-        RUNNER_LABEL: exalearn
+        RUNNER_LABEL: exalearn5
         FCS_DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs
       run: |
         cd ./scripts/run_scripts

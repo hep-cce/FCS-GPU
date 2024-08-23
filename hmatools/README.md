@@ -7,7 +7,7 @@ For deeper and more technical information, please be referred to the [Developer 
 ## Installation? Should it become its own repo?
 
 This is currently an open question, since HMATools is integrated inside a wrapper repository.
-As of now, clone fast [FastCaloSim](https://github.com/hep-cce/FCS-GPU), navigate to Directory `hmatools` and inside run:
+As of now, clone [FastCaloSim](https://github.com/hep-cce/FCS-GPU), navigate to Directory `hmatools` and inside run:
 
 ```sh
 pip install -e .
