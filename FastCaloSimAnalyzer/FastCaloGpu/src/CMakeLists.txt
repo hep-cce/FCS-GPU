@@ -48,6 +48,18 @@ if(FIND_CUDA)
     set(NVTOOLSEXT_LIB "nvToolsExt")
   endif()
 
+  if(TARGET CUDA::cudart)
+    set(CUDART_LIB CUDA::cudart)
+  else()
+    set(CUDART_LIB "cudart")
+  endif()
+
+  if(TARGET CUDA::cuda_driver)
+    set(CUDA_DRIVER_LIB CUDA::cuda_driver)
+  else()
+    set(CUDA_DRIVER_LIB "cuda_driver")
+  endif()
+
   enable_language( CUDA )
   set(CUDA_LIBRARIES PUBLIC  ${CUDA_LIBRARIES})
 endif()
@@ -154,7 +166,7 @@ if(USE_KOKKOS)
 endif()
 
 if(USE_STDPAR)  
-  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  CUDA::cudart CUDA::cuda_driver )
+  target_link_libraries(${FastCaloGpu_LIB} PUBLIC  ${CUDART_LIB} ${CUDA_DRIVER_LIB} )
   target_compile_definitions(${FastCaloGpu_LIB} PRIVATE -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
 
   #
