@@ -17,6 +17,10 @@
 #  include <Kokkos_Random.hpp>
 #endif
 
+#ifdef USE_OMPGPU
+#include <omp.h>
+#endif
+
 typedef std::map<Identifier, const CaloDetDescrElement*> t_cellmap;
 
 class GeoLoadGpu {
@@ -51,6 +55,8 @@ public:
   bool LoadGpu();
   
   bool LoadGpu_kk();
+  bool LoadGpu_omp();
+  bool UnloadGpu_omp();
   bool LoadGpu_cu();
   bool LoadGpu_sp();
   bool LoadGpu_al();

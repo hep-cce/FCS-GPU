@@ -44,7 +44,7 @@ list(APPEND XROOTD_INCLUDE_DIRS
 
 # Handle the standard find_package arguments:
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Xrootd
+find_package_handle_standard_args(XRootD
   DEFAULT_MSG
   XROOTD_INCLUDE_DIR
   XROOTD_LIBRARIES)

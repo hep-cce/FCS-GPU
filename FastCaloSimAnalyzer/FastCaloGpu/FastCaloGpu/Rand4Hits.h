@@ -13,6 +13,10 @@
 #  include <Kokkos_Random.hpp>
 #endif
 
+#ifdef USE_OMPGPU
+#  include <omp.h>
+#endif
+
 #ifdef USE_STDPAR
 #   include <atomic>
 #endif
@@ -39,6 +43,10 @@ class Rand4Hits {
   {}
 #else
   Rand4Hits() = default;
+//TODO atif
+//#ifdef USE_OMPGPU
+//  void select_omp_device();
+//#endif
 #endif
   ~Rand4Hits();
 
@@ -94,6 +102,15 @@ class Rand4Hits {
     return m_current_hits + nhits > m_total_a_hits;
   }; // return true if hits over spill, need regenerat rand..
 
+#ifdef USE_OMPGPU
+  void select_omp_device ( ) {
+  if ( offload_var == "mandatory" ) 
+	m_select_device = m_default_device;
+  else if ( offload_var == "disabled" )
+      m_select_device = m_initial_device;
+  };
+#endif
+
 private:
   float* genCPU( size_t num );
   void   createCPUGen( unsigned long long seed );
@@ -123,6 +140,15 @@ private:
   Kokkos::View<Cell_E*> m_cell_e_v;
   Kokkos::View<int>     m_ct_v;
   Kokkos::View<float*>  m_rand_ptr_v;
+#endif
+
+#ifdef USE_OMPGPU
+  int m_default_device = omp_get_default_device();
+  int m_initial_device = omp_get_initial_device();
+  std::size_t m_offset = 0;
+  const char *env_var = "OMP_TARGET_OFFLOAD";
+  std::string offload_var = std::getenv (env_var);
+  int m_select_device = m_default_device;
 #endif
 
 #ifdef USE_ALPAKA

@@ -201,7 +201,8 @@ FCSReturnCode TFCSLateralShapeParametrizationHitChain::simulate( TFCSSimulationS
           std::vector<const TFCS1DFunction*> funcs = ( (TFCSHitCellMappingWiggle*)hitsim )->get_functions();
           for ( auto it = funcs.begin(); it != funcs.end(); ++it ) {
 
-            std::cout << "----+++type of funcs: " << typeid( *( *it ) ).name() << ", pointer: " << *it << std::endl;
+            auto ii = *it;
+            std::cout << "----+++type of funcs: " << typeid( *ii ).name() << ", pointer: " << *it << std::endl;
           }
         }
         auto tt1 = std::chrono::system_clock::now();

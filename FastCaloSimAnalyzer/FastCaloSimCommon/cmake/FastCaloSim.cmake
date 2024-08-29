@@ -47,6 +47,10 @@ if(ENABLE_GPU)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_GPU )
 endif() 
 
+if(ENABLE_OMPGPU)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_OMPGPU )
+endif() 
+
 if(USE_KOKKOS)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_KOKKOS )
 endif()
@@ -57,6 +61,10 @@ endif()
 
 if(USE_STDPAR)
   set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_STDPAR -DSTDPAR_TARGET=${STDPAR_TARGET} )
+endif()
+
+if(USE_HIP)
+  set(FCS_CommonDefinitions ${FCS_CommonDefinitions} -DUSE_HIP )
 endif()
 
 if(DUMP_HITCELLS)
