@@ -175,13 +175,13 @@ variables `NV_NOSWITCHERROR=1`.
 
 ### HIP
 
-Checkout from branch `hip`. For group simulation use branch `group_sim_hip`.
+Checkout from branch `main`. For group simulation use branch `group_sim_combined`.
 Build the project with
 
 ```
 cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=Off -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off \
--DENABLE_GPU=on -DCMAKE_CXX_COMPILER=hipcc
+-DENABLE_GPU=on -DUSE_HIP=on -DCMAKE_CXX_COMPILER=hipcc \
+-DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off 
 ```
 
 ### alpaka
@@ -213,12 +213,17 @@ hardware info such as --offload-arch=sm_xy for NVIDIA and --offload-arch=gfx90x
 should be edited in CMAKE_CXX_FLAGS in FastCaloGpu/src/CMakeLists.txt. 
 
 Checkout from branch `openmp`. For group simulation use branch `group_openmp`.
-
+For alpha/lambda machines at CSI,BNL load the modules
 ```
-cmake ../src/FastCaloSimAnalyzer \
--DENABLE_XROOTD=off -DCMAKE_CXX_STANDARD=14 \
--DENABLE_GPU=off -DRNDGEN_CPU=On -DENABLE_OMPGPU=on \
--DCMAKE_CXX_COMPILER=clang++  -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=nvcc
+module use /work/software/modulefiles
+module load llvm-openmp-dev
+source /work/atif/packages/root-6.24-gcc-9.3.0/bin/thisroot.sh
+export FCS_DATAPATH=/work/atif/FastCaloSimInputs/
+export OMP_TARGET_OFFLOAD=mandatory (mandatory | disabled)
+/work/atif/packages/cmake-3.25.0-linux-x86_64/bin/cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DRNDGEN_CPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CUDA_ARCHITECTURES=86 -DCUDAToolkit_ROOT=/usr/local/cuda/ -DCMAKE_CXX_FLAGS="-I/usr/local/cuda/include" -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+./x86_64-ubuntu2004-clang150-opt/bin/runTFCSSimulation --energy=1048576 > cpu_1048576.log
+./x86_64-ubuntu2004-clang150-opt/bin/runTFCSSimulation --energy=2097152 > cpu_2097152.log
+./x86_64-ubuntu2004-clang150-opt/bin/runTFCSSimulation --energy=4194304 > cpu_4194304.log
 ```
 
 

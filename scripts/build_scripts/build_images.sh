@@ -51,6 +51,7 @@ build_and_push_root_image() {
     check_image_exists ${root_image_tag}
     if [ $? -eq 0 ]; then
       echo "INFO - $(date) - Skipping build. Image ${root_image_tag} already exists in the registry." | tee -a ${logfile}
+      # podman-hpc push ${root_image_tag}
       return
     fi
   fi
@@ -122,9 +123,14 @@ for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; d
     if [ "${image_type}" != "fcs-x86" ] && [ "${base_image}" = ${UBUNTU_BASE_IMAGE} ]; then
       echo "Skipping FCS GPU variant for Ubuntu base image" | tee -a ${logfile}
       continue
+<<<<<<< HEAD
     fi
     echo "Building FCS image: ${image_type} with base image: ${base_image}" | tee -a ${logfile}
     build_and_push_fcs_image ${base_image} ${image_type}
+=======
+     fi
+     build_and_push_fcs_image ${base_image} ${image_type}
+>>>>>>> dingpf/packaging
   done
 done
 
