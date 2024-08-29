@@ -1,0 +1,11 @@
+**/.DS_Store
+**/__pycache__/
+**/*.egg-info/
+**/json/**/*
+scripts/run_scripts/*.txt
+**/*.txt
+**/*.json
+**/*.png
+**/*.ipynb
+!/hmatools/tests/test_data/**
+!/hmatools/requirements.txt

@@ -1,0 +1,198 @@
+name: Run FastCaloSim Benchmarking
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: "Run the build job?"
+        required: false
+        default: "false"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: self-hosted
+    name: Build and push images
+    if: ${{ github.event.inputs.run_build == 'true' }}
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/build
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build images
+      run: |
+        cd ./scripts/build_scripts
+        ./build_images.sh
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log File - Building and Pushing container images
+        path: ${{ env.LOG_DIR }}/*.txt
+
+    - name: Cleanup workspace
+      run: rm -rf ${{ github.workspace }}/*
+
+
+  # Idea: Make all permutations of runs
+  run:
+    runs-on: ${{ matrix.runner-label }}
+    name: Run FastCaloSim
+    strategy:
+      matrix:
+        runner-label: [perlmutter, exalearn]
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/run
+      NERSC_CONTAINER_REGISTRY_USER: ${{ secrets.NERSC_CONTAINER_REGISTRY_USER }}
+      NERSC_CONTAINER_REGISTRY_PASSWORD: ${{ secrets.NERSC_CONTAINER_REGISTRY_PASSWORD }}
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Run FastCaloSim on Perlmutter
+      if: contains(runner.name, 'perlmutter')
+      env:
+        RUNNER_LABEL: perlmutter
+        FCS_DATAPATH: /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
+      run: |
+        cd ./scripts/run_scripts
+        ./run_images.sh
+
+    - name: Run FastCaloSim on exalearn
+      if: contains(runner.name, 'exalearn')
+      env:
+        RUNNER_LABEL: exalearn5
+        FCS_DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs
+      run: |
+        cd ./scripts/run_scripts
+        ./run_images.sh
+
+    - name: Create tarball of log files
+      run: |
+        cd ${{ env.LOG_DIR }}
+        tar -czf ${{ github.workspace }}/log_files_${{ matrix.runner-label }}.tar.gz ./*.txt
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log Files - ${{ matrix.runner-label }}
+        path: log_files_${{ matrix.runner-label }}.tar.gz
+
+  postprocess:
+    runs-on: ubuntu-latest
+    name: Postprocess log files
+    needs: run
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/postprocess
+      INPUT_DIR: ${{ github.workspace }}/logs/run
+      OUTPUT_DIR: ${{ github.workspace }}/logs/postprocess
+      SCRIPT: ./postprocess.sh
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download perlmutter log files
+      uses: actions/download-artifact@v4
+      with:
+        name: Log Files - perlmutter
+        path: ${{ env.INPUT_DIR }}
+
+    - name: Download exalearn log files
+      uses: actions/download-artifact@v4
+      with:
+        name: Log Files - exalearn
+        path: ${{ env.INPUT_DIR }}
+
+    - name: Untar and uncompress logs
+      run: |
+        for runner in perlmutter exalearn; do
+          tar -xzf /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run/log_files_${runner}.tar.gz -C /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run
+        done
+
+    - name: Debug input directory
+      run: |
+        ls -l ${{ env.INPUT_DIR }}
+
+    - name: Build hmatools image
+      run: |
+        cd ./hmatools/scripts
+        ./build_image.sh
+
+    - name: Run hmatools postprocessing
+      run: |
+        cd ./hmatools/scripts
+        ./run_image.sh
+
+    - name: Upload logfiles
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Postprocess log file
+        path: ${{ env.LOG_DIR }}/*.txt
+
+    - name: Upload json files
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: FastCaloSim Results (JSON)
+        path: ${{ env.OUTPUT_DIR }}/*.json
+
+    - name: Cleanup workspace
+      run: rm -rf ${{ github.workspace }}/*
+
+  plot:
+    runs-on: ubuntu-latest
+    name: Plot results
+    needs: postprocess
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/plot
+      INPUT_DIR: ${{ github.workspace }}/logs/postprocess
+      OUTPUT_DIR: ${{ github.workspace }}/logs/plot
+      SCRIPT: ./plot.sh
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Download json files
+      uses: actions/download-artifact@v4
+      with:
+        name: FastCaloSim Results (JSON)
+        path: ${{ env.INPUT_DIR }}
+
+    - name: Debug input directory
+      run: |
+        ls -l ${{ env.INPUT_DIR }}
+
+    - name: Build hmatools image
+      run: |
+        cd ./hmatools/scripts
+        ./build_image.sh
+
+    - name: Run hmatools plotting
+      run: |
+        cd ./hmatools/scripts
+        ./run_image.sh
+
+    - name: Upload logfiles
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Plot log file
+        path: ${{ env.LOG_DIR }}/*.txt
+
+    - name: Upload plot files
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: Result plots
+        path: ${{ env.OUTPUT_DIR }}/*.png

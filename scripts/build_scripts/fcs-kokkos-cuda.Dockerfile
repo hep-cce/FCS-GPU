@@ -1,6 +1,7 @@
-ARG BASE=docker.io/dingpf/root:6.30.04-cuda12.2.2-ubuntu22.04 
+ARG BASE=registry.nersc.gov/m2845/root:6.30.04-cuda12.2.2-devel-ubuntu22.04
 FROM $BASE
 
+# ARG BASE=docker.io/dingpf/root:6.30.04-cuda12.2.2-ubuntu22.04 
 #ARG BASE=docker.io/dingpf/root:6.30.04-nvhpc23.9-cuda12.2-ubuntu22.04
 
 ARG WORK_DIR=/hep-mini-apps

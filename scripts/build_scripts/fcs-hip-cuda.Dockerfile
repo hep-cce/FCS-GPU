@@ -63,14 +63,16 @@ RUN \
   mkdir -p $FCS_INSTALL_DIR && \
   git clone https://github.com/hep-cce/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR && \
   cd $FCS_BUILD_DIR && \
-  cmake -DCMAKE_INSTALL_PREFIX=$FCS_INSTALL_DIR \
-	-DENABLE_XROOTD=Off \
-	-DCMAKE_CXX_STANDARD=17 \
-	-DCMAKE_CXX_EXTENSIONS=Off \
-       	-DENABLE_GPU=on \
-        -DCMAKE_CXX_COMPILER=hipcc \
-	$FCS_SRC_DIR/FastCaloSimAnalyzer   && \
-  make -j 128 install && \
+# currently not working due to missing patches of fcs
+#   cmake -DCMAKE_INSTALL_PREFIX=$FCS_INSTALL_DIR \
+# 	-DENABLE_XROOTD=Off \
+# 	-DCMAKE_CXX_STANDARD=17 \
+# 	-DCMAKE_CXX_EXTENSIONS=Off \
+#        	-DENABLE_GPU=on \
+#         -DCMAKE_CXX_COMPILER=hipcc \
+#         -DCMAKE_CUDA_ARCHITECTURES=80 \
+# 	$FCS_SRC_DIR/FastCaloSimAnalyzer   && \
+#   make -j 128 install && \
   rm -rf $FCS_BUILD_DIR
 
-	#-DCMAKE_CUDA_ARCHITECTURES=80 \
+	

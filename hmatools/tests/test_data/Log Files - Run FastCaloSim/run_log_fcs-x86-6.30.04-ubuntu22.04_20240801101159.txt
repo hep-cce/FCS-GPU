@@ -1,0 +1,225 @@
+Logfile: /run/run_log_fcs-x86-6.30.04-ubuntu22.04_20240801101159.txt
+INFO - Thu Aug  1 17:12:00 UTC 2024 - DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs:/input
+INFO - Thu Aug  1 17:12:00 UTC 2024 - System information:
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: perl /run/sysinfo.pl
+{
+  "hostname": "cd8ef94064f4",
+  "OS": "unknown",
+  "sockets": "1",
+  "max_clock": "3000.0000",
+  "threads_per_core": "2",
+  "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+  "cores": "32",
+  "GPUs": [
+  ],
+}
+md5 sum: d5acee724c31e8c79d0f3b47669b0067 d5acee72
+INFO - Thu Aug  1 17:12:00 UTC 2024 - CPU information:
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: lscpu
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Address sizes:                      43 bits physical, 48 bits virtual
+Byte Order:                         Little Endian
+CPU(s):                             32
+On-line CPU(s) list:                0-31
+Vendor ID:                          AuthenticAMD
+Model name:                         AMD EPYC 7302P 16-Core Processor
+CPU family:                         23
+Model:                              49
+Thread(s) per core:                 2
+Core(s) per socket:                 16
+Socket(s):                          1
+Stepping:                           0
+Frequency boost:                    enabled
+CPU max MHz:                        3000.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           5988.87
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es
+Virtualization:                     AMD-V
+L1d cache:                          512 KiB (16 instances)
+L1i cache:                          512 KiB (16 instances)
+L2 cache:                           8 MiB (16 instances)
+L3 cache:                           128 MiB (8 instances)
+NUMA node(s):                       1
+NUMA node0 CPU(s):                  0-31
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Mitigation; untrained return thunk; SMT enabled with STIBP protection
+Vulnerability Spec rstack overflow: Mitigation; Safe RET
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Setup
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: export FCS_DATAPATH=/input
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: source /hep-mini-apps/root/install/bin/thisroot.sh
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: source /hep-mini-apps/FCS-GPU/install/setup.sh
+FastCaloSim Standalone
+  Installation path: /hep-mini-apps/FCS-GPU/install
+  Added '$FCSSTANDALONE/bin' to $PATH
+  Added '$FCSSTANDALONE/lib' to $LD_LIBRARY_PATH
+INFO - Thu Aug  1 17:12:00 UTC 2024 - TFCSSimulation
+INFO - Thu Aug  1 17:12:00 UTC 2024 - Executing: runTFCSSimulation --earlyReturn --energy 65536
+Reading input files from /input
+Initialising DSID DB...
+DB ready
+Parametrization File: '/input/BigParamFiles/TFCSparam_v010.root'
+ energy = 65536
+ eta_label = 020_025
+* Running on linux system 
+432704	/input/InputSamplesProdsysProduction/mc16_13TeV.432704.ParticleGun_pid11_E65536_disj_eta_m25_m20_20_25_zv_0.deriv.NTUP_FCS.e6555_e5984_s3259_r10283_p3449/NTUP_FCS.13289109._000001.pool.root.1
+ * Prepare to run on: /input/InputSamplesProdsysProduction/mc16_13TeV.432704.ParticleGun_pid11_E65536_disj_eta_m25_m20_20_25_zv_0.deriv.NTUP_FCS.e6555_e5984_s3259_r10283_p3449/NTUP_FCS.13289109._000001.pool.root.1 with entries = 10000
+ * Running over 10000 events.
+ *   1stPCA file: /input/ParametrizationProduction07/mc16_13TeV.432704.ParticleGun_pid11_E65536_disj_eta_m25_m20_20_25_zv_0.firstPCA_App.ver07.root
+ *   AvgShape file: /input/ParametrizationProduction07/mc16_13TeV.432704.ParticleGun_pid11_E65536_disj_eta_m25_m20_20_25_zv_0.AvgSimShape.ver07.root
+=============================
+Loading cellId_vs_cellHashId_map
+Line: 10000 id 2cac3c1e00000000 hash_id 9999
+Line: 20000 id 2cc4213e00000000 hash_id 19999
+Line: 30000 id 2ce0195e00000000 hash_id 29999
+Line: 40000 id 2d20847e00000000 hash_id 39999
+Line: 50000 id 2d21be1e00000000 hash_id 49999
+Line: 60000 id 2d22f63e00000000 hash_id 59999
+Line: 70000 id 2d4025de00000000 hash_id 69999
+Line: 80000 id 2d6001fe00000000 hash_id 79999
+Line: 90000 id 2d80681e00000000 hash_id 89999
+Line: 100000 id 2da1283e00000000 hash_id 99999
+Line: 110000 id 2da2605e00000000 hash_id 109999
+Line: 120000 id 2dc0007e00000000 hash_id 119999
+Line: 130000 id 2dc04e9e00000000 hash_id 129999
+Line: 140000 id 2de02abe00000000 hash_id 139999
+Line: 150000 id 2e2c2a5e00000000 hash_id 149999
+Line: 160000 id 2e441cfe00000000 hash_id 159999
+Line: 170000 id 2e60151e00000000 hash_id 169999
+Line: 180000 id 3485e00000000000 hash_id 179999
+Done.
+Checking loading cells from file
+0 : 6, 3179541336923570176
+Checking loading cells from file
+25000 : 6, 3225782741538701312
+Checking loading cells from file
+50000 : 1, 3252089450586439680
+Checking loading cells from file
+75000 : 2, 3260690723892101120
+Checking loading cells from file
+100000 : 1, 3287953458300190720
+Checking loading cells from file
+125000 : 2, 3296678426663976960
+Checking loading cells from file
+150000 : 5, 3327080816525180928
+Checking loading cells from file
+175000 : 10, 3535184969997484032
+Result of PostProcessGeometry(): 1
+
+ 
+Testing whether CaloGeoGeometry is loaded properly
+Identifier 3179554531063103488 sampling 6 eta: -3.15858 phi: 0.0545135 CaloDetDescrElement=0x560552fad050
+
+Identifier 3179554531063103488 sampling 6 eta: -3.15858 phi: 0.0545135 CaloDetDescrElement=0x560552fad050
+
+Loading FCal electrode #1
+Loading FCal electrode #2
+Loading FCal electrode #3
+TFCSShapeValidation::LoopEvents(): Running on layer = 2, pcabin = -1
+========================================================
+========================================================
+
+
+Event: 0
+
+Event: 250
+
+Event: 500
+
+Event: 750
+
+Event: 1000
+
+Event: 1250
+
+Event: 1500
+
+Event: 1750
+
+Event: 2000
+
+Event: 2250
+
+Event: 2500
+
+Event: 2750
+
+Event: 3000
+
+Event: 3250
+
+Event: 3500
+
+Event: 3750
+
+Event: 4000
+
+Event: 4250
+
+Event: 4500
+
+Event: 4750
+
+Event: 5000
+
+Event: 5250
+
+Event: 5500
+
+Event: 5750
+
+Event: 6000
+
+Event: 6250
+
+Event: 6500
+
+Event: 6750
+
+Event: 7000
+
+Event: 7250
+
+Event: 7500
+
+Event: 7750
+
+Event: 8000
+
+Event: 8250
+
+Event: 8500
+
+Event: 8750
+
+Event: 9000
+
+Event: 9250
+
+Event: 9500
+
+Event: 9750
+Time of  LoadGeo cpu IO:0.715597 s
+Time of  eventloop  LateralShapeParamHitChain  :21.5122 s
+Time of  eventloop  :21.8746 s
+Time of  eventloop  GPU ChainA:0 s
+Time of  eventloop  GPU ChainB:0 s
+Time of  eventloop  host Chain0:21.5104 s
+Time of  eventloop  before chain simul:0.00645115 s
+Time of  eventloop  I/O read from tree:0.312925 s
+Time for Chain 0 is 21.5537 s
+Time for Chain 1 is 0 s
+Time for Chain 2 is 0 s
+Time for Chain 3 is 0 s
+Time for Chain 4 is 0 s
+exiting early
