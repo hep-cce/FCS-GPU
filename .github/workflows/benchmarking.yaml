@@ -47,7 +47,7 @@ jobs:
     name: Run FastCaloSim
     strategy:
       matrix:
-        runner-label: [perlmutter, exalearn]
+        runner-label: [pm-login, exalearn5]
     env:
       LOG_DIR: ${{ github.workspace }}/logs/run
       NERSC_CONTAINER_REGISTRY_USER: ${{ secrets.NERSC_CONTAINER_REGISTRY_USER }}
@@ -58,16 +58,16 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Run FastCaloSim on Perlmutter
-      if: contains(runner.name, 'perlmutter')
+      if: contains(runner.name, 'pm-login')
       env:
-        RUNNER_LABEL: perlmutter
+        RUNNER_LABEL: pm-login
         FCS_DATAPATH: /global/cfs/cdirs/atlas/leggett/data/FastCaloSimInputs
       run: |
         cd ./scripts/run_scripts
         ./run_images.sh
 
-    - name: Run FastCaloSim on exalearn
-      if: contains(runner.name, 'exalearn')
+    - name: Run FastCaloSim on exalearn5
+      if: contains(runner.name, 'exalearn5')
       env:
         RUNNER_LABEL: exalearn5
         FCS_DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs
@@ -100,21 +100,21 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Download perlmutter log files
+    - name: Download pm-login log files
       uses: actions/download-artifact@v4
       with:
-        name: Log Files - perlmutter
+        name: Log Files - pm-login
         path: ${{ env.INPUT_DIR }}
 
-    - name: Download exalearn log files
+    - name: Download exalearn5 log files
       uses: actions/download-artifact@v4
       with:
-        name: Log Files - exalearn
+        name: Log Files - exalearn5
         path: ${{ env.INPUT_DIR }}
 
     - name: Untar and uncompress logs
       run: |
-        for runner in perlmutter exalearn; do
+        for runner in pm-login exalearn5; do
           tar -xzf /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run/log_files_${runner}.tar.gz -C /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run
         done
 
