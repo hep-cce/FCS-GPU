@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e  # Exit immediately if a command exits with a non-zero status.
-set -x  # Print commands and their arguments as they are executed.
+#set -x  # Print commands and their arguments as they are executed.
 
 OS_BASE=ubuntu22.04
 CUDA_VERSION=12.2.2-devel-${OS_BASE}
@@ -18,6 +18,8 @@ UBUNTU_BASE_IMAGE=docker.io/library/ubuntu:22.04
 REGISTRY_PROJECT=registry.nersc.gov/m2845
 
 CHECK_REPO=${CHECK_REPO:-0}
+BUILD_ROOT_IMAGE=${BUILD_ROOT_IMAGE:-0}
+LOG_DIR=${LOG_DIR:-"."}
 
 logfile="${LOG_DIR}/build_image_log_$(date +%Y%m%d%H%M%S).txt"
 
@@ -42,6 +44,9 @@ check_image_exists() {
 }
 
 build_and_push_root_image() {
+  if [ ${BUILD_ROOT_IMAGE} -eq 0 ]; then
+    return
+  fi
   local base_image=$1
   local image_tag=$(basename ${base_image})
   image_tag=${image_tag//:/}
@@ -62,8 +67,8 @@ build_and_push_root_image() {
     --build-arg=ROOT_VERSION=${ROOT_VERSION} \
     -t ${root_image_tag} . | tee -a ${logfile}
 
-  # echo "INFO - $(date) - Pushing image: ${root_image_tag}" | tee -a ${logfile}
-  # $CONTAINER_CMD push ${root_image_tag} | tee -a ${logfile}
+  echo "INFO - $(date) - Pushing image: ${root_image_tag}" | tee -a ${logfile}
+  $CONTAINER_CMD push ${root_image_tag} | tee -a ${logfile}
 }
 
 build_and_push_fcs_image() {
@@ -89,53 +94,48 @@ build_and_push_fcs_image() {
     -t ${fcs_image_tag} \
     . | tee -a ${logfile}
 
-  # echo "INFO - $(date) - Pushing image: ${fcs_image_tag}" | tee -a ${logfile}
-  # $CONTAINER_CMD push ${fcs_image_tag} | tee -a ${logfile}
+  echo "INFO - $(date) - Pushing image: ${fcs_image_tag}" | tee -a ${logfile}
+  $CONTAINER_CMD push ${fcs_image_tag} | tee -a ${logfile}
 }
 
-echo "Starting script..." | tee -a ${logfile}
+echo "INFO - $(date) - Starting script..." | tee -a ${logfile}
 
 if check_command_exists podman-hpc; then
-    echo "Using podman-hpc"
+    echo "INFO - $(date) - Using podman-hpc" | tee -a ${logfile}
     CONTAINER_CMD="podman-hpc"
 elif check_command_exists docker; then
-    echo "Using docker"
+    echo "INFO - $(date) - Using docker" | tee -a ${logfile}
     CONTAINER_CMD="docker"
 else
-    echo "ERROR: Neither podman-hpc nor docker is installed on this system."
+    echo "ERROR - $(date) - Neither podman-hpc nor docker is installed on this system."  | tee -a ${logfile}
     exit 1
 fi
 
-echo "Using container command: ${CONTAINER_CMD}" | tee -a ${logfile}
+echo "INFO - $(date) - Using container command: ${CONTAINER_CMD}" | tee -a ${logfile}
 
 for base_image in ${UBUNTU_BASE_IMAGE} ${NVHPC_BASE_IMAGE} ${CUDA_BASE_IMAGE}; do
-  echo "Processing base image: ${base_image}" | tee -a ${logfile}
+  echo "INFO - $(date) - Processing base image: ${base_image}" | tee -a ${logfile}
   build_and_push_root_image ${base_image}
 
   # Build FCS images using different base images
   for image_type in fcs-x86 fcs-cuda fcs-kokkos-cuda; do
     # Only build FCS x86 variant using Ubuntu base image
     if [ "${image_type}" = "fcs-x86" ] && [ "${base_image}" != ${UBUNTU_BASE_IMAGE} ]; then
-      echo "Skipping FCS x86 variant for non-Ubuntu base image" | tee -a ${logfile}
+      echo "INFO - $(date) - Skipping FCS x86 variant for non-Ubuntu base image" | tee -a ${logfile}
       continue
     fi
     # Only build FCS GPU variant using non-Ubuntu base image
     if [ "${image_type}" != "fcs-x86" ] && [ "${base_image}" = ${UBUNTU_BASE_IMAGE} ]; then
-      echo "Skipping FCS GPU variant for Ubuntu base image" | tee -a ${logfile}
+      echo "INFO - $(date) - Skipping FCS GPU variant for Ubuntu base image" | tee -a ${logfile}
       continue
-<<<<<<< HEAD
     fi
-    echo "Building FCS image: ${image_type} with base image: ${base_image}" | tee -a ${logfile}
+    echo "INFO - $(date) - Building FCS image: ${image_type} with base image: ${base_image}" | tee -a ${logfile}
     build_and_push_fcs_image ${base_image} ${image_type}
-=======
-     fi
-     build_and_push_fcs_image ${base_image} ${image_type}
->>>>>>> dingpf/packaging
   done
 done
 
-echo "Building additional FCS images..." | tee -a ${logfile}
+echo "INFO - $(date) - Building additional FCS images..." | tee -a ${logfile}
 build_and_push_fcs_image ${NVHPC_BASE_IMAGE} fcs-stdpar-cuda
 build_and_push_fcs_image ${CUDA_BASE_IMAGE} fcs-hip-cuda
 
-echo "Script completed successfully!" | tee -a ${logfile}
+echo "INFO - $(date) - Script completed successfully!" | tee -a ${logfile}

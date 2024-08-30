@@ -25,8 +25,6 @@ RUN \
 
 ENV CUDA_PATH /usr/local/cuda/
 
-    #mkdir -p /opt &&  cd /opt &&  export ROCMBRANCH=rocm-6.1.x && \
-
 ARG ROCM_BRANCH=rocm-6.1.x
 
 RUN \
@@ -61,18 +59,19 @@ RUN \
   . $ROOT_INSTALL_DIR/bin/thisroot.sh && \
   mkdir -p $FCS_BUILD_DIR && \
   mkdir -p $FCS_INSTALL_DIR && \
-  git clone https://github.com/hep-cce/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR && \
-  cd $FCS_BUILD_DIR && \
+  git clone https://github.com/hep-cce/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR 
+# git clone https://github.com/hep-cce/FCS-GPU.git -b ${FCS_BRANCH} $FCS_SRC_DIR && \
+# cd $FCS_BUILD_DIR && \
 # currently not working due to missing patches of fcs
-#   cmake -DCMAKE_INSTALL_PREFIX=$FCS_INSTALL_DIR \
-# 	-DENABLE_XROOTD=Off \
-# 	-DCMAKE_CXX_STANDARD=17 \
-# 	-DCMAKE_CXX_EXTENSIONS=Off \
-#        	-DENABLE_GPU=on \
-#         -DCMAKE_CXX_COMPILER=hipcc \
-#         -DCMAKE_CUDA_ARCHITECTURES=80 \
-# 	$FCS_SRC_DIR/FastCaloSimAnalyzer   && \
-#   make -j 128 install && \
-  rm -rf $FCS_BUILD_DIR
+# cmake -DCMAKE_INSTALL_PREFIX=$FCS_INSTALL_DIR \
+#	-DENABLE_XROOTD=Off \
+#	-DCMAKE_CXX_STANDARD=17 \
+#	-DCMAKE_CXX_EXTENSIONS=Off \
+#       	-DENABLE_GPU=on \
+#        -DCMAKE_CXX_COMPILER=hipcc \
+#        -DCMAKE_CUDA_ARCHITECTURES=80 \
+#	$FCS_SRC_DIR/FastCaloSimAnalyzer   && \
+# make -j 128 install && \
+# rm -rf $FCS_BUILD_DIR
 
 	
