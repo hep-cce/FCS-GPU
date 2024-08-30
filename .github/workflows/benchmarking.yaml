@@ -16,7 +16,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: [self-hosted, pm-login]
     name: Build and push images
     if: ${{ github.event.inputs.run_build == 'true' }}
     env:
@@ -115,7 +115,7 @@ jobs:
     - name: Untar and uncompress logs
       run: |
         for runner in pm-login exalearn5; do
-          tar -xzf /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run/log_files_${runner}.tar.gz -C /home/runner/work/self_hosted_runner/self_hosted_runner/logs/run
+          tar -xzf ${{ github.workspace }}/logs/run/log_files_${runner}.tar.gz -C ${{ github.workspace }}/logs/run
         done
 
     - name: Debug input directory
