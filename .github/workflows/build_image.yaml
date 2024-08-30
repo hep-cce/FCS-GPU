@@ -1,4 +1,4 @@
-name: Run FastCaloSim Benchmarking
+name: Build Container images with FastCaloSim
 
 on:
   workflow_dispatch:
