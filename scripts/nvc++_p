@@ -8,32 +8,17 @@ A=$*
 ## These can be generated with
 ## > makelocalrc -gcc PATH_TO_GCC -gpp PATH_TO_G++ -x -d PATH_TO_LOCALRC_DIR
 #
-LOCALRC=""
-GCCVER=$( gcc --version | head -1 | awk '{print $NF}' )
-case $GCCVER in
-    11.3.0)
-        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc113"
-        ;;
-    11.2.0)
-        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc112"
-        ;;
-    10.2.0)
-        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc102"
-        ;;
-    10.1.0)
-        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc101"
-        ;;
-    9.3.0)    
-        LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc93"
-        ;;
-esac
+if [[ -z ${NVHPC_LOCALRC+x} ]]; then
+    GCCVER=$( gcc --version | head -1 | awk '{print $NF}' | sed s/'\.'//g | sed s/.$// )
+    NVHPC_LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc${GCCVER}"
+fi
 
-if [[ ! -f $LOCALRC ]]; then
-    echo "nvc++_p ERROR: no local rc file \"$LOCALRC\" found"
+if [[ ! -f $NVHPC_LOCALRC ]]; then
+    echo "nvc++_p ERROR: no local rc file \"$NVHPC_LOCALRC\" found"
     exit 1
 fi
 
-LOCALRC="-rc=${LOCALRC}"
+LOCALRC="-rc=${NVHPC_LOCALRC}"
 
 STDPAROPTS="-cudalib=curand"
 
