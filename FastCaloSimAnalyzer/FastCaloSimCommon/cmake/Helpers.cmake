@@ -70,7 +70,7 @@ function(fcs_make_task)
 
   if(USE_STDPAR)
     target_compile_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
-    target_link_options(${_target} PRIVATE ${STDPAR_DIRECTIVE})
+    target_link_options(${_target} PRIVATE ${STDPAR_DIRECTIVE} -Xlinker -z noexecstack)
   endif()
   
   foreach(_dependency ${ARG_DEPENDENCY})

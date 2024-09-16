@@ -154,7 +154,7 @@ if(USE_STDPAR)
     
   endif()
     
-  target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE})
+  target_link_options(${FastCaloGpu_LIB} PRIVATE ${STDPAR_DIRECTIVE} -Xlinker -z noexecstack)
 
 endif()
 
