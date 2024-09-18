@@ -1,0 +1,36 @@
+#!/bin/bash
+
+HIPCC=$( which hipcc )
+CXX=$( which g++ )
+A=$*
+
+echo $A | grep -q USE_HIP
+HIP=$?
+
+echo $A | grep -q FastCaloGpu
+FC=$?
+
+if [[ $HIP -eq 0 && $FC -eq 0 ]]; then
+    X=$( echo $* | sed s/-pipe// )
+    X=$( echo $X | sed s/-fsigned-char// )
+    X=$( echo $X | sed s/-pthread// )
+    X=$( echo $X | sed s/-Wall// )
+    X=$( echo $X | sed s/-Wno-long-long// )
+    X=$( echo $X | sed s/-Wno-deprecated// )
+    X=$( echo $X | sed s/-Wno-unused-local-typedefs// )
+    X=$( echo $X | sed s/-Wwrite-strings// )
+    X=$( echo $X | sed s/-Wpointer-arith// )
+    X=$( echo $X | sed s/-Woverloaded-virtual// )
+    X=$( echo $X | sed s/-Wextra// )
+    X=$( echo $X | sed s/-Werror=return-type// )
+    X=$( echo $X | sed s/-fPIC/"-shared -Xcompiler -fPIC"/ )
+
+    CXX=${HIPCC}
+    CXXARGS="$X"
+else
+    A=$( echo $A )
+
+    CXXARGS=$A
+fi
+
+$CXX $CXXARGS
