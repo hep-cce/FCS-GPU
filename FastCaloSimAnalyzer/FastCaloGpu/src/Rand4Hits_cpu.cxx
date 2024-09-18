@@ -1,7 +1,7 @@
 /*
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
-
+#include "Rand4Hits.h"
 #include <random>
 #include <vector>
 #include <algorithm>

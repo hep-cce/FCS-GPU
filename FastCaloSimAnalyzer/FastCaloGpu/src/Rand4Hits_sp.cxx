@@ -2,6 +2,10 @@
 #include <iostream>
 #include <cstring>
 
+#ifndef RNDGEN_CPU
+#include "gpuQ.h"
+#endif
+
 void Rand4Hits::allocate_simulation( long long /*maxhits*/, unsigned short /*maxbins*/, unsigned short maxhitct,
                                      unsigned long n_cells ) {
 
@@ -35,3 +39,47 @@ void Rand4Hits::deallocate() {
   delete ( m_rnd_cpu );
 }
 
+/*
+**** these are also defined in Rand4Hits.cu
+*/
+//#ifndef _NVHPC_STDPAR_GPU
+#ifdef RNDGEN_CPU
+
+Rand4Hits::~Rand4Hits() {
+  deallocate();
+
+  destroyCPUGen();
+}
+
+void Rand4Hits::rd_regen() {
+    genCPU( 3 * m_total_a_hits );
+};
+
+void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
+
+  float* f{nullptr};
+
+  m_useCPU = useCPU;
+
+  if ( m_useCPU ) {
+    allocateGenMem( num );
+    createCPUGen( seed );
+    genCPU( num );
+#ifdef USE_STDPAR
+    f = m_rnd_cpu->data();
+#else
+    gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
+    gpuQ( cudaMemcpy( f, m_rnd_cpu->data(), num * sizeof( float ), cudaMemcpyHostToDevice ) );
+#endif
+  } else {
+    std::cout << "ERROR: should only be using CPU for Random Number Generator\n";
+    throw std::runtime_error( "Rand4Hits::create_gen CPU ERROR: should only be using CPU for Random Number Generator\n" );
+  }
+
+  m_rand_ptr = f;
+
+  std::cout << "R4H m_rand_ptr: " << m_rand_ptr << std::endl;
+
+}
+
+#endif
