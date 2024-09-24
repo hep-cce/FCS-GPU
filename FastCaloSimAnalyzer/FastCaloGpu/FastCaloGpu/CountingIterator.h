@@ -1,3 +1,10 @@
+#ifndef COUNTING_ITERATOR_H
+#define COUNTING_ITERATOR_H 1
+
+#include <cstddef>
+#include <type_traits>
+#include <iterator>
+
 struct counting_iterator {
 
   typedef size_t Index_t;
@@ -67,3 +74,6 @@ public:
 private:
   value_type value;
 };
+
+
+#endif

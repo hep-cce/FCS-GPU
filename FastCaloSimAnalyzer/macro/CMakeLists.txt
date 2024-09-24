@@ -47,3 +47,13 @@ fcs_make_task(runTFCSSimulation
   DEPENDENCY ${AthenaStandalone_LIB}
   DEPENDENCY ${FastCaloSimAnalyzer_LIB}
 )
+
+if(USE_STDPAR)
+  message(STATUS "Building StdPar tests")
+  fcs_make_task(runTFCSStdParTest
+    SOURCE runTFCSStdParTest.cxx
+    DEPENDENCY ${FastCaloSimCommon_LIB}
+    DEPENDENCY ${AthenaStandalone_LIB}
+    DEPENDENCY ${FastCaloSimAnalyzer_LIB}
+    )
+endif()

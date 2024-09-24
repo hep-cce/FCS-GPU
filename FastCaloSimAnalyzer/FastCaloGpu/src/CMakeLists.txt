@@ -57,7 +57,7 @@ endif()
 
 # Sources
 if(USE_STDPAR)
-  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx Rand4Hits_sp.cxx)
+  set(FastCaloGpu_Srcs GeoLoadGpu.cxx KernelWrapper_sp.cxx Rand4Hits_sp.cxx TestStdPar.cxx)
   if ( ${STDPAR_TARGET} STREQUAL "gpu" )
     set(FastCaloGpu_Srcs ${FastCaloGpu_Srcs} gpuQ.cu )
   endif()
