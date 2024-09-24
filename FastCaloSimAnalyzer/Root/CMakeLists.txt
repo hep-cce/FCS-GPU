@@ -22,6 +22,10 @@ set(FastCaloSimAnalyzer_Srcs
   TFCSWriteCellsToTree.cxx
 )
 
+if(USE_STDPAR)
+  set(FastCaloSimAnalyzer_Srcs ${FastCaloSimAnalyzer_Srcs} TFCSStdParTest.cxx)
+endif()
+
 # # Global include is needed for dictionary generation to work
 include_directories(../)
 
