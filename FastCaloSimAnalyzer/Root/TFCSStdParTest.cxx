@@ -12,6 +12,10 @@ void TFCSStdParTest::test(bool doAtomic, bool doVector, unsigned long num) {
     tst.test_atomicAdd_float(num);
   }
 
-  if (doVector) tst.test_vector(num);
+  if (doVector) {
+      tst.test_floatArray(num);        
+      tst.test_vecFloat(num);
+      tst.test_vecInt(num);
+  }
   
 }
