@@ -7,7 +7,9 @@ public:
 
   void testAll(unsigned long);
 
-  void test_vector(unsigned long);
+  void test_floatArray(unsigned long);
+  void test_vecInt(unsigned long);
+  void test_vecFloat(unsigned long);
   void test_atomicAdd_int(unsigned long);
   void test_atomicAdd_float(unsigned long);
   
