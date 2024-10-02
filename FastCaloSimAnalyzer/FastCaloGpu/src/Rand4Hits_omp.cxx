@@ -1,13 +1,15 @@
 /*
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
-#include "gpuQ.h"
 #include "Rand4Hits.h"
 #include "DEV_BigMem.h"
 
 #include <omp.h>
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+#include "gpuQ.h"
 #include <cuda_runtime_api.h>
 #include <curand.h>
+#endif
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
@@ -71,8 +73,10 @@ Rand4Hits::~Rand4Hits() {
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
     delete (curandGenerator_t*)m_gen;
+#endif
   }
 };
 
@@ -84,7 +88,9 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
+#endif
   }
 };
 
@@ -105,12 +111,14 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
     gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
     curandGenerator_t* gen = new curandGenerator_t;
     CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
     CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
     CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
     m_gen = (void*)gen;
+#endif
   }
 
   m_rand_ptr = f;
