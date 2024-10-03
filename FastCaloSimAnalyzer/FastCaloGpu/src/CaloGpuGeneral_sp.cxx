@@ -9,7 +9,11 @@
 #include "Rand4Hits.h"
 #include "Hit.h"
 #include "CountingIterator.h"
-#include "nvToolsExt.h"
+
+// FIXME: Bug in nvhpc 24.X
+#if defined ( _NVHPC_STDPAR_NONE )
+  #include "nvToolsExt.h"
+#endif
 
 #define DO_ATOMIC_TESTS 0
 

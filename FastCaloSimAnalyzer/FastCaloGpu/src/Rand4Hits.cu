@@ -52,13 +52,13 @@ void Rand4Hits::allocateGenMem(size_t num) {
 
 
 Rand4Hits::~Rand4Hits() {
-  
+
 #ifdef USE_STDPAR
   deallocate();
 #else
   delete ( m_rnd_cpu );
 #endif
-  
+
 #ifdef USE_STDPAR
   if (!m_useCPU) {
     gpuQ( cudaFree( m_rand_ptr ) );
@@ -66,7 +66,7 @@ Rand4Hits::~Rand4Hits() {
 #else
   gpuQ( cudaFree( m_rand_ptr ) );
 #endif
-  
+
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
@@ -91,7 +91,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
   float* f{nullptr};
 
   m_useCPU = useCPU;
-  
+
   if ( m_useCPU ) {
     allocateGenMem( num );
     createCPUGen( seed );
@@ -110,9 +110,9 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
     m_gen = (void*)gen;
   }
-  
+
   m_rand_ptr = f;
-  
+
   std::cout << "R4H m_rand_ptr: " << m_rand_ptr << std::endl;
 
 }
