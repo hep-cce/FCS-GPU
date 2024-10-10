@@ -1,13 +1,10 @@
 /*
   Copyright (C) 2002-2021 CERN for the benefit of the ATLAS collaboration
 */
-// #include "gpuQ.h"
 #include "Rand4Hits.h"
 #include "DEV_BigMem.h"
 
 #include <omp.h>
-// #include <cuda_runtime_api.h>
-// #include <curand.h>
 #include "openmp_rng.h"
 
 #include "GpuParams.h"
@@ -86,8 +83,18 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
-    auto gen = generator_enum::xorwow; 
+    auto gen = generator_enum::xorwow;
+#ifdef USE_RANDOM123
+    float* f_r123 = (float*) malloc ( 3 * m_total_a_hits * sizeof( float ) );
+    omp_get_rng_uniform_float(f_r123, 3 * m_total_a_hits, m_seed, gen);
+    if ( omp_target_memcpy( m_rand_ptr, f_r123, 3 * m_total_a_hits * sizeof( float ), m_offset, m_offset, m_select_device,
+                            m_initial_device ) ) {
+      std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
+    }
+    free(f_r123);
+#else
     omp_get_rng_uniform_float(m_rand_ptr, 3 * m_total_a_hits, m_seed, gen);
+#endif 
     //CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
   }
 };
@@ -109,9 +116,21 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifdef USE_RANDOM123
+    f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
+    float* f_r123 = (float*) malloc ( num * sizeof( float ) );
+    auto gen = generator_enum::xorwow; 
+    omp_get_rng_uniform_float(f_r123, num, seed, gen);
+    if ( omp_target_memcpy( f, f_r123, num * sizeof( float ), m_offset, m_offset, m_select_device,
+                            m_initial_device ) ) {
+      std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
+    }
+    free(f_r123);
+#else
     f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
     auto gen = generator_enum::xorwow; 
     omp_get_rng_uniform_float(f, num, seed, gen);
+#endif 
     m_gen = (void*)gen;
     // We need to save the seed for rd_regen
     m_seed = seed;
