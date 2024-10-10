@@ -193,7 +193,15 @@ export HIP_RUNTIME=cuda
 module load hip
 export FCS_DATAPATH=/pscratch/sd/a/atif/FastCaloSimInputs
 source /global/homes/a/atif/packages/root_install/bin/thisroot.sh
+<<<<<<< HEAD
 cmake ../FastCaloSimAnalyzer/ -DENABLE_XROOTD=Off -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=/global/homes/a/atif/FCS-GPU/scripts/hipcc_nvidia -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off -DENABLE_GPU=on -DUSE_HIP=on -DHIP_TARGET=NVIDIA -DCMAKE_LIBRARY_PATH="/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/;/global/common/software/nersc/pe/rocm/5.5.1/hip/include/hip/" -DRNDGEN_CPU=on
+=======
+cmake ../FastCaloSimAnalyzer/ -DENABLE_XROOTD=Off -DCMAKE_C_COMPILER=gcc \
+ -DCMAKE_CXX_COMPILER=/global/homes/a/atif/FCS-GPU/scripts/hipcc_nvidia \
+ -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_EXTENSIONS=Off -DENABLE_GPU=on -DUSE_HIP=on \
+ -DHIP_TARGET=NVIDIA  -DRNDGEN_CPU=on \
+ -DCMAKE_LIBRARY_PATH="/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/;/global/common/software/nersc/pe/rocm/5.5.1/hip/include/hip/"
+>>>>>>> group_sim_combined
 ```
 
 ### alpaka
@@ -210,7 +218,8 @@ export OMP_TARGET_OFFLOAD=mandatory
 cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on \ 
  -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 \
  -DCUDA_CUDART_LIBRARY=/usr/local/cuda/lib64/libcudart.so \
- -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc
+ -DCUDA_TOOLKIT_ROOT_DIR=/usr/local/cuda/ -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc \
+ -DCMAKE_CXX_FLAGS="--offload-arch=sm_70"
 ```
 
 ## Build Instructions for Perlmutter
@@ -219,7 +228,11 @@ module load clang-16.0.6-omp-nvptx
 module load cudatoolkit
 source /global/homes/a/atif/packages/root_install/bin/thisroot.sh
 export FCS_DATAPATH=/pscratch/sd/a/atif/FastCaloSimInputs
+<<<<<<< HEAD
 cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DINPUT_PATH="../../FastCaloSimInputs" -DCMAKE_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/
+=======
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=off -DENABLE_OMPGPU=on -DCMAKE_CXX_COMPILER=clang++ -DINPUT_PATH="../../FastCaloSimInputs" -DCMAKE_LIBRARY_PATH=/opt/nvidia/hpc_sdk/Linux_x86_64/22.7/math_libs/11.7/lib64/ -DCMAKE_CXX_FLAGS="--offload-arch=sm_80"
+>>>>>>> group_sim_combined
 
 ## Build Instructions for Cori
 

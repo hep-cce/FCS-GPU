@@ -5,7 +5,11 @@
 #include "DEV_BigMem.h"
 
 #include <omp.h>
-#include "openmp_rng.h"
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+#include "gpuQ.h"
+#include <cuda_runtime_api.h>
+#include <curand.h>
+#endif
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
@@ -69,9 +73,10 @@ Rand4Hits::~Rand4Hits() {
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
-    // TODO: Do we need this for Portable RNG?
-    // CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
-    // delete (curandGenerator_t*)m_gen;
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+    CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
+    delete (curandGenerator_t*)m_gen;
+#endif
   }
 };
 
@@ -84,6 +89,7 @@ void Rand4Hits::rd_regen() {
     }
   } else {
     auto gen = generator_enum::xorwow;
+#ifdef RNDGEN_OMP 	
 #ifdef USE_RANDOM123
     float* f_r123 = (float*) malloc ( 3 * m_total_a_hits * sizeof( float ) );
     omp_get_rng_uniform_float(f_r123, 3 * m_total_a_hits, m_seed, gen);
@@ -95,7 +101,11 @@ void Rand4Hits::rd_regen() {
 #else
     omp_get_rng_uniform_float(m_rand_ptr, 3 * m_total_a_hits, m_seed, gen);
 #endif 
+#endif 
     //CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+    CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
+#endif
   }
 };
 
@@ -116,6 +126,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifdef RNDGEN_OMP 	
 #ifdef USE_RANDOM123
     f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
     float* f_r123 = (float*) malloc ( num * sizeof( float ) );
@@ -134,6 +145,15 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     m_gen = (void*)gen;
     // We need to save the seed for rd_regen
     m_seed = seed;
+#endif 
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+    gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
+    curandGenerator_t* gen = new curandGenerator_t;
+    CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
+    CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
+    CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
+    m_gen = (void*)gen;
+#endif
   }
 
   m_rand_ptr = f;
