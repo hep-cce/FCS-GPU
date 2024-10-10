@@ -88,9 +88,9 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
-    auto gen = generator_enum::xorwow;
 #ifdef RNDGEN_OMP 	
 #ifdef USE_RANDOM123
+    auto gen = generator_enum::xorwow;
     float* f_r123 = (float*) malloc ( 3 * m_total_a_hits * sizeof( float ) );
     omp_get_rng_uniform_float(f_r123, 3 * m_total_a_hits, m_seed, gen);
     if ( omp_target_memcpy( m_rand_ptr, f_r123, 3 * m_total_a_hits * sizeof( float ), m_offset, m_offset, m_select_device,
