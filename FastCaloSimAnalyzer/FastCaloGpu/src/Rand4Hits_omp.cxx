@@ -9,16 +9,27 @@
 #include "gpuQ.h"
 #include <cuda_runtime_api.h>
 #include <curand.h>
+#elif defined OMP_OFFLOAD_TARGET_AMD
+#include "hip/hip_runtime.h"
+#include <rocrand.h>
 #endif
 
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
 
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
 #define CURAND_CALL( x )                                                                                               \
   if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
     printf( "Error at %s:%d\n", __FILE__, __LINE__ );                                                                  \
     exit( EXIT_FAILURE );                                                                                              \
   }
+#elif defined OMP_OFFLOAD_TARGET_AMD
+#define ROCRAND_CALL( x )                                                         \
+  if ((x) != ROCRAND_STATUS_SUCCESS) {                                          \
+    printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+    exit(EXIT_FAILURE);                                                        \
+  }
+#endif
 
 void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_cells ) {
 
@@ -73,9 +84,14 @@ Rand4Hits::~Rand4Hits() {
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
+#ifndef RNDGEN_CPU
 #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
     delete (curandGenerator_t*)m_gen;
+#elif defined OMP_OFFLOAD_TARGET_AMD
+    ROCRAND_CALL(rocrand_destroy_generator( *( (rocrand_generator*)m_gen)));
+    delete (rocrand_generator *)m_gen;
+#endif
 #endif
   }
 };
@@ -88,8 +104,12 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifndef RNDGEN_CPU
 #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
+#elif defined OMP_OFFLOAD_TARGET_AMD
+    ROCRAND_CALL(rocrand_generate_uniform( *( (rocrand_generator*)m_gen), m_rand_ptr, 3 * m_total_a_hits));
+#endif
 #endif
   }
 };
@@ -111,6 +131,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
   } else {
+#ifndef RNDGEN_CPU
 #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
     curandGenerator_t* gen = new curandGenerator_t;
@@ -118,6 +139,14 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
     CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
     m_gen = (void*)gen;
+#elif defined OMP_OFFLOAD_TARGET_AMD
+    hipMalloc(&f, num * sizeof(float));
+    rocrand_generator* gen = new rocrand_generator;
+    ROCRAND_CALL(rocrand_create_generator(gen, ROCRAND_RNG_PSEUDO_DEFAULT));
+    ROCRAND_CALL(rocrand_set_seed(*gen, seed));
+    ROCRAND_CALL(rocrand_generate_uniform(*gen, f, num));
+    m_gen = (void*)gen;
+#endif
 #endif
   }
 

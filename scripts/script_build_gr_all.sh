@@ -11,7 +11,7 @@
 ### CPURNG      Exalearn5
 ### OMPRNG
 ## AMD  -----------------
-### HIPRAND     xxxxxxxxx 
+### ROCRAND     Exalearn4 
 ### CPURNG      Exalearn4
 ### OMPRNG
 ## Multicore CPU --------
@@ -136,7 +136,18 @@ fi
 
 # OpenMP
 ## AMD
-### HIPRAND
+### ROCRAND
+if [ "$system" = "exalearn4" ]; then
+  echo "x-x-x-x-x OpenMP AMD CPURNG BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  export ROCM_PATH=/opt/rocm/
+  mkdir -p build-exalearn4-openmp-amd-rocrand
+  cd build-exalearn4-openmp-amd-rocrand
+  cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_FLAGS="--offload-arch=gfx908"
+  make -j32
+  echo "x-x-x-x-x OpenMP AMD CPURNG BUILD DONE x-x-x-x-x"
+  cd ..
+fi
 # Port does not exist
 ### CPURNG
 if [ "$system" = "exalearn4" ]; then
