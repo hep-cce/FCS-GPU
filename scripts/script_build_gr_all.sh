@@ -9,13 +9,19 @@
 ## Nvidia  --------------
 ### CURAND      Exalearn5
 ### CPURNG      Exalearn5
-### OMPRNG
+### OMPRNG      ---------
+#### ARCH_CUDA  Exalearn5
+#### RANDOM123  Exalearn5
 ## AMD  -----------------
-### HIPRAND     xxxxxxxxx 
+### ROCRAND     Exalearn4 
 ### CPURNG      Exalearn4
-### OMPRNG
+### OMPRNG      ---------
+#### ARCH_HIP   Exalearn4
+#### RANDOM123  Exalearn4
 ## Multicore CPU --------
 ### CPURNG      Exalearn4
+### OMPRNG      ---------
+#### RANDOM123  Exalearn5
 
 # HIP  ------------------
 ## Nvidia  --------------
@@ -133,11 +139,44 @@ if [ "$system" = "exalearn5" ]; then
   echo "x-x-x-x-x OpenMP Nvidia CPURNG BUILD DONE x-x-x-x-x"
   cd ..
 fi
+### Portable OMP RNG
+#### ARCH_CUDA
+if [ "$system" = "exalearn5" ]; then
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG ARCH_CUDA BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  mkdir -p build-exalearn5-openmp-nv-omprng-archcuda
+  cd build-exalearn5-openmp-nv-omprng-archcuda
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off -DRNDGEN_OMP=On  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS="--offload-arch=sm_80" -DARCH_CUDA=on
+  make -j16
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG ARCH_CUDA DONE x-x-x-x-x"
+  cd ..
+fi
+#### USE_RANDOM123
+if [ "$system" = "exalearn5" ]; then
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG USE_RANDOM123 BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  mkdir -p build-exalearn5-openmp-nv-omprng-random123
+  cd build-exalearn5-openmp-nv-omprng-random123
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off -DRNDGEN_OMP=On  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS="--offload-arch=sm_80" -DUSE_RANDOM123=on
+  make -j16
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG USE_RANDOM123 DONE x-x-x-x-x"
+  cd ..
+fi
 
 # OpenMP
 ## AMD
-### HIPRAND
-# Port does not exist
+### ROCRAND
+if [ "$system" = "exalearn4" ]; then
+  echo "x-x-x-x-x OpenMP AMD CPURNG BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  export ROCM_PATH=/opt/rocm/
+  mkdir -p build-exalearn4-openmp-amd-rocrand
+  cd build-exalearn4-openmp-amd-rocrand
+  cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=17 -DCMAKE_CXX_FLAGS="--offload-arch=gfx908"
+  make -j32
+  echo "x-x-x-x-x OpenMP AMD CPURNG BUILD DONE x-x-x-x-x"
+  cd ..
+fi
 ### CPURNG
 if [ "$system" = "exalearn4" ]; then
   echo "x-x-x-x-x OpenMP AMD CPURNG BUILD x-x-x-x-x"
@@ -149,6 +188,30 @@ if [ "$system" = "exalearn4" ]; then
   echo "x-x-x-x-x OpenMP AMD CPURNG BUILD DONE x-x-x-x-x"
   cd ..
 fi
+### Portable OMP RNG
+#### ARCH_HIP
+if [ "$system" = "exalearn4" ]; then
+  echo "x-x-x-x-x OpenMP AMD PortableOMPRNG ARCH_HIP BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  mkdir -p build-exalearn5-openmp-amd-omprng-archhip
+  cd build-exalearn5-openmp-amd-omprng-archhip
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off -DRNDGEN_OMP=On  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS="--offload-arch=gfx908" -DARCH_HIP=on
+  make -j16
+  echo "x-x-x-x-x OpenMP AMD PortableOMPRNG ARCH_HIP DONE x-x-x-x-x"
+  cd ..
+fi
+#### USE_RANDOM123
+if [ "$system" = "exalearn4" ]; then
+  echo "x-x-x-x-x OpenMP AMD PortableOMPRNG USE_RANDOM123 BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=mandatory
+  mkdir -p build-exalearn5-openmp-nv-omprng-random123
+  cd build-exalearn5-openmp-nv-omprng-random123
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off -DRNDGEN_OMP=On  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS="--offload-arch=gfx908" -DUSE_RANDOM123=on
+  make -j16
+  echo "x-x-x-x-x OpenMP AMD PortableOMPRNG USE_RANDOM123 DONE x-x-x-x-x"
+  cd ..
+fi
+
 
 ## Multicore CPU
 ### CPURNG
@@ -162,6 +225,19 @@ if [ "$system" = "exalearn4" ]; then
   echo "x-x-x-x-x OpenMP MULTICORE CPU CPURNG BUILD DONE x-x-x-x-x"
   cd ..
 fi
+### Portable-OMP-RNG
+#### USE_RANDOM123
+if [ "$system" = "exalearn5" ]; then
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG USE_RANDOM123 BUILD x-x-x-x-x"
+  export OMP_TARGET_OFFLOAD=disabled
+  mkdir -p build-exalearn5-openmp-multicorecpu-omprng-random123
+  cd build-exalearn5-openmp-multicorecpu-omprng-random123
+cmake ../FastCaloSimAnalyzer -DENABLE_XROOTD=off -DENABLE_GPU=on -DENABLE_OMPGPU=on -DRNDGEN_CPU=Off -DRNDGEN_OMP=On  -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_FLAGS="--offload-arch=sm_80" -DUSE_RANDOM123=on
+  make -j16
+  echo "x-x-x-x-x OpenMP Nvidia PortableOMPRNG USE_RANDOM123 DONE x-x-x-x-x"
+  cd ..
+fi
+
 
 # # # # # # # # # # # # # #
 

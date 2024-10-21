@@ -23,7 +23,6 @@ set(USE_ALPAKA OFF CACHE BOOL "Use alpaka")
 set(USE_HIP OFF CACHE BOOL "Use HIP")
 set(HIP_TARGET "AMD" CACHE STRING "HIP backend. must be either AMD or NVIDIA")
 
-
 if ( USE_STDPAR )
   if ( ${STDPAR_TARGET} STREQUAL "cpu" )
     if ( NOT RNDGEN_CPU )

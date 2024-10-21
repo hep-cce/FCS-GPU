@@ -4,21 +4,32 @@
 #include "Rand4Hits.h"
 #include "DEV_BigMem.h"
 
-#include <omp.h>
-#ifdef OMP_OFFLOAD_TARGET_NVIDIA
-#include "gpuQ.h"
-#include <cuda_runtime_api.h>
-#include <curand.h>
-#endif
-
 #include "GpuParams.h"
 #include "Rand4Hits_cpu.cxx"
 
-#define CURAND_CALL( x )                                                                                               \
-  if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
-    printf( "Error at %s:%d\n", __FILE__, __LINE__ );                                                                  \
-    exit( EXIT_FAILURE );                                                                                              \
-  }
+#include <omp.h>
+#ifdef RNDGEN_OMP
+#  include "openmp_rng.h"
+#endif
+
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+#  include "gpuQ.h"
+#  include <cuda_runtime_api.h>
+#  include <curand.h>
+#  define CURAND_CALL( x )                                                                                               \
+    if ( ( x ) != CURAND_STATUS_SUCCESS ) {                                                                              \
+      printf( "Error at %s:%d\n", __FILE__, __LINE__ );                                                                  \
+      exit( EXIT_FAILURE );                                                                                              \
+    }
+#elif defined OMP_OFFLOAD_TARGET_AMD
+#  include "hip/hip_runtime.h"
+#  include <rocrand.h>
+#  define ROCRAND_CALL( x )                                                         \
+    if ((x) != ROCRAND_STATUS_SUCCESS) {                                          \
+      printf("Error at %s:%d\n", __FILE__, __LINE__);                            \
+      exit(EXIT_FAILURE);                                                        \
+    }
+#endif
 
 void Rand4Hits::allocate_simulation( int maxbins, int maxhitct, unsigned long n_cells ) {
 
@@ -73,9 +84,16 @@ Rand4Hits::~Rand4Hits() {
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
+#ifndef RNDGEN_CPU
+#ifndef USE_RANDOM123
 #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
     delete (curandGenerator_t*)m_gen;
+#elif defined OMP_OFFLOAD_TARGET_AMD
+    ROCRAND_CALL(rocrand_destroy_generator( *( (rocrand_generator*)m_gen)));
+    delete (rocrand_generator *)m_gen;
+#endif
+#endif
 #endif
   }
 };
@@ -89,7 +107,7 @@ void Rand4Hits::rd_regen() {
     }
   } else {
 #ifdef RNDGEN_OMP 	
-#ifdef USE_RANDOM123
+#  ifdef USE_RANDOM123
     auto gen = generator_enum::xorwow;
     float* f_r123 = (float*) malloc ( 3 * m_total_a_hits * sizeof( float ) );
     omp_get_rng_uniform_float(f_r123, 3 * m_total_a_hits, m_seed, gen);
@@ -98,14 +116,18 @@ void Rand4Hits::rd_regen() {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
     free(f_r123);
-#else
+#  else
     omp_get_rng_uniform_float(m_rand_ptr, 3 * m_total_a_hits, m_seed, gen);
-#endif 
-#endif 
-    //CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
-#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+#  endif
+#else
+#  ifndef RNDGEN_CPU
+#  ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandGenerateUniform( *( (curandGenerator_t*)m_gen ), m_rand_ptr, 3 * m_total_a_hits ) );
-#endif
+#  elif defined OMP_OFFLOAD_TARGET_AMD
+    ROCRAND_CALL(rocrand_generate_uniform( *( (rocrand_generator*)m_gen), m_rand_ptr, 3 * m_total_a_hits));
+#  endif
+#  endif
+#endif 
   }
 };
 
@@ -127,7 +149,7 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     }
   } else {
 #ifdef RNDGEN_OMP 	
-#ifdef USE_RANDOM123
+ #ifdef USE_RANDOM123
     f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
     float* f_r123 = (float*) malloc ( num * sizeof( float ) );
     auto gen = generator_enum::xorwow; 
@@ -137,23 +159,33 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
       std::cout << "ERROR: copy random numbers from cpu to gpu " << std::endl;
     }
     free(f_r123);
-#else
+ #else
     f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
     auto gen = generator_enum::xorwow; 
     omp_get_rng_uniform_float(f, num, seed, gen);
-#endif 
+ #endif 
     m_gen = (void*)gen;
     // We need to save the seed for rd_regen
     m_seed = seed;
-#endif 
-#ifdef OMP_OFFLOAD_TARGET_NVIDIA
+#else
+ #ifndef RNDGEN_CPU
+  #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     gpuQ( cudaMalloc( &f, num * sizeof( float ) ) );
     curandGenerator_t* gen = new curandGenerator_t;
     CURAND_CALL( curandCreateGenerator( gen, CURAND_RNG_PSEUDO_DEFAULT ) );
     CURAND_CALL( curandSetPseudoRandomGeneratorSeed( *gen, seed ) );
     CURAND_CALL( curandGenerateUniform( *gen, f, num ) );
     m_gen = (void*)gen;
-#endif
+  #elif defined OMP_OFFLOAD_TARGET_AMD
+    hipMalloc(&f, num * sizeof(float));
+    rocrand_generator* gen = new rocrand_generator;
+    ROCRAND_CALL(rocrand_create_generator(gen, ROCRAND_RNG_PSEUDO_DEFAULT));
+    ROCRAND_CALL(rocrand_set_seed(*gen, seed));
+    ROCRAND_CALL(rocrand_generate_uniform(*gen, f, num));
+    m_gen = (void*)gen;
+  #endif
+ #endif   
+#endif 
   }
 
   m_rand_ptr = f;
