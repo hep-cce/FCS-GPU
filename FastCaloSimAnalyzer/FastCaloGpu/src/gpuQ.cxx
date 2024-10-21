@@ -3,6 +3,7 @@
 */
 
 #ifdef USE_OMPGPU
+#ifdef OMP_OFFLOAD_TARGET_NVIDIA
 #include "gpuQ.h"
 #include <iostream>
 
@@ -13,6 +14,7 @@ void gpu_assert(cudaError_t code, const char *file, const int line) {
     exit(code);
   }
 }
+#endif
 #else
 #include "gpuQ.cu"
 #endif

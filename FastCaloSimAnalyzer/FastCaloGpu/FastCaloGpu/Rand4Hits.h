@@ -170,6 +170,7 @@ private:
   unsigned int m_current_hits;
   void *m_gen{ nullptr };
   bool m_useCPU{ false };
+  unsigned long long m_seed{0};
 
   // patch in some GPU pointers for cudaMalloc
   CELL_ENE_T *m_cells_energy{ 0 };
