@@ -80,11 +80,13 @@ Rand4Hits::~Rand4Hits() {
               << "  lost: " << DEV_BigMem::bm_ptr->lost() << std::endl;
     delete DEV_BigMem::bm_ptr;
   }
+#ifdef RNDGEN_OMP 	
   omp_target_free( m_rand_ptr, m_select_device );
+#endif
   if ( m_useCPU ) {
     destroyCPUGen();
   } else {
-#ifndef RNDGEN_CPU
+#ifndef RNDGEN_OMP 	
 #ifndef USE_RANDOM123
 #ifdef OMP_OFFLOAD_TARGET_NVIDIA
     CURAND_CALL( curandDestroyGenerator( *( (curandGenerator_t*)m_gen ) ) );
@@ -107,8 +109,8 @@ void Rand4Hits::rd_regen() {
     }
   } else {
 #ifdef RNDGEN_OMP 	
-#  ifdef USE_RANDOM123
     auto gen = generator_enum::xorwow;
+#  ifdef USE_RANDOM123
     float* f_r123 = (float*) malloc ( 3 * m_total_a_hits * sizeof( float ) );
     omp_get_rng_uniform_float(f_r123, 3 * m_total_a_hits, m_seed, gen);
     if ( omp_target_memcpy( m_rand_ptr, f_r123, 3 * m_total_a_hits * sizeof( float ), m_offset, m_offset, m_select_device,
@@ -149,10 +151,10 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     }
   } else {
 #ifdef RNDGEN_OMP 	
- #ifdef USE_RANDOM123
     f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
-    float* f_r123 = (float*) malloc ( num * sizeof( float ) );
     auto gen = generator_enum::xorwow; 
+ #ifdef USE_RANDOM123
+    float* f_r123 = (float*) malloc ( num * sizeof( float ) );
     omp_get_rng_uniform_float(f_r123, num, seed, gen);
     if ( omp_target_memcpy( f, f_r123, num * sizeof( float ), m_offset, m_offset, m_select_device,
                             m_initial_device ) ) {
@@ -160,8 +162,6 @@ void Rand4Hits::create_gen( unsigned long long seed, size_t num, bool useCPU ) {
     }
     free(f_r123);
  #else
-    f = (float*)omp_target_alloc( num * sizeof( float ), m_select_device );
-    auto gen = generator_enum::xorwow; 
     omp_get_rng_uniform_float(f, num, seed, gen);
  #endif 
     m_gen = (void*)gen;
