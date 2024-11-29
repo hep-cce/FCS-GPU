@@ -1,0 +1,41 @@
+name: Build Container images with FastCaloSim
+
+on:
+  workflow_dispatch:
+    inputs:
+      run_build:
+        description: "Run the build job?"
+        required: false
+        default: "false"
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: [self-hosted, pm-login]
+    name: Build and push images
+    if: ${{ github.event.inputs.run_build == 'true' }}
+    env:
+      LOG_DIR: ${{ github.workspace }}/logs/build
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Build images
+      run: |
+        cd ./scripts/build_scripts
+        ./build_images.sh
+
+    - name: Upload log files
+      uses: actions/upload-artifact@v4
+      with:
+        name: Log File - Building and Pushing container images
+        path: ${{ env.LOG_DIR }}/*.txt
+
+    - name: Cleanup workspace
+      run: rm -rf ${{ github.workspace }}/*

@@ -1,0 +1,81 @@
+INFO - Thu Aug  1 17:15:21 UTC 2024 - DATAPATH: /local/scratch/cgleggett/data/FastCaloSimInputs:/input
+INFO - Thu Aug  1 17:15:21 UTC 2024 - System information:
+INFO - Thu Aug  1 17:15:21 UTC 2024 - Executing: perl /run/sysinfo.pl
+{
+  "hostname": "ffd161669a69",
+  "OS": "unknown",
+  "cpu_id": "AMD EPYC 7302P 16-Core Processor",
+  "max_clock": "3000.0000",
+  "sockets": "1",
+  "threads_per_core": "2",
+  "cores": "32",
+  "GPUs": [
+    {
+        "compute_capability": "8.0",
+        "driver": "550.54.15",
+        "gpu_id": "NVIDIA A100 80GB PCIe",
+        "graphics_clock": "1512 MHz",
+        "memory": "81920 MiB",
+        "memory_clock": "1410 MHz",
+        "sm_clock": "1410 MHz",
+    },
+  ],
+}
+md5 sum: 976d06b6a3478e6ca97d9dd22d43b116 976d06b6
+INFO - Thu Aug  1 17:15:23 UTC 2024 - CPU information:
+INFO - Thu Aug  1 17:15:23 UTC 2024 - Executing: lscpu
+Architecture:                       x86_64
+CPU op-mode(s):                     32-bit, 64-bit
+Address sizes:                      43 bits physical, 48 bits virtual
+Byte Order:                         Little Endian
+CPU(s):                             32
+On-line CPU(s) list:                0-31
+Vendor ID:                          AuthenticAMD
+Model name:                         AMD EPYC 7302P 16-Core Processor
+CPU family:                         23
+Model:                              49
+Thread(s) per core:                 2
+Core(s) per socket:                 16
+Socket(s):                          1
+Stepping:                           0
+Frequency boost:                    enabled
+CPU max MHz:                        3000.0000
+CPU min MHz:                        1500.0000
+BogoMIPS:                           5988.87
+Flags:                              fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl nonstop_tsc cpuid extd_apicid aperfmperf pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sme sev sev_es
+Virtualization:                     AMD-V
+L1d cache:                          512 KiB (16 instances)
+L1i cache:                          512 KiB (16 instances)
+L2 cache:                           8 MiB (16 instances)
+L3 cache:                           128 MiB (8 instances)
+NUMA node(s):                       1
+NUMA node0 CPU(s):                  0-31
+Vulnerability Gather data sampling: Not affected
+Vulnerability Itlb multihit:        Not affected
+Vulnerability L1tf:                 Not affected
+Vulnerability Mds:                  Not affected
+Vulnerability Meltdown:             Not affected
+Vulnerability Mmio stale data:      Not affected
+Vulnerability Retbleed:             Mitigation; untrained return thunk; SMT enabled with STIBP protection
+Vulnerability Spec rstack overflow: Mitigation; Safe RET
+Vulnerability Spec store bypass:    Mitigation; Speculative Store Bypass disabled via prctl
+Vulnerability Spectre v1:           Mitigation; usercopy/swapgs barriers and __user pointer sanitization
+Vulnerability Spectre v2:           Mitigation; Retpolines, IBPB conditional, STIBP always-on, RSB filling, PBRSB-eIBRS Not affected
+Vulnerability Srbds:                Not affected
+Vulnerability Tsx async abort:      Not affected
+INFO - Thu Aug  1 17:15:23 UTC 2024 - GPU information:
+INFO - Thu Aug  1 17:15:23 UTC 2024 - Executing: nvidia-smi --query-gpu=name,driver_version,count,clocks.max.sm,clocks.max.memory,memory.total,memory.used,memory.free,utilization.gpu,utilization.memory,temperature.gpu,temperature.memory --format=csv
+name, driver_version, count, clocks.max.sm [MHz], clocks.max.memory [MHz], memory.total [MiB], memory.used [MiB], memory.free [MiB], utilization.gpu [%], utilization.memory [%], temperature.gpu, temperature.memory
+NVIDIA A100 80GB PCIe, 550.54.15, 1, 1410 MHz, 1512 MHz, 81920 MiB, 0 MiB, 81037 MiB, 20 %, 0 %, 37, 51
+INFO - Thu Aug  1 17:15:25 UTC 2024 - Setup
+INFO - Thu Aug  1 17:15:25 UTC 2024 - Executing: export FCS_DATAPATH=/input
+INFO - Thu Aug  1 17:15:25 UTC 2024 - Executing: source /hep-mini-apps/root/install/bin/thisroot.sh
+INFO - Thu Aug  1 17:15:26 UTC 2024 - Executing: source /hep-mini-apps/FCS-GPU/install/setup.sh
+/run/run_fcs-gpu.sh: line 13: /hep-mini-apps/FCS-GPU/install/setup.sh: No such file or directory
+INFO - Thu Aug  1 17:15:26 UTC 2024 - TFCSSimulation
+INFO - Thu Aug  1 17:15:26 UTC 2024 - Executing: runTFCSSimulation --earlyReturn --energy 65536
+Reading input files from /input
+Initialising DSID DB...
+terminate called after throwing an instance of 'std::logic_error'
+  what():  basic_string::_M_construct null not valid
+/run/run_fcs-gpu.sh: line 13:    56 Aborted                 (core dumped) runTFCSSimulation --earlyReturn --energy 65536
