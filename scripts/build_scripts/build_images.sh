@@ -9,11 +9,13 @@ NVHPC_VERSION=23.9-devel-cuda12.2-${OS_BASE}
 ROOT_VERSION=v6-30-04
 FCS_BRANCH=dingpf/packaging
 
+
 ROOT_DOT_VERSION=${ROOT_VERSION//v/}
 ROOT_DOT_VERSION=${ROOT_DOT_VERSION//-/.}
 NVHPC_BASE_IMAGE=nvcr.io/nvidia/nvhpc:${NVHPC_VERSION}
 CUDA_BASE_IMAGE=docker.io/nvidia/cuda:${CUDA_VERSION}
 UBUNTU_BASE_IMAGE=docker.io/library/ubuntu:22.04
+ROCM_BASE_IMAGE=rocm/rocm-terminal:6.2.1
 #REGISTRY_PROJECT=docker.io/dingpf
 REGISTRY_PROJECT=registry.nersc.gov/m2845
 
@@ -137,5 +139,17 @@ done
 echo "INFO - $(date) - Building additional FCS images..." | tee -a ${logfile}
 build_and_push_fcs_image ${NVHPC_BASE_IMAGE} fcs-stdpar-cuda
 build_and_push_fcs_image ${CUDA_BASE_IMAGE} fcs-hip-cuda
+
+echo "INFO - $(date) - Building ROCm ROOT image..." | tee -a ${logfile}
+rocm_img_tag=$(basename ${ROCM_BASE_IMAGE})
+rocm_img_tag=${rocm_img_tag//:/}
+root_rocm_image_tag=${REGISTRY_PROJECT}/root:${ROOT_DOT_VERSION}-${rocm_img_tag}
+$CONTAINER_CMD build -f root-rocm.Dockerfile \
+    --build-arg=BASE=${ROCM_BASE_IMAGE} \
+    --build-arg=ROOT_VERSION=${ROOT_VERSION} \
+    -t ${root_rocm_image_tag} . | tee -a ${logfile}
+
+echo "INFO - $(date) - Building ROCm HIP FCS image..." | tee -a ${logfile}
+build_and_push_fcs_image ${ROCM_BASE_IMAGE} fcs-hip-rocm
 
 echo "INFO - $(date) - Script completed successfully!" | tee -a ${logfile}
