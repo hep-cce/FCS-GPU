@@ -41,5 +41,3 @@ RUN \
           $ROOT_SRC_DIR && \
      make -j 64 install && \
      rm -rf $ROOT_BUILD_DIR
-
-CMD ["/usr/bin/bash" "-l"]

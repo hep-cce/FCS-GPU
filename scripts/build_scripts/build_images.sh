@@ -148,6 +148,7 @@ $CONTAINER_CMD build -f root-rocm.Dockerfile \
     --build-arg=BASE=${ROCM_BASE_IMAGE} \
     --build-arg=ROOT_VERSION=${ROOT_VERSION} \
     -t ${root_rocm_image_tag} . | tee -a ${logfile}
+$CONTAINER_CMD push  ${root_rocm_image_tag} | tee -a  ${logfile}
 
 echo "INFO - $(date) - Building ROCm HIP FCS image..." | tee -a ${logfile}
 build_and_push_fcs_image ${ROCM_BASE_IMAGE} fcs-hip-rocm
