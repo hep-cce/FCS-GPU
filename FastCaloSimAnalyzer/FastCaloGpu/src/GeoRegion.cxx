@@ -6,13 +6,13 @@
 #include <iostream>
 #include <algorithm>
 
-#define PI 3.14159265358979323846
+#define PI_FCS 3.14159265358979323846
 #define TWOPI 2 * 3.14159265358979323846
 
 __HOSTDEV__ double Phi_mpi_pi(double x) {
-  while (x >= PI)
+  while (x >= PI_FCS)
     x -= TWOPI;
-  while (x < -PI)
+  while (x < -PI_FCS)
     x += TWOPI;
   return x;
 }
