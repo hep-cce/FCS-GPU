@@ -4,10 +4,10 @@
 #
 
 
-ROOT_VERSION=v6-30-04
+ROOT_VERSION=v6-32-10
 
 
-WORK_DIR=$SCRATCH/hep-mini-apps
+WORK_DIR=$WORK/hep-mini-apps
 
 SRC_DIR=$WORK_DIR/root_src
 INSTALL_DIR=$WORK_DIR/root_install
@@ -20,7 +20,9 @@ mkdir -p $BUILD_DIR
 mkdir -p $INSTALL_DIR
 
 cd $BUILD_DIR 
-CC=/opt/apps/gcc/13.2.0/bin/gcc cc=/opt/apps/gcc/13.2.0/bin/g++ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+ml gcc/13.2.0
+CC=/opt/apps/gcc/13.2.0/bin/gcc CXX=/opt/apps/gcc/13.2.0/bin/g++ cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
+cmake -DCMAKE_INSTALL_PREFIX=$INSTALL_DIR \
        	-DCMAKE_CXX_FLAGS=-std=c++17 \
 	-Dx11=OFF -Dtbb=OFF \
 	-Dopengl=OFF -Dgviz=OFF \
@@ -34,5 +36,5 @@ CC=/opt/apps/gcc/13.2.0/bin/gcc cc=/opt/apps/gcc/13.2.0/bin/g++ cmake -DCMAKE_IN
 	-DCMAKE_CXX_STANDARD=17 \
 	-DCMAKE_CXX_EXTENSIONS=Off \
 	$SRC_DIR
-make -j 128 install
-# took about 15 minutes with -j 128, source, build, and install dir are all on $PSCRATCH
+make -j 30 install
+# took about 15 minutes with -j 128, source, build, and install dir are all on $PWORK

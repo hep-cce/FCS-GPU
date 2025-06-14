@@ -163,8 +163,8 @@ endif()
 # In 64-bit build mode this overrides the default library segment alignment
 # of 1 MB:
 if( "${CMAKE_SIZEOF_VOID_P}" EQUAL "8" AND NOT APPLE )
-   _add_flag( CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,max-page-size=0x1000" )
-   _add_flag( CMAKE_MODULE_LINKER_FLAGS "-Wl,-z,max-page-size=0x1000" )
+   _add_flag( CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,max-page-size=0x10000" )
+   _add_flag( CMAKE_MODULE_LINKER_FLAGS "-Wl,-z,max-page-size=0x10000" )
 endif()
 
 # This has some benefits in the speed of loading libraries:

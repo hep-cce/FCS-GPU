@@ -42,6 +42,8 @@ log "Setup"
 export FCS_DATAPATH=/input
 source /hep-mini-apps/root/install/bin/thisroot.sh
 source /hep-mini-apps/FCS-GPU/install/setup.sh
+export LD_LIBRARY_PATH=/home1/apps/nvidia/Linux_aarch64/24.7/math_libs/12.5/targets/sbsa-linux/lib:$LD_LIBRARY_PATH
+
 
 log "TFCSSimulation"
 log_command "runTFCSSimulation --earlyReturn --energy 65536"

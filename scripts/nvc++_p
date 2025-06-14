@@ -10,7 +10,8 @@ A=$*
 #
 if [[ -z ${NVHPC_LOCALRC+x} ]]; then
     GCCVER=$( gcc --version | head -1 | awk '{print $NF}' | sed s/'\.'//g | sed s/.$// )
-    NVHPC_LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc${GCCVER}"
+    NVHPC_LOCALRC="${NVHPC_ROOT}/bin/localrc"
+    #NVHPC_LOCALRC="${NVHPC_ROOT}/compilers/bin/localrc_gcc${GCCVER}"
 fi
 
 if [[ ! -f $NVHPC_LOCALRC ]]; then

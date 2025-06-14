@@ -1,0 +1,22 @@
+set LFC=-lgfortran;
+set LDSO=/lib/ld-linux-aarch64.so.1;
+set GCCDIR=/usr/lib/gcc/aarch64-redhat-linux/11/;
+set G77DIR=/usr/lib/gcc/aarch64-redhat-linux/11/;
+set OEM_INFO=linuxarm64 target on aarch64 Linux $INFOTPVAL;
+set GNUATOMIC=-latomic;
+set GCCINC=/usr/lib/gcc/aarch64-redhat-linux/11/include /usr/local/include /usr/include;
+set GPPDIR=/usr/lib/gcc/aarch64-redhat-linux/11/../../../../include/c++/11 /usr/lib/gcc/aarch64-redhat-linux/11/../../../../include/c++/11/aarch64-redhat-linux /usr/lib/gcc/aarch64-redhat-linux/11/../../../../include/c++/11/backward /usr/lib/gcc/aarch64-redhat-linux/11/include /usr/local/include /usr/include;
+set LOCALRC=YES;
+set EXTENSION=__extension__=;
+set COMPGLIBLFDIR=;
+set LC=$if(-Bstatic,-lgcc -lgcc_eh -lc, -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed);
+set DEFLIBDIR=/usr/lib64;
+set DEFSTDOBJDIR=/usr/lib64;
+set DEFCUDAVERSION=12.5;
+set DEFSTDPARCOMPUTECAP=90;
+# GLIBC version 2.34
+# GCC version 11.4.1
+set GCCVERSION=110401;
+set LOCALDEFS=__STDC_HOSTED__;
+export PGI=$COMPBASE;
+# makelocalrc executed by dingpf Sat Mar 29 12:17:26 CDT 2025
